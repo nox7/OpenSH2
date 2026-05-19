@@ -3,6 +3,53 @@
 Last updated: 2026-05-19
 Sample used: `maps/war_chapter1.s2m` (size: 673,069 bytes)
 
+## Current best-known file structure (concise)
+
+This is the practical model to use right now.
+
+1. Header (certain)
+- Little-endian.
+- String options list: `name` (ASCII string), `value` (UTF-16LE length-prefixed string).
+- Integer options list: `name` (ASCII string), `value` (int32).
+- Observed across all 48 maps.
+
+2. Segment A (certain location, high-confidence meaning)
+- Starts immediately at `headerEnd` with bytes `78 9C`.
+- Decoded as zlib header + deflate body.
+- Compressed length is consistently 8194 bytes from `headerEnd`.
+- Meaning: scenario/mission/script metadata (tokens like `MapHeader`, `Scenario`, `Trigger`, `WinAction`, `LoseAction`).
+
+3. Dominant world payload (high-confidence)
+- A later zlib stream exists in many maps at variable offsets.
+- Inflates to large payloads (roughly 9.5 MB to 10.6 MB in tested files).
+- Meaning: core world/simulation data (tokens like `S2Game`, `Simulation`, `Floaters`, `Landscape`, `FX_ENVIRONMENT_*`).
+
+4. Internal world payload regions (high-confidence pattern, unresolved exact schema)
+- Region carving repeatedly finds terrain/grid-like and systems/entity-like zones.
+- Frequent dimension-like int32 pairs: `255x255`, `256x256`, `128x128`, `32x32`, `512x512`, `1024x1024`.
+- Practical interpretation:
+  - core simulation/bootstrap data
+  - grid/terrain data
+  - environment/fx data
+  - entities/pathing/system data
+
+5. Unresolved
+- Exact global container/chunk table for all compressed parts is still not fully proven.
+- "Exactly 3 sequential top-level compressed chunks" is not yet confirmed as a universal rule.
+- Some maps expose dominant world payloads cleanly; others require more robust stream selection logic.
+
+## Unity-facing parsing strategy (current recommendation)
+
+1. Parse header deterministically.
+2. Parse Segment A deterministically from `headerEnd`.
+3. Discover candidate later zlib streams and select dominant world payload by decompressed size + anchor tokens.
+4. Parse dominant payload by semantic regions (not fixed absolute offsets):
+  - `core-simulation`
+  - `grid-or-terrain`
+  - `environment-fx`
+  - `entities-and-systems`
+5. Preserve unknown regions as raw bytes for forward-compatible decoder updates.
+
 ## 1) Confirmed primitive types
 
 All observations below are consistent with little-endian encoding.
@@ -180,3 +227,105 @@ headerEnd = stream.Position
 - Segment A likely stores scenario/global script metadata
 - Large later stream likely stores world-state data (static and possibly dynamic)
 - Number of top-level compressed sections: unresolved
+
+## 10) Automated locator run (C# tool)
+
+A C# analyzer was added at `tools/S2mStreamLocator` and executed across all 48 maps.
+
+Generated reports:
+
+- `reports/s2m_stream_locator_report.csv`
+- `reports/s2m_stream_locator_summary.md`
+
+High-level outcomes from that run:
+
+- Segment A classified as `scenario-like` in 48/48 maps.
+- Segment B (immediately after Segment A end) did not decode as clean raw-deflate in the generalized scanner (0/48 successful direct decodes).
+- Dominant large stream classified as `world-like` in 30/48 maps using token heuristics.
+
+By map type (from generated summary):
+
+- `freebuild`: 8 maps, Segment A scenario-like in 8/8, dominant world-like in 5/8.
+- `kingmaker`: 21 maps, Segment A scenario-like in 21/21, dominant world-like in 17/21.
+- `peacecampaign`: 4 maps, Segment A scenario-like in 4/4, dominant world-like in 1/4.
+- `warcampaign`: 15 maps, Segment A scenario-like in 15/15, dominant world-like in 7/15.
+
+Important interpretation note:
+
+- "Not world-like" here means the token classifier was inconclusive, not that a large payload is absent.
+- Many large-stream token sets are noisy due to binary data mixed with occasional readable identifiers.
+
+Practical conclusion:
+
+- The automated pass reinforces that Segment A is strongly tied to scenario scripting/configuration.
+- A later, much larger compressed payload is consistently present and strongly associated with simulation/landscape/environment data.
+
+## 11) Generic boundary strategy (works per-file, not fixed offsets)
+
+To make sense of *any* map file, use this repeatable strategy instead of hard-coded chunk positions:
+
+1. Parse header (already stable across files).
+2. Decode Segment A from `headerEnd` (`78 9C` + deflate body), classify as scenario-like when tokens include `Scenario`, `Trigger`, `MapHeader`.
+3. Scan for candidate zlib starts (`0x78 ??` with checksum mod 31) after Segment A and inflate candidates.
+4. Pick dominant world payload by decompressed size (large MB-scale stream) and classify with anchor tokens.
+5. Carve the dominant payload using 4 signals:
+  - anchor token offsets (`S2Game`, `Simulation`, `Floaters`, `Landscape`, `FX_ENVIRONMENT_*`),
+  - windowed metric jumps (printable ratio, zero-byte ratio, unique-byte count) every 4096 bytes,
+  - length-prefixed ASCII record names,
+  - frequent int32 pair patterns that look like dimensions (`255x255`, `256x256`, `128x128`, `32x32`, etc.).
+
+New carving reports generated by the tool:
+
+- `reports/s2m_structure_carving_report.csv`
+- `reports/s2m_structure_carving_summary.md`
+
+Observed stable anchors in maps with dominant payloads (30 files):
+
+- `S2Game` appears in 30/30
+- `Simulation` appears in 30/30
+- `Floaters` appears in 30/30
+- `Landscape` appears in 30/30
+
+Observed useful boundary hints:
+
+- First major feature transition commonly appears at offset `4096` in decompressed dominant payloads.
+- Frequent dimension-like pairs include values such as `255x255`, `256x256`, `128x128`, `32x32`, `512x512`, `1024x1024`.
+
+Interpretation:
+
+- This gives a practical, map-agnostic parsing workflow: locate anchors, then split into candidate regions via metric transitions and dimension/table signatures.
+- Even when top-level compressed sections differ in placement, this method still produces consistent semantic entry points.
+
+## 12) Region-slice scaffolding for reconstruction
+
+The analyzer now emits candidate region slices for each map with a dominant large payload.
+
+New files:
+
+- `reports/s2m_region_slices.csv`
+- `reports/s2m_region_slices_summary.md`
+
+What each slice record contains:
+
+- start offset (within decompressed dominant payload)
+- end offset
+- byte length
+- semantic label (`core-simulation`, `grid-or-terrain`, `environment-fx`, `entities-and-systems`, `mixed-unknown`, `binary-opaque`)
+- confidence score
+- nearby anchor tokens
+- top token hints and dimension-pair hints
+
+Latest run highlights:
+
+- region slices produced for 30/48 maps
+- average slices per covered map: 20.4
+- common labels show a recurring parse order opportunity:
+  - core simulation bootstrap
+  - grid/terrain data blocks
+  - environment/fx blocks
+  - entities/systems blocks
+
+Unity planning implication:
+
+- Use these slices as staged import phases instead of trying to decode the entire payload at once.
+- Persist unknown slices in raw form so importer revisions can decode them later without breaking compatibility.
