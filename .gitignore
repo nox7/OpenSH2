@@ -104,3 +104,8 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+/[Aa]ssets/Cache/Video/*
+!/[Aa]ssets/Cache/Video/.gitkeep
+/[Aa]ssets/Cache/Audio/*
+!/[Aa]ssets/Cache/Audio/.gitkeep
