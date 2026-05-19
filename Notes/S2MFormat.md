@@ -100,20 +100,23 @@ Frequent dimension-like int32 pairs:
 - Direct ASCII name matching of `landtex.txt` texture entries against the dominant payload of `war_chapter1.s2m` found **0 direct filename hits**.
 - Current implication: terrain texture references in `.s2m` are likely stored as indices/enums/indirect IDs rather than literal BMP filenames.
 
-`HeightLayer` anchor correlation (cross-map check):
+`HeightLayer` tile record encoding (confirmed, high confidence):
 
-- In sampled maps (`war_chapter1`, `Coastal County`, `peace_chapter1`, `Arena of Kings`), `HeightLayer` appears in dominant payload and has a nearby repeated int32 pair:
-  - `1024 x 256`
-- Observed examples:
-  - `war_chapter1`: `HeightLayer` at `5651748`, pair `1024x256` at `5651796`
-  - `Coastal County`: `HeightLayer` at `5557690`, pair `1024x256` at `5557770`
-  - `peace_chapter1`: `HeightLayer` at `5908234`, pair `1024x256` at `5908346`
-  - `Arena of Kings`: `HeightLayer` at `5449335`, pair `1024x256` at `5449383`
-
-Interpretation:
-
-- `HeightLayer` is a strong anchor for terrain-related data.
-- The nearby `1024x256` pair is likely structural metadata (layout/chunking/atlas dimensions) and not yet proven to be final in-world terrain size.
+- `HeightLayer` appears in dominant payload with a nearby `int32` pair `1024 x 256`.
+- **The pair is a byte-block size, not a tile dimension**: `1024 bytes/row = 256 tiles × 4 bytes/tile`, across `256 rows`.
+- True logical tile grid: **256 × 256 tiles**.
+- Each tile is a **4-byte record**:
+  - `byte 0`: raw elevation `u8` — confirmed clean heightmap
+  - `byte 1`: smoothed/interpolated elevation `u8` — softer version of same terrain
+  - `byte 2`: terrain zone/type classification `u8` — coarse biome-like zones
+  - `byte 3`: texture ID or per-tile flags `u8` — noisy/speckled
+- Data start: `PairOffset + 8` (immediately after the two `int32` dimensions).
+- Confirmed anchor offsets:
+  - `war_chapter1`: pair at `5651796`, data at `5651804`
+  - `Coastal County`: pair at `5557770`, data at `5557778`
+  - `peace_chapter1`: pair at `5908346`, data at `5908354`
+  - `Arena of Kings`: pair at `5449383`, data at `5449391`
+- Visual validation: `war_chapter1_heightmap_final.png` (256×256 grayscale, byte 0) shows recognizable terrain matching in-game geography; dark = water/low, light = elevated land.
 
 ### 7) What remains unresolved
 
@@ -131,14 +134,22 @@ Interpretation:
 
 Terrain-first implementation note:
 
-1. Anchor on `HeightLayer` in dominant payload.
-2. Capture nearby structural ints (including recurring `1024x256`).
-3. Search forward for candidate raster blocks with `256x256` / `255x255` signatures.
-4. Validate candidate height grids by continuity tests (neighbor deltas, slope sanity) before rendering.
-5. Resolve texturing as index mapping first; defer filename resolution until an index->material table is identified.
+1. Anchor on `HeightLayer` string in dominant payload.
+2. Read the two `int32` values immediately after as the byte-block dimensions (`1024`, `256`).
+3. Data block starts at `PairOffset + 8`; total size = `1024 × 256 = 262144` bytes.
+4. Interpret as a `256 × 256` grid of 4-byte tile records:
+   - `byte 0`: elevation (use as `TerrainData.SetHeights` input, normalize `/ 255f`)
+   - `byte 1`: smoothed elevation (optional secondary mesh pass)
+   - `byte 2`: terrain zone (map to material index)
+   - `byte 3`: texture ID / flags (map to splat layer)
+5. Resolve texturing as index mapping first; defer filename resolution until an index→material table is identified.
 
 ## Generated analysis artifacts
 
+- `reports/war_chapter1_heightmap_final.png` — confirmed 256×256 u8 heightmap (byte 0 of 4-byte tile records)
+- `reports/war_chapter1_hm_256x256_b1.png` — smoothed elevation layer
+- `reports/war_chapter1_hm_256x256_b2.png` — terrain zone layer
+- `reports/war_chapter1_hm_256x256_b3.png` — texture/flags layer
 - `reports/s2m_stream_locator_report.csv`
 - `reports/s2m_stream_locator_summary.md`
 - `reports/s2m_structure_carving_report.csv`
