@@ -1,0 +1,14 @@
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\bin\Debug\net10.0\S2mStreamLocator.exe
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\bin\Debug\net10.0\S2mStreamLocator.deps.json
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\bin\Debug\net10.0\S2mStreamLocator.runtimeconfig.json
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\bin\Debug\net10.0\S2mStreamLocator.dll
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\bin\Debug\net10.0\S2mStreamLocator.pdb
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\S2mStreamLocator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\S2mStreamLocator.AssemblyInfoInputs.cache
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\S2mStreamLocator.AssemblyInfo.cs
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\S2mStreamLocator.csproj.CoreCompileInputs.cache
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\S2mStreamLocator.dll
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\refint\S2mStreamLocator.dll
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\S2mStreamLocator.pdb
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\S2mStreamLocator.genruntimeconfig.cache
+C:\Steam\steamapps\common\Stronghold 2\tools\S2mStreamLocator\obj\Debug\net10.0\ref\S2mStreamLocator.dll

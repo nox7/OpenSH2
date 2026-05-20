@@ -1,0 +1,613 @@
+FileName,MapType,DominantLargeStart,RegionIndex,Start,EndExclusive,Length,Label,Confidence,AnchorTokens,TopTokens,DimensionPairs
+Arena of Kings.s2m,kingmaker,16668,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,ETu9EW|A2bVBG|A2jlA|A5DtW7DYV8DU|A8eYChD|ACDkA|ACQyDC|APa0B,
+Arena of Kings.s2m,kingmaker,16668,1,266240,786432,520192,binary-opaque,35,,,
+Arena of Kings.s2m,kingmaker,16668,2,786432,1187840,401408,grid-or-terrain,76,,,256x257:5|513x257:5|512x512:4|513x770:4|514x515:4|256x256:3
+Arena of Kings.s2m,kingmaker,16668,3,1187840,1454080,266240,binary-opaque,39,,,1024x512:4|1539x1028:4|512x1024:4|771x512:4
+Arena of Kings.s2m,kingmaker,16668,4,1454080,1843200,389120,binary-opaque,35,,,
+Arena of Kings.s2m,kingmaker,16668,5,1843200,2105344,262144,binary-opaque,35,,,
+Arena of Kings.s2m,kingmaker,16668,6,2105344,2268635,163291,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Arena of Kings.s2m,kingmaker,16668,7,2268635,4300800,2032165,environment-fx,81,FX_ENVIRONMENT_,FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_BROOK|ActorMgr|BuildingHandler|BuildingMgr|ElementMgr,
+Arena of Kings.s2m,kingmaker,16668,8,4300800,4562944,262144,grid-or-terrain,85,,BiDiPathfinder|Camera|ClanMgr|EmitterMgr|Estate|FHi8bD|Forest|G67J,768x768:45|512x512:16|512x1024:15
+Arena of Kings.s2m,kingmaker,16668,9,4562944,4837376,274432,grid-or-terrain,83,,C33s|Cfff|B33s|lC33s|TCfff|VC33s|AOgGtU|ActorGroup,128x128:4
+Arena of Kings.s2m,kingmaker,16668,10,4837376,5251072,413696,entities-and-systems,66,,ClaimLayer|ConnectionLayer|ContextLayer,
+Arena of Kings.s2m,kingmaker,16668,11,5251072,5517312,266240,mixed-unknown,47,,A7DN|BSVoB|BcRIBN|BhIrB|BplBB|BusKB|Bx5gB|C28LC,
+Arena of Kings.s2m,kingmaker,16668,12,5517312,6017024,499712,mixed-unknown,47,,DNNQD|E7YtE|BSVoB|C28LC|C9_JC|D0zUD|E0luE|EKxxE,
+Arena of Kings.s2m,kingmaker,16668,13,6017024,6443008,425984,mixed-unknown,47,,E9WgE|EMcaE|ElOoE|Bl1vB|CLVFC|CL_qC|CXv6C|EHQsE,
+Arena of Kings.s2m,kingmaker,16668,14,6443008,6754304,311296,mixed-unknown,47,,DuDRD|EgFwD|ElpXE|AkEIB|B9m0B|BNSqB|CwTpD|DgFwD,
+Arena of Kings.s2m,kingmaker,16668,15,6754304,8855552,2101248,binary-opaque,35,,,
+Arena of Kings.s2m,kingmaker,16668,16,8855552,9134080,278528,grid-or-terrain,72,,LinkageLayer|LogicLayer,1024x1024:278
+Arena of Kings.s2m,kingmaker,16668,17,9134080,9658368,524288,entities-and-systems,65,,ProximityLayer,
+Arena of Kings.s2m,kingmaker,16668,18,9658368,9689710,31342,entities-and-systems,69,,ActorAssets|BuildingAssets|Emitter|RippleEmitter|SearchLayer|SpreadLayer|TempLayer,61x62:4
+Australia.s2m,kingmaker,10489,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,ADI5sDa|AEr2BE|AZDEqBD|AwOlAP|BB2X|BWAG|BbEP_|Bvv7D,
+Australia.s2m,kingmaker,10489,1,266240,786432,520192,binary-opaque,35,,,
+Australia.s2m,kingmaker,10489,2,786432,1187840,401408,binary-opaque,41,,,512x257:6|513x257:5|257x514:4|259x257:4|514x768:4|256x257:3
+Australia.s2m,kingmaker,10489,3,1187840,1515520,327680,binary-opaque,35,,,
+Australia.s2m,kingmaker,10489,4,1515520,1843200,327680,binary-opaque,35,,,
+Australia.s2m,kingmaker,10489,5,1843200,2105344,262144,binary-opaque,35,,,
+Australia.s2m,kingmaker,10489,6,2105344,2268557,163213,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Australia.s2m,kingmaker,10489,7,2268557,4300800,2032243,environment-fx,81,FX_ENVIRONMENT_,FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_BROOK|ActorMgr|BuildingHandler|BuildingMgr,
+Australia.s2m,kingmaker,10489,8,4300800,4677632,376832,grid-or-terrain,86,,AH6r|AHtk0B|Actor|ActorGroup|Animal|AutoPlacement|B33s|BH4M2B,768x768:49|512x1024:16|512x512:16|768x1024:8
+Australia.s2m,kingmaker,10489,9,4677632,5140480,462848,mixed-unknown,47,,ABBA|AAAA|ABCDDCBA|AAAAAA|AABA|ABAA|AAAAA|ABBBAA,
+Australia.s2m,kingmaker,10489,10,5140480,5423104,282624,mixed-unknown,37,,DangerLayerD|DesirabilityLayerD|EstateLayerD|HeightLayerD,
+Australia.s2m,kingmaker,10489,11,5423104,5984256,561152,mixed-unknown,47,,Dvv7D|A4i7B|A7NmA|AUEK|AZDpl|BiCvBtnDB|BvkU|C4nMDk,
+Australia.s2m,kingmaker,10489,12,5984256,6557696,573440,mixed-unknown,47,,lSh9|A4i7B|DLlVD|Da0tD|DlIyD|DljTD|DoxjD|ELt_E,
+Australia.s2m,kingmaker,10489,13,6557696,8744960,2187264,mixed-unknown,41,,Dvv7D|D7IuD|EMLPE|Eex0E|Bvv7D|Cvv7D|DMLPEw|Dex0E,
+Australia.s2m,kingmaker,10489,14,8744960,9011200,266240,grid-or-terrain,77,,LinkageLayerD|LogicLayerD,128x128:1541|256x256:400|384x384:23|32x32:20|384x128:16|128x384:13
+Australia.s2m,kingmaker,10489,15,9011200,9535488,524288,mixed-unknown,35,,ProximityLayerD,
+Australia.s2m,kingmaker,10489,16,9535488,9624958,89470,entities-and-systems,79,,AHvH3|Action|ActorAssetsS|BH4c|BuildingAssetsR|Cluster|DeerClanU|Emitter,84x85:3|94x94:3
+Baltic.s2m,kingmaker,12633,0,0,266240,266240,core-simulation,93,S2Game|Simulation|Floaters|Landscape,BYcxC|Cc9tD|CnubC|D1OkD|DLlFDL|DLofDv|DRK6C|DmsID,256x256:3
+Baltic.s2m,kingmaker,12633,1,266240,786432,520192,binary-opaque,35,,,
+Baltic.s2m,kingmaker,12633,2,786432,1187840,401408,grid-or-terrain,76,,,256x256:5|259x771:4|256x257:3|256x258:3|256x513:3|258x259:3
+Baltic.s2m,kingmaker,12633,3,1187840,1515520,327680,binary-opaque,36,,,1024x512:4
+Baltic.s2m,kingmaker,12633,4,1515520,1843200,327680,binary-opaque,35,,,
+Baltic.s2m,kingmaker,12633,5,1843200,2105344,262144,binary-opaque,35,,,
+Baltic.s2m,kingmaker,12633,6,2105344,2268557,163213,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Baltic.s2m,kingmaker,12633,7,2268557,4300800,2032243,environment-fx,82,FX_ENVIRONMENT_,FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_RIVER|ActorMgr,
+Baltic.s2m,kingmaker,12633,8,4300800,4567040,266240,grid-or-terrain,82,,BiDiPathfinder|Camera|ClanMgr|EmitterMgr|Estate|EstateRails|Fire|Fl_ZA,255x255:12
+Baltic.s2m,kingmaker,12633,9,4567040,4845568,278528,mixed-unknown,47,,AAAA|ABBA|ABCDDCBA|AAAAA|AABA|AABBA|ABCDEFFEDCBA|AAAAAA,
+Baltic.s2m,kingmaker,12633,10,4845568,5197824,352256,binary-opaque,35,,,
+Baltic.s2m,kingmaker,12633,11,5197824,5492736,294912,entities-and-systems,67,,DangerLayer|DesirabilityLayer|EstateLayer|HeightLayer,
+Baltic.s2m,kingmaker,12633,12,5492736,6033408,540672,mixed-unknown,47,,V6CJIUB|CLlFD2|CYcxC|CnubCc|Co4CD|CqEH8|D1OkD|D9EWE,
+Baltic.s2m,kingmaker,12633,13,6033408,6303744,270336,mixed-unknown,47,,CYcxC|CnubC|Dc9tD|EQFcE|Esg9Ew|BJIUB|BYcxC|BcES,
+Baltic.s2m,kingmaker,12633,14,6303744,6705152,401408,mixed-unknown,47,,Ek0CE|D1OkD|DNriD|EQEJE|EdR2E|Co4CD|CqEH8|D9EWE,
+Baltic.s2m,kingmaker,12633,15,6705152,8806400,2101248,binary-opaque,35,,,
+Baltic.s2m,kingmaker,12633,16,8806400,9076736,270336,grid-or-terrain,77,,LinkageLayer|LogicLayer,256x256:2650|128x128:2388|32x32:651|384x384:101|256x384:98|384x128:89
+Baltic.s2m,kingmaker,12633,17,9076736,9601024,524288,grid-or-terrain,71,,ProximityLayer,256x256:5
+Baltic.s2m,kingmaker,12633,18,9601024,9681775,80751,entities-and-systems,74,,ActorAssets|BuildingAssets9|Emitter|MG2C|NDtZ|NG4C|OGgv|SearchLayer,
+Coastal County.s2m,freebuild,14689,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,C77FC|CFA0C|CcaHC|CkG1C|CG2yC|CMjHC|CgSIC|CnfyC,
+Coastal County.s2m,freebuild,14689,1,266240,786432,520192,binary-opaque,35,,,
+Coastal County.s2m,freebuild,14689,2,786432,1187840,401408,binary-opaque,41,,,513x257:6|514x515:5|512x257:4|512x769:4|513x770:4|771x771:4
+Coastal County.s2m,freebuild,14689,3,1187840,1536000,348160,binary-opaque,35,,,
+Coastal County.s2m,freebuild,14689,4,1536000,1843200,307200,binary-opaque,35,,,
+Coastal County.s2m,freebuild,14689,5,1843200,2105344,262144,binary-opaque,35,,,
+Coastal County.s2m,freebuild,14689,6,2105344,2268581,163237,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Coastal County.s2m,freebuild,14689,7,2268581,4300800,2032219,environment-fx,84,FX_ENVIRONMENT_,FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_WATERFALL|FX_ENVIRONMENT_OCEAN,
+Coastal County.s2m,freebuild,14689,8,4300800,4562944,262144,grid-or-terrain,85,,AHiE|BiDiPathfinder|Camera|ClanMgr|D3HTm|EmitterMgr|Estate|Forest,768x768:49|512x1024:16|512x512:15
+Coastal County.s2m,freebuild,14689,9,4562944,4874240,311296,grid-or-terrain,88,,Cfff|C33s|B33s|Bfff|A33s|Afff|CC33s|JCfff,63x256:10|768x1024:8|255x255:4|59x38:4|50x43:3|512x512:3
+Coastal County.s2m,freebuild,14689,10,4874240,5357568,483328,mixed-unknown,38,,ChannelLayerC|ClaimLayerC|ConnectionLayerC|ContextLayerC,128x257:4
+Coastal County.s2m,freebuild,14689,11,5357568,5636096,278528,mixed-unknown,47,,ENBYE|PUENBYE|mEQAnE|BESUaE|B_EJ|CG2yC|DangerLayerC|DesirabilityLayerC,
+Coastal County.s2m,freebuild,14689,12,5636096,6316032,679936,mixed-unknown,47,,CkG1C|CFA0C|ENBYE|CtpkC|PUENBYE|CAn2C|CG2yC|CcaHC,
+Coastal County.s2m,freebuild,14689,13,6316032,6713344,397312,mixed-unknown,47,,CcaHC|C77FC|CgSIC|o7Cm|CCSvB|CnfyC|WHCkw|caHC,
+Coastal County.s2m,freebuild,14689,14,6713344,8962048,2248704,mixed-unknown,47,,CQ3HC|CpJeC|DhanD|BpJeC|C_S2C|DUUcC|DXqdD|DfzUD,
+Coastal County.s2m,freebuild,14689,15,8962048,9228288,266240,grid-or-terrain,77,,LinkageLayerC|LogicLayerC,128x128:3326|256x256:2651|512x512:1395|32x32:124|768x768:123|256x768:89
+Coastal County.s2m,freebuild,14689,16,9228288,9752576,524288,mixed-unknown,35,,ProximityLayerC,
+Coastal County.s2m,freebuild,14689,17,9752576,9807959,55383,entities-and-systems,80,,Action|ActorAssetsS|BuildingAssetsR|Clusterd|CrowClanU|DeerClanU|Emitter|OutlawCampAggressiveClanU,255x256:5|97x95:4|87x85:3
+Egypt.s2m,kingmaker,17173,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,PUE8G|PUE_|CAEDCD|Eb3sE|PUEhOUE|PUEjI|ZEkKaE|bERbdE,
+Egypt.s2m,kingmaker,17173,1,266240,786432,520192,binary-opaque,35,,,
+Egypt.s2m,kingmaker,17173,2,786432,1187840,401408,binary-opaque,41,,,513x257:6|513x770:5|514x515:5|256x257:4|512x769:4|771x771:4
+Egypt.s2m,kingmaker,17173,3,1187840,1454080,266240,binary-opaque,35,,,
+Egypt.s2m,kingmaker,17173,4,1454080,1843200,389120,binary-opaque,35,,,
+Egypt.s2m,kingmaker,17173,5,1843200,2105344,262144,binary-opaque,35,,,
+Egypt.s2m,kingmaker,17173,6,2105344,4300800,2195456,entities-and-systems,72,,ActorHandler|ActorMgr|BiDiPath|BuildingHandler|BuildingMgr|Campaign|ElementMgr|EnvironmentalSound,
+Egypt.s2m,kingmaker,17173,7,4300800,4653056,352256,grid-or-terrain,84,,C33s|Bfff|B33s|GwATE|Hoc4D|Actor|ActorGroup|Afff,255x255:5|768x1024:3
+Egypt.s2m,kingmaker,17173,8,4653056,5132288,479232,mixed-unknown,47,,ABBA|AAAA|ABCCBA|ABCDEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEDCBA|AAAAAA|ABCDDCBA|ABCDEFFFFFFFFFFEDCBA|ABCDEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEDCBA,
+Egypt.s2m,kingmaker,17173,9,5132288,5414912,282624,mixed-unknown,47,,PUEE3|ZEkKaE|cEkKaE|ADhAmD|AMTIA|Agz2B|Bfu2C|BjHqC,
+Egypt.s2m,kingmaker,17173,10,5414912,6328320,913408,mixed-unknown,46,,fE15dE|PUEE3|PUE_|E15dE|PUEr|ZEkKaE|cEUeaE|cEkKaE,
+Egypt.s2m,kingmaker,17173,11,6328320,6635520,307200,mixed-unknown,47,,PUE8G|Eb3sE|PUEbj|PUEh|fERbdE|E4vmE|ERbdE|EVfgE,
+Egypt.s2m,kingmaker,17173,12,6635520,8736768,2101248,mixed-unknown,38,,jwEi|IE42LE|PUED|PUEOmkED|hEx5|jwEOmkED|jwEx5,
+Egypt.s2m,kingmaker,17173,13,8736768,8998912,262144,mixed-unknown,36,,LinkageLayer1|LogicLayer1,
+Egypt.s2m,kingmaker,17173,14,8998912,9523200,524288,mixed-unknown,35,,ProximityLayer1,
+Egypt.s2m,kingmaker,17173,15,9523200,9556644,33444,entities-and-systems,72,,Action|ActorAssetsA|BuildingAssets|ClaimLayer1|Emitter|ScriptActionF|SearchLayer1|SplashEmitterC,66x67:3|69x70:3
+Germany.s2m,kingmaker,17767,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,CrsmC|CtttB|DXhWD|Eu5fE|AE6WbE|AEHWyE|AENr|AEk1KE,
+Germany.s2m,kingmaker,17767,1,266240,786432,520192,binary-opaque,35,,,
+Germany.s2m,kingmaker,17767,2,786432,1187840,401408,grid-or-terrain,76,,,256x257:4|259x771:4|256x256:3|256x259:3|256x513:3|257x259:3
+Germany.s2m,kingmaker,17767,3,1187840,1515520,327680,binary-opaque,35,,,
+Germany.s2m,kingmaker,17767,4,1515520,1843200,327680,binary-opaque,35,,,
+Germany.s2m,kingmaker,17767,5,1843200,2105344,262144,binary-opaque,35,,,
+Germany.s2m,kingmaker,17767,6,2105344,2268557,163213,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Germany.s2m,kingmaker,17767,7,2268557,4300800,2032243,environment-fx,81,FX_ENVIRONMENT_,FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_OCEAN|ActorMgr|BuildingHandler|BuildingMgr|ElementMgr,
+Germany.s2m,kingmaker,17767,8,4300800,4681728,380928,grid-or-terrain,87,,H_YAD|xGEY|ActorGroup|AutoPlacement|B33s|BiDiPathfinder|Bridges|BuildingLayer,768x768:45|512x512:16|512x1024:15|96x255:6|81x255:3
+Germany.s2m,kingmaker,17767,9,4681728,5148672,466944,mixed-unknown,47,,AAAA|ABBA|AAAAA|ABBAA|ABCDEFGHIJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJIHGFEDCBA|ABBBA|ABCDEFGHIJJJJJJJJJJJJJJJJJJJJJJJJJJJIHGFEDCBA|AAAAAAA,
+Germany.s2m,kingmaker,17767,10,5148672,5480448,331776,mixed-unknown,47,,oEu5fE|AE7LiE|AEqWHE|AQEn2|BE7ItE|BEEK|BEIwlE|BET2,
+Germany.s2m,kingmaker,17767,11,5480448,5742592,262144,mixed-unknown,47,,DyQhD|EZwPE|Ep5YE|Eu5fE|oEu5fE|DUEXD|DnraD|EDCjE,
+Germany.s2m,kingmaker,17767,12,5742592,6266880,524288,mixed-unknown,47,,DKmYD|DRosD|DYzmD|E9F2E|EBBxE|ETTOE|EVtuE|EYGvE,
+Germany.s2m,kingmaker,17767,13,6266880,6651904,385024,mixed-unknown,47,,CrsmC|ERP9E|D0LmD|DdEe3zE|DzzmD|EUhEE|EWfHE|rENQzE,
+Germany.s2m,kingmaker,17767,14,6651904,7069696,417792,binary-opaque,35,,,
+Germany.s2m,kingmaker,17767,15,7069696,7430144,360448,binary-opaque,35,,,
+Germany.s2m,kingmaker,17767,16,7430144,8118272,688128,mixed-unknown,36,,CfpOC|DfpOC,
+Germany.s2m,kingmaker,17767,17,8118272,8478720,360448,binary-opaque,35,,,
+Germany.s2m,kingmaker,17767,18,8478720,8753152,274432,mixed-unknown,36,,CfpOC|DfpOC,
+Germany.s2m,kingmaker,17767,19,8753152,9015296,262144,entities-and-systems,66,,LinkageLayer|LogicLayer,
+Germany.s2m,kingmaker,17767,20,9015296,9539584,524288,entities-and-systems,65,,ProximityLayer,
+Germany.s2m,kingmaker,17767,21,9539584,9571769,32185,entities-and-systems,67,,ActorAssets|BuildingAssets9|SearchLayer|SpreadLayer|TempLayer,
+Great Britain.s2m,kingmaker,13947,0,0,266240,266240,core-simulation,92,S2Game|Simulation|Floaters|Landscape,PUEHNAEHNAE|AUE_OUE|AwY6B|CRE5LUE|DWJQD|DjF8E|Dt14Dc|E0EpE,
+Great Britain.s2m,kingmaker,13947,1,266240,786432,520192,binary-opaque,35,,,
+Great Britain.s2m,kingmaker,13947,2,786432,1187840,401408,binary-opaque,41,,,512x257:4|513x257:4|513x768:4|515x258:4|256x257:3|258x259:3
+Great Britain.s2m,kingmaker,13947,3,1187840,1515520,327680,grid-or-terrain,73,,,512x1024:24|1024x1280:4|512x512:4
+Great Britain.s2m,kingmaker,13947,4,1515520,1843200,327680,binary-opaque,35,,,
+Great Britain.s2m,kingmaker,13947,5,1843200,2105344,262144,binary-opaque,35,,,
+Great Britain.s2m,kingmaker,13947,6,2105344,2268569,163225,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Great Britain.s2m,kingmaker,13947,7,2268569,4300800,2032231,environment-fx,83,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_MARSH|FX_ENVIRONMENT_WINDLIGHT,
+Great Britain.s2m,kingmaker,13947,8,4300800,4562944,262144,grid-or-terrain,85,,Cfff|C33s|B33s|Bfff|Afff|A33s|BDGHu|BiDiPathfinder,768x768:45|512x512:16|512x1024:15
+Great Britain.s2m,kingmaker,13947,9,4562944,4829184,266240,entities-and-systems,77,,Actor|ActorGroup|Animal|AutoPlacement4|Building|BuildingLayer9|CarterCart|ChannelLayer9,
+Great Britain.s2m,kingmaker,13947,10,4829184,5197824,368640,binary-opaque,35,,,
+Great Britain.s2m,kingmaker,13947,11,5197824,5464064,266240,mixed-unknown,43,,DDZq|DDbeDDbeD|DangerLayer9|Db4mD|Db4mD4o|DesirabilityLayer9|Dw3hDivrD|E0EpE0EpE,
+Great Britain.s2m,kingmaker,13947,12,5464064,5730304,266240,mixed-unknown,47,,DDbeD|PUEX2|PUEsf|CEscTE|CExYFE|CwY6Bu|DCdGETMvE|DDbeDDbeD,
+Great Britain.s2m,kingmaker,13947,13,5730304,6004736,274432,mixed-unknown,47,,Db4mD|Dt14D|PUE36HE|CEscTE|DDZq|Dw3hD|E0EpE|EPikD,
+Great Britain.s2m,kingmaker,13947,14,6004736,6266880,262144,mixed-unknown,47,,PUEX2|Ecq9E|PUEv|DFkKD|EzhGE|PUEHNAE|PUET9|PUETn,
+Great Britain.s2m,kingmaker,13947,15,6266880,6557696,290816,mixed-unknown,47,,PUEsf|PUE6RyE|EQ6_E|PUE5i|PUElY|CwY6B|EEcuE|EHMKE,
+Great Britain.s2m,kingmaker,13947,16,6557696,8802304,2244608,mixed-unknown,43,,DCdGE|E4YXE|E4YXE8pRE|EMF_E|EaH1E|VDxD|rtEm|DaH1E,
+Great Britain.s2m,kingmaker,13947,17,8802304,9064448,262144,grid-or-terrain,73,,LinkageLayer9|LogicLayer9,256x256:151|512x512:75
+Great Britain.s2m,kingmaker,13947,18,9064448,9588736,524288,mixed-unknown,35,,ProximityLayer9,
+Great Britain.s2m,kingmaker,13947,19,9588736,9751898,163162,entities-and-systems,79,,DFbXH|HdF2|HhFA|Action|ActorAssetsI|BYEgF|BmEfF|BuildingAssetsH,74x75:15|78x79:5|76x75:3
+India.s2m,kingmaker,12739,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,CWgIC|CWxrC|CpOrC|EYKaE|qC81|A2mrAx|AHqiA|B4nKC,
+India.s2m,kingmaker,12739,1,266240,786432,520192,binary-opaque,35,,,
+India.s2m,kingmaker,12739,2,786432,1187840,401408,binary-opaque,41,,,513x257:6|513x770:5|514x515:5|512x769:4|771x771:4|256x257:3
+India.s2m,kingmaker,12739,3,1187840,1581056,393216,binary-opaque,37,,,1024x514:4|1280x1024:4
+India.s2m,kingmaker,12739,4,1581056,1843200,262144,binary-opaque,35,,,
+India.s2m,kingmaker,12739,5,1843200,2105344,262144,binary-opaque,35,,,
+India.s2m,kingmaker,12739,6,2105344,2268569,163225,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+India.s2m,kingmaker,12739,7,2268569,4300800,2032231,environment-fx,80,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_WINDHEAVY|ActorMgr|BuildingHandler|BuildingMgr|ElementMgr|FX_ENVIRONMENT_BIRDSPARSE,
+India.s2m,kingmaker,12739,8,4300800,4562944,262144,grid-or-terrain,86,,C33s|Cfff|Bfff|B33s|EHZb|G2A_D|GG4dD|GOeME,768x768:45|512x512:16|512x1024:15|40x40:5
+India.s2m,kingmaker,12739,9,4562944,4886528,323584,mixed-unknown,48,,ABBA|AAAA|AAAAAAAA|AAAAAA|AABBBBA|ABBBAA|ABCDEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEDCBA|AABA,40x40:5
+India.s2m,kingmaker,12739,10,4886528,5169152,282624,binary-opaque,35,,,
+India.s2m,kingmaker,12739,11,5169152,5435392,266240,mixed-unknown,39,,CESuD|DangerLayer6|DesirabilityLayer6|DkxWD|EstateLayer6|FDa5vC|HeightLayer6|U4Dx,
+India.s2m,kingmaker,12739,12,5435392,5750784,315392,mixed-unknown,47,,CWgIC|CWxrC|CpOrC|PUEYKaE|BcywC|qC81|A5u5B5|A7GZB,
+India.s2m,kingmaker,12739,13,5750784,6131712,380928,mixed-unknown,47,,DlqlD|U4Dx|CESuD|CkxWD|Cw6EC|DG4dD|DkxWD|FDa5vC,
+India.s2m,kingmaker,12739,14,6131712,6471680,339968,mixed-unknown,47,,CpOrC|CWxrC|BcywC|BzX8C|DgE3D|Dxx9D|pOrC|Bq4OB,
+India.s2m,kingmaker,12739,15,6471680,8773632,2301952,mixed-unknown,47,,CWgIC|PUEYKaE|qC81|D0weD|D2A_D|DcAUD|E2xYE|E3miE,
+India.s2m,kingmaker,12739,16,8773632,9035776,262144,grid-or-terrain,77,,LinkageLayer6|LogicLayer6,512x512:1959|32x32:168|544x544:69|32x544:27|544x32:26|544x512:14
+India.s2m,kingmaker,12739,17,9035776,9560064,524288,grid-or-terrain,71,,ProximityLayer6,512x512:29
+India.s2m,kingmaker,12739,18,9560064,9605287,45223,entities-and-systems,77,,Action|ActorAssetsF|BuildingAssetsE|ClaimLayer6|ClusterN|Emitter|S2Clan|ScriptActionM,408x100:30|468x113:30|69x69:30|70x70:30|76x77:6
+Kill Barclay.s2m,warcampaign,13742,0,0,266240,266240,core-simulation,92,S2Game|Simulation|Floaters|Landscape,A7guAl|ATQKA|AjEr|AyeyA|BisQB|CEdZ|DHh1E|DNRHD,
+Kill Barclay.s2m,warcampaign,13742,1,266240,786432,520192,binary-opaque,35,,,
+Kill Barclay.s2m,warcampaign,13742,2,786432,1187840,401408,binary-opaque,41,,,513x257:6|259x257:5|514x514:5|256x257:3|258x259:3|512x257:3
+Kill Barclay.s2m,warcampaign,13742,3,1187840,1572864,385024,binary-opaque,36,,,771x512:4
+Kill Barclay.s2m,warcampaign,13742,4,1572864,1843200,270336,binary-opaque,35,,,
+Kill Barclay.s2m,warcampaign,13742,5,1843200,2105344,262144,binary-opaque,35,,,
+Kill Barclay.s2m,warcampaign,13742,6,2105344,3346432,1241088,grid-or-terrain,79,,ActorHandler|ActorMgr|BuildingHandler|BuildingMgr|Campaign|ElementMgr|EnvironmentalSound|FlyHandler,256x256:5|257x257:5
+Kill Barclay.s2m,warcampaign,13742,7,3346432,3842048,495616,binary-opaque,35,,,
+Kill Barclay.s2m,warcampaign,13742,8,3842048,4308992,466944,mixed-unknown,35,,OSFp,
+Kill Barclay.s2m,warcampaign,13742,9,4308992,4587520,278528,grid-or-terrain,88,,GHkG|H7Ha|HtS9|Actor|ActorGroup|Animal|ArmedPeasant|BiDiPathfinder,768x1024:27|137x256:12|53x42:11|512x512:10|255x255:9|50x42:5
+Kill Barclay.s2m,warcampaign,13742,10,4587520,5152768,565248,mixed-unknown,46,,Fel6H|JuNGu_|NHhs1G|Archer|Fel6HW|GJuNGu_|Knight|NHhs1GH,137x256:529|41x42:301|55x42:148|46x42:71|59x50:71|768x1024:27
+Kill Barclay.s2m,warcampaign,13742,11,5152768,5414912,262144,grid-or-terrain,88,,H1EUE|HVPUE|HXOUE|Hd6UE|ASCTb6C5|AppleFarm|AppleTree|BDEB,256x256:231|59x42:148|512x512:81|56x42:71|72x256:20|59x86:17
+Kill Barclay.s2m,warcampaign,13742,12,5414912,5677056,262144,grid-or-terrain,81,,AutoPlacementV|BuildingLayer|BurningLog|BurningLogTipper|ChannelLayer|ConnectionLayer|ContextLayer|Layer,512x512:18|59x42:12|71x512:12|77x42:12|79x42:10|72x512:9
+Kill Barclay.s2m,warcampaign,13742,13,5677056,6103040,425984,grid-or-terrain,71,,,256x256:4
+Kill Barclay.s2m,warcampaign,13742,14,6103040,6402048,299008,entities-and-systems,70,,DangerLayer|DesirabilityLayer|EstateLayer|HeightLayer|MEG6KE|TEghIE|UEYPUE|ZEn4rE,
+Kill Barclay.s2m,warcampaign,13742,15,6402048,6967296,565248,mixed-unknown,47,,MEG6KE|PUEYPUE|TEghIE|UEYPUE|jSE8|pKE8|rVEC|AKIXA,
+Kill Barclay.s2m,warcampaign,13742,16,6967296,7282688,315392,mixed-unknown,47,,PUE7jUE|PUENeVE|ElP0E|EmSFE|PUEWQUE|PUEvVUE|XEsHtE|AKIXA,
+Kill Barclay.s2m,warcampaign,13742,17,7282688,7544832,262144,mixed-unknown,47,,FffbFffbFffbFefbF|BUEDOUE|DNRHD|DNRHDX|DeFrD9X|EJaSE|EYiKE|EnqbE,
+Kill Barclay.s2m,warcampaign,13742,18,7544832,8105984,561152,mixed-unknown,38,,EdFtE|EdJ3E|EsqHE|DdJ3E|DsqHE|EsqHE5,
+Kill Barclay.s2m,warcampaign,13742,19,8105984,9412608,1306624,mixed-unknown,35,,OSFp,
+Kill Barclay.s2m,warcampaign,13742,20,9412608,9707520,294912,binary-opaque,35,,,
+Kill Barclay.s2m,warcampaign,13742,21,9707520,9973760,266240,grid-or-terrain,74,,LinkageLayer|LogicLayer,1024x1024:200|256x256:72|512x512:63
+Kill Barclay.s2m,warcampaign,13742,22,9973760,10498048,524288,entities-and-systems,65,,ProximityLayer,
+Kill Barclay.s2m,warcampaign,13742,23,10498048,10630171,132123,entities-and-systems,83,,Action|ActorAssetsl|BuildingAssetsk|CG2SDE|Clusteru|E0k8H|E2o8H|E4A8H,115x116:182|107x107:30|108x108:30|118x116:20|117x117:19|408x100:19
+Lookout Mountain.s2m,freebuild,17821,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,A0C6U|A1B6A|ADBgCT|AE3C|ATbnB|ATfTA|AUO8|AVtMA,
+Lookout Mountain.s2m,freebuild,17821,1,266240,786432,520192,binary-opaque,35,,,
+Lookout Mountain.s2m,freebuild,17821,2,786432,1187840,401408,binary-opaque,41,,,513x257:5|514x515:5|256x257:4|512x769:4|513x512:4|513x768:4
+Lookout Mountain.s2m,freebuild,17821,3,1187840,1454080,266240,grid-or-terrain,74,,,512x1024:4|512x512:4|771x771:4|256x256:3
+Lookout Mountain.s2m,freebuild,17821,4,1454080,1843200,389120,binary-opaque,35,,,
+Lookout Mountain.s2m,freebuild,17821,5,1843200,2105344,262144,binary-opaque,35,,,
+Lookout Mountain.s2m,freebuild,17821,6,2105344,4300800,2195456,entities-and-systems,72,,ActorHandler|ActorMgr|BuildingHandler|BuildingMgr|Campaign|ElementMgr|EnvironmentalSound|FlyHandler,
+Lookout Mountain.s2m,freebuild,17821,7,4300800,4685824,385024,entities-and-systems,77,,C33s|Cfff|aC33s|Bfff|KC33s|QC33s|QCfff|sCfff,
+Lookout Mountain.s2m,freebuild,17821,8,4685824,4984832,299008,mixed-unknown,47,,AAAA|ABBA|ABCCBA|AAAAA|AABA|AAAAAA|ABBBBA|ABBBA,
+Lookout Mountain.s2m,freebuild,17821,9,4984832,5292032,307200,binary-opaque,35,,,
+Lookout Mountain.s2m,freebuild,17821,10,5292032,5558272,266240,entities-and-systems,77,,A2_AB|A88SA|AFNYD|AVE6CT|BTxbA|BtG3Bs6|BxsRC|CCLlDv,
+Lookout Mountain.s2m,freebuild,17821,11,5558272,6410240,851968,mixed-unknown,47,,D9ETD|E4S3E|EWfME|EXmtE|EZESE|EdjJE|EpezE|BcQAB,
+Lookout Mountain.s2m,freebuild,17821,12,6410240,6795264,385024,mixed-unknown,47,,Dm2eD|EIu4E|APBy|B40eA|BVx3B|CeiDC|DPWUD|EDDTE,
+Lookout Mountain.s2m,freebuild,17821,13,6795264,8896512,2101248,binary-opaque,35,,,
+Lookout Mountain.s2m,freebuild,17821,14,8896512,9170944,274432,grid-or-terrain,73,,LinkageLayer|LogicLayer,2048x2048:3081|1024x1024:220
+Lookout Mountain.s2m,freebuild,17821,15,9170944,9695232,524288,entities-and-systems,65,,ProximityLayer,
+Lookout Mountain.s2m,freebuild,17821,16,9695232,9728946,33714,entities-and-systems,70,,ACt7H|AOV8H|ActorAssets|BuildingAssets|EgbzH|Emitter|Q3CA|SearchLayer,
+Mountain Hideaway.s2m,freebuild,19428,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,E8uqEaO3E|AYDUBa|AZEq2|AaDs4|ArNoBQ|BQR9A|BRsbC|BdrpC,
+Mountain Hideaway.s2m,freebuild,19428,1,266240,786432,520192,binary-opaque,35,,,
+Mountain Hideaway.s2m,freebuild,19428,2,786432,1277952,491520,binary-opaque,40,,,512x1024:4|258x514:3|512x769:3|513x257:3|513x770:3
+Mountain Hideaway.s2m,freebuild,19428,3,1277952,1675264,397312,binary-opaque,35,,,
+Mountain Hideaway.s2m,freebuild,19428,4,1675264,1937408,262144,grid-or-terrain,71,,,255x255:65015
+Mountain Hideaway.s2m,freebuild,19428,5,1937408,2100760,163352,grid-or-terrain,76,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:519|256x256:14|1024x1024:3
+Mountain Hideaway.s2m,freebuild,19428,6,2100760,4132864,2032104,environment-fx,80,FX_ENVIRONMENT_,FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_INSECTS|ActorMgr|BuildingHandler|BuildingMgr|ElementMgr|FX_ENVIRONMENT_MARSH|FlyMgr,
+Mountain Hideaway.s2m,freebuild,19428,7,4132864,4431872,299008,grid-or-terrain,85,,Cfff|C33s|B33s|A33s|AC33s|Actor|ActorGroup|Afff,768x768:48|512x1024:16|512x512:15
+Mountain Hideaway.s2m,freebuild,19428,8,4431872,4890624,458752,mixed-unknown,40,,ChannelLayer2|ClaimLayer2,257x128:6|128x257:4|258x256:4|128x256:3
+Mountain Hideaway.s2m,freebuild,19428,9,4890624,5283840,393216,mixed-unknown,36,,ConnectionLayer2|ContextLayer2,
+Mountain Hideaway.s2m,freebuild,19428,10,5283840,5607424,323584,mixed-unknown,47,,AEsqCE|AhVPA|Al36A|AvETwkE|BYDUB|BZDf|BdrpC_|BrNoB0,
+Mountain Hideaway.s2m,freebuild,19428,11,5607424,6787072,1179648,mixed-unknown,47,,WOEJ|E433E|EU07E|EXajE|EaPvE|EcpYE|EiLSE|C4zmD,
+Mountain Hideaway.s2m,freebuild,19428,12,6787072,8888320,2101248,binary-opaque,35,,,
+Mountain Hideaway.s2m,freebuild,19428,13,8888320,9150464,262144,grid-or-terrain,77,,LinkageLayer2|LogicLayer2,512x512:739|128x128:279|32x32:131|544x544:33|512x128:19|32x544:16
+Mountain Hideaway.s2m,freebuild,19428,14,9150464,9674752,524288,mixed-unknown,35,,ProximityLayer2,
+Mountain Hideaway.s2m,freebuild,19428,15,9674752,9705954,31202,entities-and-systems,71,,Action|ActorAssetsB|BuildingAssetsA|ClusterK|CrowClanD|DeerClanD|RabbitClanD|S2Clan,
+peace_chapter1.s2m,peacecampaign,23730,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,Cj01D|EUUuE|PUEM|AEjCIE|ANB2|AUEjFUE|AUEn6UE|B2EN,
+peace_chapter1.s2m,peacecampaign,23730,1,266240,786432,520192,binary-opaque,35,,,
+peace_chapter1.s2m,peacecampaign,23730,2,786432,1277952,491520,binary-opaque,40,,,514x515:4|256x257:3|258x514:3|513x257:3|513x770:3
+peace_chapter1.s2m,peacecampaign,23730,3,1277952,1675264,397312,binary-opaque,35,,,
+peace_chapter1.s2m,peacecampaign,23730,4,1675264,1937408,262144,grid-or-terrain,71,,,255x255:63303
+peace_chapter1.s2m,peacecampaign,23730,5,1937408,2100760,163352,grid-or-terrain,79,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:519|256x256:148|1024x1024:77|1024x512:73|512x256:48|1024x768:44
+peace_chapter1.s2m,peacecampaign,23730,6,2100760,2588672,487912,environment-fx,84,FX_ENVIRONMENT_,FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_MARSH|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_BIRDSPARSE,
+peace_chapter1.s2m,peacecampaign,23730,7,2588672,3072000,483328,binary-opaque,35,,,
+peace_chapter1.s2m,peacecampaign,23730,8,3072000,3588096,516096,mixed-unknown,36,,ZE3d|UE3d|UE4d,
+peace_chapter1.s2m,peacecampaign,23730,9,3588096,4132864,544768,binary-opaque,35,,,
+peace_chapter1.s2m,peacecampaign,23730,10,4132864,4476928,344064,grid-or-terrain,86,,Cfff|C33s|Bfff|B33s|Afff|GHX1C|A33s|BiDiPathfinder,768x768:48|512x1024:16|512x512:15|255x255:4
+peace_chapter1.s2m,peacecampaign,23730,11,4476928,4804608,327680,grid-or-terrain,88,,uHg1|ADwE|Actor|ActorGroup|Animal|AppleFarm|AppleTree|Archer,256x256:58|61x42:40|512x512:38|768x1024:25|72x512:22|137x256:19
+peace_chapter1.s2m,peacecampaign,23730,12,4804608,5263360,458752,mixed-unknown,47,,ABBA|AAAA|AAAAA|AAAAAA|ABBBA|ABCBA|ABCCBA|AAAAAAA,
+peace_chapter1.s2m,peacecampaign,23730,13,5263360,5709824,446464,grid-or-terrain,72,,ConnectionLayeru|ContextLayeru,256x256:3
+peace_chapter1.s2m,peacecampaign,23730,14,5709824,5980160,270336,mixed-unknown,47,,AhOUB|D4dTC|DangerLayeru|DesirabilityLayeru|E5c7E|EHkME|EKxsET|ERGzE,
+peace_chapter1.s2m,peacecampaign,23730,15,5980160,6434816,454656,mixed-unknown,47,,AhOUB|E5c7E|EHkME|ERGzE|ZEeB|C4dTC|CrEvUqE|D4dTC,
+peace_chapter1.s2m,peacecampaign,23730,16,6434816,6889472,454656,mixed-unknown,47,,PUEM|Exm9E|PUEk|CDR4D|D4FwD|De_FD|DvOVD|DxEXD,
+peace_chapter1.s2m,peacecampaign,23730,17,6889472,7163904,274432,mixed-unknown,46,,EUUUE|E7OfE|ElQEE|CrEvUqE|E2pfE|EUUuE|EkmFE|Ev0nE,
+peace_chapter1.s2m,peacecampaign,23730,18,7163904,7991296,827392,mixed-unknown,38,,ZE3d|C4dTC|KzEV|UE3d|UE4d|mE4d,
+peace_chapter1.s2m,peacecampaign,23730,19,7991296,9314304,1323008,mixed-unknown,36,,C4dTC|GF23GF33GF43GF33GF23GF33GF33GF|GF33GF33GF33GF33GF33GF33GF33GF,
+peace_chapter1.s2m,peacecampaign,23730,20,9314304,9580544,266240,grid-or-terrain,77,,LinkageLayeru|LogicLayeru,128x128:2590|256x256:2221|32x32:500|512x512:190|320x320:34|384x384:28
+peace_chapter1.s2m,peacecampaign,23730,21,9580544,10104832,524288,mixed-unknown,35,,ProximityLayeru,
+peace_chapter1.s2m,peacecampaign,23730,22,10104832,10366976,262144,entities-and-systems,77,,Gfv5|YODJ|AG33|ActorAssets|BDlO|BDlQ|BDlq|BG4S,145x144:6
+peace_chapter1.s2m,peacecampaign,23730,23,10366976,10533942,166966,mixed-unknown,50,,qwZH|A2R8|D6CFH|Dv3FH|YH4S|Action|AqwZH|Cluster,152x153:21|149x150:5|154x153:5|145x144:3
+River Don.s2m,kingmaker,12093,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,A7RVA|AE7B|AEUvUEK|AIE2|AOCal|An6k|B6YFA|BDcwB,
+River Don.s2m,kingmaker,12093,1,266240,786432,520192,binary-opaque,35,,,
+River Don.s2m,kingmaker,12093,2,786432,1187840,401408,binary-opaque,41,,,513x257:6|514x515:5|512x769:4|513x770:4|771x771:4|256x257:3
+River Don.s2m,kingmaker,12093,3,1187840,1536000,348160,binary-opaque,36,,,771x512:4
+River Don.s2m,kingmaker,12093,4,1536000,1843200,307200,binary-opaque,35,,,
+River Don.s2m,kingmaker,12093,5,1843200,2105344,262144,binary-opaque,35,,,
+River Don.s2m,kingmaker,12093,6,2105344,4300800,2195456,entities-and-systems,72,,ActorHandler|ActorMgr|BuildingHandler|BuildingMgr|Campaign|ElementMgr|EnvironmentalSound|FlyHandler,
+River Don.s2m,kingmaker,12093,7,4300800,4567040,266240,entities-and-systems,77,,BiDiPathfinder|Camera|ClanMgr|EmitterMgr|Estate|Forest|HPhL|HTp6A,
+River Don.s2m,kingmaker,12093,8,4567040,4829184,262144,mixed-unknown,52,,AAAA|ABBA|ABCDEFFFFFFFFFFFFFFFFFFFFEDCBA|ABCDCBA|ABBBA|AAAAA|AAAAAA|AAAAAAAA,63x256:13|768x1024:12|41x42:10|59x39:10|59x38:3
+River Don.s2m,kingmaker,12093,9,4829184,5263360,434176,mixed-unknown,47,,AAAA|ABBA|AAAAAA|ABBBBA|AAAAA|ABCCBA|AAAAAAAAAA|ABCDEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEDCBA,
+River Don.s2m,kingmaker,12093,10,5263360,5525504,262144,mixed-unknown,47,,AhDw|BEz7KE|BG9kC|BLv6B|BSKDB|Bbd8B|Bgf5D|CBF0C,
+River Don.s2m,kingmaker,12093,11,5525504,5808128,282624,mixed-unknown,47,,EUUUE|DoOaD|ETfYE|EwAhE|CBF0C|CtB0C|DwX6D|EDQME,
+River Don.s2m,kingmaker,12093,12,5808128,6205440,397312,mixed-unknown,47,,EUUUE|ClPrC|DUWoD|DedAD|EUA6E|EUUUEUUUE|EWS4E|EshJE,
+River Don.s2m,kingmaker,12093,13,6205440,6643712,438272,mixed-unknown,47,,A7RVA|D7JzD|AgiDC|BCrXB|CV6qD|DUnmD|DV6qD|RrDjy,
+River Don.s2m,kingmaker,12093,14,6643712,8867840,2224128,mixed-unknown,46,,DKVzD|DsIFD|GvC5|N0EG|SEYVeE|puEe|zXEG|AExE,
+River Don.s2m,kingmaker,12093,15,8867840,9142272,274432,grid-or-terrain,77,,LinkageLayer7|LogicLayer7,128x128:5259|256x256:3033|512x512:445|32x32:94|320x320:42|64x64:36
+River Don.s2m,kingmaker,12093,16,9142272,9666560,524288,grid-or-terrain,72,,ProximityLayer7,128x128:83|256x256:52
+River Don.s2m,kingmaker,12093,17,9666560,9717256,50696,entities-and-systems,78,,Action|ActorAssetsG|BuildingAssetsF|ClaimLayer7|ClusterQ|DeerClanI|Emitter|RabbitClanI,468x113:30|70x70:30|71x71:30|408x100:27|81x81:26|79x80:25
+Rocky Island.s2m,freebuild,8538,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,B4uwB|BfEd4SE|BgB_B|BkMrC|CBNhC|CHeGC|CPN0D|CUtjD,
+Rocky Island.s2m,freebuild,8538,1,266240,786432,520192,binary-opaque,35,,,
+Rocky Island.s2m,freebuild,8538,2,786432,1187840,401408,binary-opaque,41,,,513x257:6|256x257:4|259x257:4|259x513:4|512x514:4|514x514:4
+Rocky Island.s2m,freebuild,8538,3,1187840,1515520,327680,binary-opaque,36,,,1024x512:4
+Rocky Island.s2m,freebuild,8538,4,1515520,1843200,327680,binary-opaque,35,,,
+Rocky Island.s2m,freebuild,8538,5,1843200,2105344,262144,binary-opaque,35,,,
+Rocky Island.s2m,freebuild,8538,6,2105344,2268569,163225,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Rocky Island.s2m,freebuild,8538,7,2268569,4300800,2032231,environment-fx,81,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_WINDLIGHT|ActorMgr|BuildingHandler|BuildingMgr|ElementMgr,
+Rocky Island.s2m,freebuild,8538,8,4300800,4624384,323584,grid-or-terrain,88,,Cfff|C33s|B33s|Bfff|BxYu|A33s|cCfff|AC33s,768x768:48|512x1024:16|512x512:15|768x1024:4|46x42:3|59x44:3
+Rocky Island.s2m,freebuild,8538,9,4624384,5091328,466944,mixed-unknown,47,,AAAA|ABBA|AAAAAA|AAAAA|AAAAAAA|AABBA|ABBBBBA|ABAA,
+Rocky Island.s2m,freebuild,8538,10,5091328,5365760,274432,entities-and-systems,77,,B4uwB|BEWY|CBNhC|CllRD|CuA4D|DPN0Dg|DUtjD|DX0TD,
+Rocky Island.s2m,freebuild,8538,11,5365760,5640192,274432,mixed-unknown,47,,CBNhC|AEkkCE|AEv8WE|BEz3ZE|CBPN|CEHp2E|CErx|CXG9C,
+Rocky Island.s2m,freebuild,8538,12,5640192,5971968,331776,mixed-unknown,47,,B4uwB|CkMrC|DUtjD|ET7SE|Ejw9E|ElQ7E|EuHqE|BEWY,
+Rocky Island.s2m,freebuild,8538,13,5971968,6418432,446464,mixed-unknown,47,,CdiiC|E6s6E|E9xzE|EDJyE|EH3aE|ERIxE|EUfaE|EpIeE,
+Rocky Island.s2m,freebuild,8538,14,6418432,8695808,2277376,mixed-unknown,37,,PUELh|DDLAD|ZELh|xADDLAD,
+Rocky Island.s2m,freebuild,8538,15,8695808,8957952,262144,grid-or-terrain,73,,LinkageLayer|LogicLayer,256x256:38|512x512:35
+Rocky Island.s2m,freebuild,8538,16,8957952,9482240,524288,entities-and-systems,65,,ProximityLayer,
+Rocky Island.s2m,freebuild,8538,17,9482240,9554853,72613,entities-and-systems,80,,Action|ActorAssetsL|BuildingAssetsK|C7XnH|ClusterW|Emitter|LSEj|RabbitClanN,75x75:31|468x113:30|76x76:30|408x100:29|83x82:21|81x82:17
+Strong and Stable.s2m,kingmaker,22326,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,Bv0aC|AEB3C|B4qZC|B7pR|BAAD|BDTCED|BDusGE|BEfZ7E,
+Strong and Stable.s2m,kingmaker,22326,1,266240,786432,520192,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,2,786432,1187840,401408,grid-or-terrain,76,,,768x259:7|256x257:5|512x512:5|514x515:5|259x257:4|513x257:4
+Strong and Stable.s2m,kingmaker,22326,3,1187840,1519616,331776,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,4,1519616,1843200,323584,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,5,1843200,2105344,262144,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,6,2105344,2268691,163347,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Strong and Stable.s2m,kingmaker,22326,7,2268691,3084288,815597,environment-fx,83,FX_ENVIRONMENT_,FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_MARSH|ActorMgr|BuildingHandler,
+Strong and Stable.s2m,kingmaker,22326,8,3084288,4300800,1216512,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,9,4300800,4562944,262144,grid-or-terrain,85,,EthhD|F4exE|FNYLD|FbtyE|G8TNE|GMoaD|GZcGD|GrzwE,768x768:45|512x512:17|512x1024:15
+Strong and Stable.s2m,kingmaker,22326,10,4562944,4841472,278528,mixed-unknown,48,,ABBA|AAAA|ABCCBA|ABBBBA|AAAAAA|AAAAA|C33s|Cfff,768x1024:6
+Strong and Stable.s2m,kingmaker,22326,11,4841472,5312512,471040,mixed-unknown,47,,ABBA|ABBBBA|AAAA|AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA|ABBBBBBBBBA|AAAAA|AAAAAA|AAAAAAA,
+Strong and Stable.s2m,kingmaker,22326,12,5312512,5578752,266240,mixed-unknown,47,,A8UPB|AVmRB|BMAVBap|CBAAD|CV4vCu|Ch6gCU|D2JqD|D9WDDA,
+Strong and Stable.s2m,kingmaker,22326,13,5578752,5890048,311296,mixed-unknown,47,,EEMjE|EHhgE|EjsSE|DIYoD|DsjmD|EGzQE|EGzQEg|EentE,
+Strong and Stable.s2m,kingmaker,22326,14,5890048,6164480,274432,mixed-unknown,47,,CxwW|EKRuE|D37JD|DJdDD|DRx1D|Dl4zD|DliFC|DrRxD,
+Strong and Stable.s2m,kingmaker,22326,15,6164480,6512640,348160,mixed-unknown,47,,DupvD|E_0oE|Bv0aC|ChvEC|Cm0yA|CxL9B|DKPRD|DU2LD,
+Strong and Stable.s2m,kingmaker,22326,16,6512640,6815744,303104,mixed-unknown,47,,DbayD|E4XLE|ER7IE|EuyXE|CF6PC|Cc0UC|DANgD|DlgrD,
+Strong and Stable.s2m,kingmaker,22326,17,6815744,7548928,733184,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,18,7548928,8597504,1048576,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,19,8597504,8916992,319488,binary-opaque,35,,,
+Strong and Stable.s2m,kingmaker,22326,20,8916992,9191424,274432,grid-or-terrain,73,,LinkageLayerA|LogicLayerA,1024x1024:54|32x32:14
+Strong and Stable.s2m,kingmaker,22326,21,9191424,9715712,524288,mixed-unknown,35,,ProximityLayerA,
+Strong and Stable.s2m,kingmaker,22326,22,9715712,9759709,43997,entities-and-systems,80,,Action|ActorAssetsQ|BuildingAssetsP|Cluster|CrowClanS|DeerClanS|Emitter|M33A,92x93:9|94x94:4|255x256:3|89x90:3|91x90:3
+The Four Woods.s2m,kingmaker,9142,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,nE2r|A6Eh|AE8QBE|BdEyG|CEFtCE|CzkPC|DSWKEt5|DXL9Em,
+The Four Woods.s2m,kingmaker,9142,1,266240,790528,524288,binary-opaque,35,,,
+The Four Woods.s2m,kingmaker,9142,2,790528,1282048,491520,binary-opaque,36,,,768x513:3
+The Four Woods.s2m,kingmaker,9142,3,1282048,1679360,397312,binary-opaque,35,,,
+The Four Woods.s2m,kingmaker,9142,4,1679360,1941504,262144,binary-opaque,35,,,
+The Four Woods.s2m,kingmaker,9142,5,1941504,2102906,161402,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+The Four Woods.s2m,kingmaker,9142,6,2102906,4132864,2029958,environment-fx,80,FX_ENVIRONMENT_,FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_MARSH|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_WINDHEAVY|ActorMgr|BuildingHandler|BuildingMgr|ElementMgr,
+The Four Woods.s2m,kingmaker,9142,7,4132864,4395008,262144,grid-or-terrain,85,,BiDiPathfinder|Camera|ClanMgr|EmitterMgr|Estate|Forest|NaturalStone|Pathfinder,768x768:45|512x512:16|512x1024:15|51x255:5|43x255:4|46x255:4
+The Four Woods.s2m,kingmaker,9142,8,4395008,4665344,270336,entities-and-systems,80,,Hz4OE|PGBpTE|Actor|ActorGroup|Animal|AutoPlacement0|Bridges|BuildingLayer5,63x256:4|768x512:4|49x42:3|768x1024:3
+The Four Woods.s2m,kingmaker,9142,9,4665344,5058560,393216,mixed-unknown,35,,ClaimLayer5,
+The Four Woods.s2m,kingmaker,9142,10,5058560,5468160,409600,mixed-unknown,36,,ConnectionLayer5|ContextLayer5,
+The Four Woods.s2m,kingmaker,9142,11,5468160,5738496,270336,mixed-unknown,47,,f0Er3|OElxkE|DangerLayer5|DesirabilityLayer5|E23FE|E2LTE|E9yUEP|EHSjE,
+The Four Woods.s2m,kingmaker,9142,12,5738496,6017024,278528,mixed-unknown,47,,f0Er3|EY_pE|ElxkE|E2LTE|EyukE|DPkJC|EBsuE|EEGyE,
+The Four Woods.s2m,kingmaker,9142,13,6017024,6811648,794624,mixed-unknown,47,,EXNIE|Ez4OE|DDOhD|E15oE|E23FE|E3d6E|E9yUE|E9yUEP,
+The Four Woods.s2m,kingmaker,9142,14,6811648,9076736,2265088,mixed-unknown,47,,EUVRE|E_v3E|DPkJC|EXQtE|Efa1E|EffbE|DsKgD|DzkPC,
+The Four Woods.s2m,kingmaker,9142,15,9076736,9338880,262144,mixed-unknown,35,,LogicLayer5,
+The Four Woods.s2m,kingmaker,9142,16,9338880,9863168,524288,mixed-unknown,35,,ProximityLayer5,
+The Four Woods.s2m,kingmaker,9142,17,9863168,9899452,36284,entities-and-systems,72,,Action|ActorAssetsE|BuildingAssetsD|ClusterL|CrowClanG|DeerClanG|LinkageLayer5|S2Clan,76x76:5
+Three Bridges.s2m,kingmaker,11859,0,0,786432,786432,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,AC7ZRCD|Akqs|BD3MC|BEL4AN|BEL5|BENq5E|BKQrCSi|BSM1B,
+Three Bridges.s2m,kingmaker,11859,1,786432,1187840,401408,binary-opaque,41,,,259x257:6|513x257:6|512x257:4|512x514:4|514x514:4|769x768:4
+Three Bridges.s2m,kingmaker,11859,2,1187840,1548288,360448,grid-or-terrain,71,,,512x512:12
+Three Bridges.s2m,kingmaker,11859,3,1548288,1843200,294912,binary-opaque,35,,,
+Three Bridges.s2m,kingmaker,11859,4,1843200,2105344,262144,binary-opaque,35,,,
+Three Bridges.s2m,kingmaker,11859,5,2105344,2268569,163225,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Three Bridges.s2m,kingmaker,11859,6,2268569,4300800,2032231,environment-fx,82,FX_ENVIRONMENT_,FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_MARSH|FX_ENVIRONMENT_INSECTS|ActorMgr|BuildingHandler,
+Three Bridges.s2m,kingmaker,11859,7,4300800,4587520,286720,grid-or-terrain,83,,BiDiPathfinder|Camera|ClanMgr|EmitterMgr|Estate|EstateRails|Fire|Forest,255x255:4
+Three Bridges.s2m,kingmaker,11859,8,4587520,4849664,262144,entities-and-systems,77,,Cfff|C33s|Bfff|A33s|B33s|ActorGroup|Afff|AutoPlacement,
+Three Bridges.s2m,kingmaker,11859,9,4849664,5238784,389120,binary-opaque,35,,,
+Three Bridges.s2m,kingmaker,11859,10,5238784,5525504,286720,entities-and-systems,77,,C2nhC|C7ZRC|D1SKD|D9PaD|DZqID|DangerLayer|DdhTD|DesirabilityLayer,
+Three Bridges.s2m,kingmaker,11859,11,5525504,5918720,393216,mixed-unknown,47,,DdhTD|Dis_D|DB53D|Erd8E|H4Dd|JXCx|VDNh|wDuNBD,
+Three Bridges.s2m,kingmaker,11859,12,5918720,6217728,299008,mixed-unknown,47,,D1SKD|D6FID|D9PaD|CQrAC|CY5gC|DUPkD|BEL5|BEL5q,
+Three Bridges.s2m,kingmaker,11859,13,6217728,6635520,417792,mixed-unknown,47,,C5fiC|CgchC|DhJcD|E53LE|E5qyE|Erd8E|PUE1PUE|PUENPUE,
+Three Bridges.s2m,kingmaker,11859,14,6635520,8843264,2207744,mixed-unknown,47,,Eu6FE|PUEZJUE|PUEZQUE|EIZDE|ErEy|GUER|NEIZDE|NUEuMUE,
+Three Bridges.s2m,kingmaker,11859,15,8843264,9113600,270336,grid-or-terrain,72,,LinkageLayer|LogicLayer,1024x1024:1661
+Three Bridges.s2m,kingmaker,11859,16,9113600,9637888,524288,grid-or-terrain,71,,ProximityLayer,1024x1024:41
+Three Bridges.s2m,kingmaker,11859,17,9637888,9668887,30999,entities-and-systems,69,,ActorAssets|BuildingAssets|ClaimLayer|Cluster|S2Clan|SearchLayer|SpreadLayer|TempLayer,
+Three Valleys.s2m,freebuild,17632,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,CzV2C|CFr9D|CFr9DFr9DFr9D|CqeQC|DFMZD|DL7yD|tqDd|A5Azq,
+Three Valleys.s2m,freebuild,17632,1,266240,786432,520192,binary-opaque,35,,,
+Three Valleys.s2m,freebuild,17632,2,786432,1277952,491520,grid-or-terrain,74,,,1024x512:8|514x515:4|512x512:3|512x769:3
+Three Valleys.s2m,freebuild,17632,3,1277952,1675264,397312,binary-opaque,35,,,
+Three Valleys.s2m,freebuild,17632,4,1675264,1937408,262144,grid-or-terrain,71,,,255x255:64793
+Three Valleys.s2m,freebuild,17632,5,1937408,2100760,163352,grid-or-terrain,75,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:519|256x256:14
+Three Valleys.s2m,freebuild,17632,6,2100760,4132864,2032104,environment-fx,83,FX_ENVIRONMENT_,FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_WATERFALL|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_VILLAGELIFE|ActorMgr,
+Three Valleys.s2m,freebuild,17632,7,4132864,4403200,270336,grid-or-terrain,86,,BiDiPathfinder|CHrt|Camera|ClanMgr|EHnE|EmitterMgr|Estate|Forest,768x768:50|512x512:17|512x1024:16|256x512:4
+Three Valleys.s2m,freebuild,17632,8,4403200,4665344,262144,mixed-unknown,50,,ABBA|AAAA|AAAAA|ABCCBA|AAAAAA|ABCBA|ABBBBA|ABAA,40x40:10|768x1024:6|1000x512:5
+Three Valleys.s2m,freebuild,17632,9,4665344,5058560,393216,binary-opaque,35,,,
+Three Valleys.s2m,freebuild,17632,10,5058560,5488640,430080,mixed-unknown,36,,ConnectionLayer8|ContextLayer8,
+Three Valleys.s2m,freebuild,17632,11,5488640,5771264,282624,mixed-unknown,47,,C402C|PUEA|sDFr9DFr9D|ADPdC|AUyBA|BDfJLD|BDtc|BE_s,
+Three Valleys.s2m,freebuild,17632,12,5771264,6451200,679936,mixed-unknown,47,,ELE3E|PUEA|C9RRC|DL7yD|DMwUD|E1RLE|EZYuE|E_EWE,
+Three Valleys.s2m,freebuild,17632,13,6451200,6995968,544768,mixed-unknown,47,,CzV2C|CQtUC|CSyRC|Dh5ZD|DmGeD|E7p8E|EEgoE|EdGIE,
+Three Valleys.s2m,freebuild,17632,14,6995968,9093120,2097152,mixed-unknown,35,,CqeQC,
+Three Valleys.s2m,freebuild,17632,15,9093120,9355264,262144,mixed-unknown,36,,LinkageLayer8|LogicLayer8,
+Three Valleys.s2m,freebuild,17632,16,9355264,9879552,524288,mixed-unknown,35,,ProximityLayer8,
+Three Valleys.s2m,freebuild,17632,17,9879552,9915611,36059,entities-and-systems,74,,Action|ActorAssetsH|BuildingAssetsG|ClusterT|CrowClanJ|DeerClanJ|Emitter|PEEv8,84x84:3
+To The Sea.s2m,kingmaker,13261,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,PUEt|EvMjE|PUEC|PUEXOzEhs|PUEz|B4Ji|B4TwA|BUEx7TEd,
+To The Sea.s2m,kingmaker,13261,1,266240,786432,520192,binary-opaque,35,,,
+To The Sea.s2m,kingmaker,13261,2,786432,1187840,401408,binary-opaque,41,,,513x257:6|259x257:4|513x770:4|514x514:4|256x257:3|258x259:3
+To The Sea.s2m,kingmaker,13261,3,1187840,1454080,266240,binary-opaque,38,,,512x1024:12|1285x1285:4|771x1024:4
+To The Sea.s2m,kingmaker,13261,4,1454080,1843200,389120,binary-opaque,35,,,
+To The Sea.s2m,kingmaker,13261,5,1843200,2105344,262144,binary-opaque,35,,,
+To The Sea.s2m,kingmaker,13261,6,2105344,2268713,163369,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+To The Sea.s2m,kingmaker,13261,7,2268713,4300800,2032087,environment-fx,83,FX_ENVIRONMENT_,FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_WATERFALL|FX_ENVIRONMENT_BIRDBUSY,
+To The Sea.s2m,kingmaker,13261,8,4300800,4562944,262144,grid-or-terrain,83,,GTRKE|BiDiPathfinder|Camera|ClanMgr|EmitterMgr|Estate|EstateRails|F83pE,255x255:6
+To The Sea.s2m,kingmaker,13261,9,4562944,4825088,262144,grid-or-terrain,83,,AAAA|ABBA|AAAAAA|AAAAA|AABBA|ABBBBA|ABCDDCBA|ABCBA,255x255:5
+To The Sea.s2m,kingmaker,13261,10,4825088,5103616,278528,binary-opaque,35,,,
+To The Sea.s2m,kingmaker,13261,11,5103616,5369856,266240,binary-opaque,35,,,
+To The Sea.s2m,kingmaker,13261,12,5369856,5632000,262144,entities-and-systems,71,,E7KlE|DW5rEd|DangerLayer|DesirabilityLayer|EG7RE|EZhLE|EkZdE|EstateLayer,
+To The Sea.s2m,kingmaker,13261,13,5632000,6082560,450560,mixed-unknown,47,,E7KlE|PUEjFgE|EG7RE|EyaIE|PUErO|ERzyET|EW5rEd|EkZdE,
+To The Sea.s2m,kingmaker,13261,14,6082560,6434816,352256,mixed-unknown,47,,PUEs|EBabE|EF9TE|PUEz|EGqME|EN2GE|EOYfE|EPQPE,
+To The Sea.s2m,kingmaker,13261,15,6434816,6725632,290816,mixed-unknown,47,,PUEjFgE|PUEt|PUErO|E7lKE|EjFgE|EvMjE|PUEjFgEjFgE|PUEp,
+To The Sea.s2m,kingmaker,13261,16,6725632,8974336,2248704,mixed-unknown,39,,DJvhD|DMbSE|MjDn|cMEF|DEMbSE|DJvhDJ|DJvhDJvhDn|DJvhDn,
+To The Sea.s2m,kingmaker,13261,17,8974336,9236480,262144,grid-or-terrain,77,,LinkageLayer|LogicLayer,256x256:2489|128x128:1724|32x32:241|512x512:96|320x320:34|64x64:34
+To The Sea.s2m,kingmaker,13261,18,9236480,9768960,532480,entities-and-systems,65,,ProximityLayer,
+To The Sea.s2m,kingmaker,13261,19,9768960,9807786,38826,entities-and-systems,77,,ActorAssets|BuildingAssets|ClaimLayer|EfWfH|EfYfH|EfafH|EflfH|Emitter,468x113:31|408x100:30|58x58:30|59x59:30
+Two Pronged Crown.s2m,kingmaker,15379,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,BsczB|CdA7C|e1CH|A0dFBKe|A1oPAj|A2CvA|A3l7B|A4iFB4,
+Two Pronged Crown.s2m,kingmaker,15379,1,266240,786432,520192,binary-opaque,35,,,
+Two Pronged Crown.s2m,kingmaker,15379,2,786432,1187840,401408,grid-or-terrain,76,,,256x257:5|259x257:4|512x256:4|512x512:4|513x257:4|513x770:4
+Two Pronged Crown.s2m,kingmaker,15379,3,1187840,1519616,331776,binary-opaque,38,,,1024x512:56|1024x514:8|1285x1280:4
+Two Pronged Crown.s2m,kingmaker,15379,4,1519616,1843200,323584,binary-opaque,35,,,
+Two Pronged Crown.s2m,kingmaker,15379,5,1843200,2105344,262144,binary-opaque,35,,,
+Two Pronged Crown.s2m,kingmaker,15379,6,2105344,2268713,163369,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Two Pronged Crown.s2m,kingmaker,15379,7,2268713,4300800,2032087,environment-fx,84,FX_ENVIRONMENT_,FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BEACH,
+Two Pronged Crown.s2m,kingmaker,15379,8,4300800,4579328,278528,entities-and-systems,77,,AHayIC|BiDiPathfinder|CG0BX|Camera|ClanMgr|D_H8E|EOzPC|EPL75,
+Two Pronged Crown.s2m,kingmaker,15379,9,4579328,4915200,335872,grid-or-terrain,85,,Cfff|C33s|Bfff|B33s|A33s|Afff|GDGaE|GQvJE,255x255:50|72x72:5|255x72:4
+Two Pronged Crown.s2m,kingmaker,15379,10,4915200,5414912,499712,grid-or-terrain,73,,ChannelLayer|ClaimLayer|ConnectionLayer|ContextLayer,128x128:3
+Two Pronged Crown.s2m,kingmaker,15379,11,5414912,5677056,262144,entities-and-systems,77,,ANE2A|AVVaB|Bdy7Bm|BhbFA|BndqA|C0cUC|C4kuBX2|CR_wC,
+Two Pronged Crown.s2m,kingmaker,15379,12,5677056,5955584,278528,mixed-unknown,47,,Dy2ED|DdFiE|E6GWE|e1CH|Bys3C|CAVA|CNLACEI|CsczB,
+Two Pronged Crown.s2m,kingmaker,15379,13,5955584,6701056,745472,mixed-unknown,47,,e1CH|CcrJC|EumYE|A2CvA|C8PIC|CNYeC|CdA7C|Ci8_C,
+Two Pronged Crown.s2m,kingmaker,15379,14,6701056,9019392,2318336,mixed-unknown,47,,ADgcA|BALUB|BsczB|C6JaC|CB2SC|CPvTC|CZbrC|Ck6OC,
+Two Pronged Crown.s2m,kingmaker,15379,15,9019392,9289728,270336,grid-or-terrain,73,,LinkageLayer|LogicLayer,256x256:254|512x512:55
+Two Pronged Crown.s2m,kingmaker,15379,16,9289728,9814016,524288,entities-and-systems,65,,ProximityLayer,
+Two Pronged Crown.s2m,kingmaker,15379,17,9814016,9870307,56291,entities-and-systems,81,,Action|ActorAssetsK|BuildingAssetsJ|Cluster|CrowClanM|Emitter|HbFf|HdFR,408x100:30|468x113:30|74x74:30|75x75:30
+USA.s2m,kingmaker,12399,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,A7ej|ADa3|ARrJCQ|ATIa|AUuPC|AVjz|AzHNC|B7vU,
+USA.s2m,kingmaker,12399,1,266240,786432,520192,binary-opaque,35,,,
+USA.s2m,kingmaker,12399,2,786432,1187840,401408,grid-or-terrain,76,,,256x257:5|514x515:5|256x513:4|513x257:4|256x256:3|258x513:3
+USA.s2m,kingmaker,12399,3,1187840,1515520,327680,binary-opaque,35,,,
+USA.s2m,kingmaker,12399,4,1515520,1843200,327680,binary-opaque,35,,,
+USA.s2m,kingmaker,12399,5,1843200,2105344,262144,binary-opaque,35,,,
+USA.s2m,kingmaker,12399,6,2105344,2268557,163213,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+USA.s2m,kingmaker,12399,7,2268557,4300800,2032243,environment-fx,82,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_WINDHEAVY|ActorMgr,
+USA.s2m,kingmaker,12399,8,4300800,4665344,364544,grid-or-terrain,83,,C33s|GjZrC|Gn1iD|XGlRtD|dHR_y|ActorGroup|AutoPlacement|BiDiPathfinder,255x255:13
+USA.s2m,kingmaker,12399,9,4665344,5128192,462848,mixed-unknown,47,,ABCCBA|ABBA|AAAA|ABCDDCBA|ABCDEFGHIJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJIHGFEDCBA|AABBBAA|AABA|AABBBA,
+USA.s2m,kingmaker,12399,10,5128192,5419008,290816,entities-and-systems,77,,AEwzBE|AUuPC|BDpA|BDyXUDg|C0N4B|CQHcD|DEQx|DangerLayer,
+USA.s2m,kingmaker,12399,11,5419008,5767168,348160,mixed-unknown,47,,BDpA|DQHcD|NODuByD|hDAt|jD7R|A5g7A|ATIa|AVjz,
+USA.s2m,kingmaker,12399,12,5767168,6156288,389120,mixed-unknown,47,,DLpGD|DzzfD|EYV1E|T4A8|C0N4B|EZW7E|Ed15E|AEwzBE,
+USA.s2m,kingmaker,12399,13,6156288,6492160,335872,mixed-unknown,47,,D2aaD|DL_3D|AVjz|BBmHB|CzHNC|D2H6D|D95qD|DIJ0D,
+USA.s2m,kingmaker,12399,14,6492160,8732672,2240512,mixed-unknown,47,,DjHBD|BsHoB|CyZIC|D7xND|BXWFB|C7grD|CJgDC|C_S6C,
+USA.s2m,kingmaker,12399,15,8732672,8998912,266240,entities-and-systems,66,,LinkageLayer|LogicLayer,
+USA.s2m,kingmaker,12399,16,8998912,9523200,524288,entities-and-systems,65,,ProximityLayer,
+USA.s2m,kingmaker,12399,17,9523200,9553289,30089,entities-and-systems,68,,ActorAssets|BuildingAssets9|Emitter|SearchLayer|SpreadLayer|TempLayer|WhitewaterEmitter,
+war_chapter1.s2m,warcampaign,14127,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,aEHw|fgEtF|AME3|AwnZA|B239D|B2PyC|BEBV|BK_hBU,
+war_chapter1.s2m,warcampaign,14127,1,266240,786432,520192,binary-opaque,35,,,
+war_chapter1.s2m,warcampaign,14127,2,786432,1048576,262144,binary-opaque,38,,,259x512:3|512x1024:3|513x769:3
+war_chapter1.s2m,warcampaign,14127,3,1048576,1347584,299008,grid-or-terrain,74,,,1024x1024:8|1024x1028:4|768x768:4|771x1280:4
+war_chapter1.s2m,warcampaign,14127,4,1347584,1675264,327680,binary-opaque,35,,,
+war_chapter1.s2m,warcampaign,14127,5,1675264,1937408,262144,grid-or-terrain,71,,,255x255:64182
+war_chapter1.s2m,warcampaign,14127,6,1937408,2100832,163424,grid-or-terrain,79,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:537|256x256:97|1024x1024:23|512x256:20|512x512:19|768x256:13
+war_chapter1.s2m,warcampaign,14127,7,2100832,2695168,594336,environment-fx,81,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDBUSY|ActorMgr|BuildingHandler|BuildingMgr,
+war_chapter1.s2m,warcampaign,14127,8,2695168,2957312,262144,mixed-unknown,41,,PFrkRF|SFmySF|TF_tSFC|TFzmSF|hSFmySF|tSFC|zmSF,257x256:22|512x256:5|514x256:5
+war_chapter1.s2m,warcampaign,14127,9,2957312,3219456,262144,grid-or-terrain,80,,ylDFylDFylDFylDF|EF2SEF|VQFKZQF|FleGF|HFvhJF|MFvhJF|NFtLQF|SFtLQF,514x256:44|257x256:14|256x256:4
+war_chapter1.s2m,warcampaign,14127,10,3219456,4132864,913408,mixed-unknown,39,,QFktNF|GFKTFFr|HFktNFT|jtNFT,257x256:18|514x256:6
+war_chapter1.s2m,warcampaign,14127,11,4132864,4444160,311296,entities-and-systems,83,,C33s|B33s|Cfff|Bfff|A33s|Actor|ActorGroup|Archer,768x1024:34|137x256:33|1000x512:32|41x42:13|40x40:10|59x51:10
+war_chapter1.s2m,warcampaign,14127,12,4444160,4706304,262144,grid-or-terrain,88,,AppleFarm|AppleTree|Armoury|AutoPlacementh|Barracks|Brazier|Building|BuildingLayerm,768x1024:9|1000x512:8|137x256:7|63x256:7|256x256:6|105x42:5
+war_chapter1.s2m,warcampaign,14127,13,4706304,5095424,389120,binary-opaque,35,,,
+war_chapter1.s2m,warcampaign,14127,14,5095424,5517312,421888,mixed-unknown,35,,ContextLayerm,
+war_chapter1.s2m,warcampaign,14127,15,5517312,5795840,278528,mixed-unknown,47,,AEGg8EX|Al4k|BN6y|CDlW|CEkB|CVDwD|CjwOD|D2yKD,
+war_chapter1.s2m,warcampaign,14127,16,5795840,6504448,708608,mixed-unknown,47,,E50zE|ExoVE|aEHw|BN6y|CVDwD|CqDVh|E96xE|EO9zE,
+war_chapter1.s2m,warcampaign,14127,17,6504448,6889472,385024,mixed-unknown,47,,D239D|D7h2D|Dxz5D|E238E|E2hyE|EB9vE|EDWzE|EXn8E,
+war_chapter1.s2m,warcampaign,14127,18,6889472,7184384,294912,mixed-unknown,47,,EmWTE|UEIHUE|CtzhC|EGQoE|EN6uE|EgthE|AwES|EiSSE5,
+war_chapter1.s2m,warcampaign,14127,19,7184384,7446528,262144,mixed-unknown,43,,SFmySF|VQFKZQF|DHF2SEF|EF2SEF|FleGF|HFvhJF|JPF8|LFvhJF,
+war_chapter1.s2m,warcampaign,14127,20,7446528,8486912,1040384,mixed-unknown,40,,QFktNF|CBFX|EF2SEF|FFylDFylDF|GFKTFF8|IFKTFF|KFktNFT|OFjtNFT,
+war_chapter1.s2m,warcampaign,14127,21,8486912,9056256,569344,binary-opaque,35,,,
+war_chapter1.s2m,warcampaign,14127,22,9056256,9318400,262144,mixed-unknown,35,,LogicLayerm,
+war_chapter1.s2m,warcampaign,14127,23,9318400,9842688,524288,mixed-unknown,35,,ProximityLayerm,
+war_chapter1.s2m,warcampaign,14127,24,9842688,10104832,262144,entities-and-systems,79,,AHV5|AHhFm|AHofa|GHXud|M4H3|AHff3|AHffL|AHffQ,126x127:4|131x132:3
+war_chapter1.s2m,warcampaign,14127,25,10104832,10366976,262144,mixed-unknown,48,,JtG3S|A1GGV5a|AaBGV|AmCGV|AtCG6|AuBGV|BGhFz|CGeF,131x132:6
+war_chapter1.s2m,warcampaign,14127,26,10366976,10397138,30162,mixed-unknown,43,,Action|Cluster|GateTeleport|LevelTeleport|ScriptAction|SpiralStairTeleport|Teleport,133x134:57|138x137:26|136x137:16|135x135:3|137x137:3
+war_chapter11.s2m,warcampaign,26665,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,BiEYM|E6Y_E|EGZXEJ|ESDeE_|EmQVE|FYDN|JMDk|A0nlC,
+war_chapter11.s2m,warcampaign,26665,1,266240,786432,520192,binary-opaque,35,,,
+war_chapter11.s2m,warcampaign,26665,2,786432,1056768,270336,binary-opaque,41,,,512x1024:12|1285x1285:8|1280x1280:4|513x257:4|771x1024:4|256x257:3
+war_chapter11.s2m,warcampaign,26665,3,1056768,1372160,315392,binary-opaque,41,,,1024x512:20|1024x514:4|1024x768:4|1024x778:4|1026x1285:4|768x775:4
+war_chapter11.s2m,warcampaign,26665,4,1372160,1675264,303104,binary-opaque,35,,,
+war_chapter11.s2m,warcampaign,26665,5,1675264,1937408,262144,grid-or-terrain,71,,,255x255:63040
+war_chapter11.s2m,warcampaign,26665,6,1937408,2100832,163424,grid-or-terrain,79,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:537|256x256:156|768x256:49|1024x1024:28|1024x768:26|512x512:23
+war_chapter11.s2m,warcampaign,26665,7,2100832,2793472,692640,environment-fx,83,FX_ENVIRONMENT_,FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_VILLAGELIFE|ActorMgr|BuildingHandler,257x257:13
+war_chapter11.s2m,warcampaign,26665,8,2793472,3141632,348160,mixed-unknown,35,,IPEb,
+war_chapter11.s2m,warcampaign,26665,9,3141632,3522560,380928,binary-opaque,35,,,
+war_chapter11.s2m,warcampaign,26665,10,3522560,4132864,610304,binary-opaque,35,,,
+war_chapter11.s2m,warcampaign,26665,11,4132864,4407296,274432,grid-or-terrain,85,,Cfff|C33s|B33s|Bfff|HsalE|rHrP|wCfff|Afff,255x255:4|100x255:3|102x255:3
+war_chapter11.s2m,warcampaign,26665,12,4407296,4673536,266240,grid-or-terrain,88,,Actor|ActorGroup|Animal|AppleTree|Archer|Ballista|Building|C33s,1000x512:57|768x1024:46|137x256:40|46x42:21|256x256:16|40x40:10
+war_chapter11.s2m,warcampaign,26665,13,4673536,5312512,638976,grid-or-terrain,88,,ABBA|AAAA|AAAAA|AAAAAA|ABCBA|ABBBA|AABBA|ABCCBA,512x512:14|72x512:13|59x87:12|69x42:12|59x73:10|114x42:9
+war_chapter11.s2m,warcampaign,26665,14,5312512,5574656,262144,mixed-unknown,36,,ConnectionLayerz|ContextLayerz,
+war_chapter11.s2m,warcampaign,26665,15,5574656,5943296,368640,binary-opaque,35,,,
+war_chapter11.s2m,warcampaign,26665,16,5943296,6205440,262144,mixed-unknown,47,,vEXs|B4EX5EE|DECKE|DTDJrxE|DangerLayerz|DesirabilityLayerz|E9RvEv|EBscE,
+war_chapter11.s2m,warcampaign,26665,17,6205440,6647808,442368,mixed-unknown,47,,EKUZE|EUioE|EkIkE|bILB|vEXs|EE4EE|EGmtE|ENIRE,
+war_chapter11.s2m,warcampaign,26665,18,6647808,7262208,614400,mixed-unknown,47,,FE8b|MVE3S|E5LTE|ETAPE|EiMhE|EmQVE|DhtoD|E2UrE,
+war_chapter11.s2m,warcampaign,26665,19,7262208,7770112,507904,mixed-unknown,47,,fiEhh|MVE3S|ETopE|ElYlE|PUEmr|fEUA|DQ1zD|E3pDE,
+war_chapter11.s2m,warcampaign,26665,20,7770112,9547776,1777664,binary-opaque,35,,,
+war_chapter11.s2m,warcampaign,26665,21,9547776,9814016,266240,grid-or-terrain,77,,LinkageLayerz|LogicLayerz,256x256:3691|128x128:2608|32x32:377|512x512:277|1024x1024:83|320x320:20
+war_chapter11.s2m,warcampaign,26665,22,9814016,10342400,528384,grid-or-terrain,73,,ProximityLayerz|SearchLayerz,512x512:6|256x256:3
+war_chapter11.s2m,warcampaign,26665,23,10342400,10402746,60346,entities-and-systems,81,,Action|ActorAssets|BuildingAssets|Cluster|Emitter|GateTeleport|HYYHhu|LevelTeleport,149x150:48|152x153:6|142x140:4|151x151:3
+war_chapter4.s2m,warcampaign,19595,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,A8e5EkK|AEGO6E|AXoD9|AkDNA|AnTs|AuoNA|BE77LE|BEG0,
+war_chapter4.s2m,warcampaign,19595,1,266240,786432,520192,binary-opaque,35,,,
+war_chapter4.s2m,warcampaign,19595,2,786432,1372160,585728,binary-opaque,37,,,1285x1024:4|513x257:4
+war_chapter4.s2m,warcampaign,19595,3,1372160,1675264,303104,binary-opaque,35,,,
+war_chapter4.s2m,warcampaign,19595,4,1675264,1937408,262144,grid-or-terrain,71,,,255x255:62288
+war_chapter4.s2m,warcampaign,19595,5,1937408,2100760,163352,grid-or-terrain,79,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:519|256x256:28|1024x1024:7|768x256:6|1024x768:3|1536x1536:3
+war_chapter4.s2m,warcampaign,19595,6,2100760,2994176,893416,environment-fx,84,FX_ENVIRONMENT_,FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_MARSH|FX_ENVIRONMENT_OCEAN,
+war_chapter4.s2m,warcampaign,19595,7,2994176,3584000,589824,binary-opaque,35,,,
+war_chapter4.s2m,warcampaign,19595,8,3584000,4132864,548864,mixed-unknown,36,,PEb6|llEb6,
+war_chapter4.s2m,warcampaign,19595,9,4132864,4460544,327680,grid-or-terrain,85,,Cfff|C33s|Bfff|B33s|Afff|A33s|BC33s|BiDiPathfinder,768x768:48|512x1024:16|512x512:15
+war_chapter4.s2m,warcampaign,19595,10,4460544,4812800,352256,grid-or-terrain,88,,hGs8CH|Actor|ActorGroup|Animal|AppleFarm|AppleTree|Archer|AutoPlacementD,768x1024:51|137x256:43|41x42:22|51x42:16|40x40:10|256x256:8
+war_chapter4.s2m,warcampaign,19595,11,4812800,5271552,458752,mixed-unknown,37,,ChannelLayerK|ClaimLayerK,257x128:4
+war_chapter4.s2m,warcampaign,19595,12,5271552,5545984,274432,grid-or-terrain,74,,ConnectionLayerK|ContextLayerK,219x221:8|255x255:8|59x172:8
+war_chapter4.s2m,warcampaign,19595,13,5545984,5816320,270336,binary-opaque,35,,,
+war_chapter4.s2m,warcampaign,19595,14,5816320,6082560,266240,mixed-unknown,47,,A5_Z|AErf7E|AuoNA|BBUUJBO|BE8s1E|BMKSC|BkDNAf|CDA9A,
+war_chapter4.s2m,warcampaign,19595,15,6082560,6471680,389120,mixed-unknown,47,,EBlvE|AuoNA|CDA9A|D9VSD|DrW4D|DuflD|Em6nE|VE6LRE,
+war_chapter4.s2m,warcampaign,19595,16,6471680,6885376,413696,mixed-unknown,47,,BDZ_|EmTxE|CXeLB|D2tMD|DPNTD|EpgxE|CB3pD|DB3pD,
+war_chapter4.s2m,warcampaign,19595,17,6885376,7200768,315392,mixed-unknown,47,,DOmGD|EDPkE|BBYrC|Da3cD|Dv4wC|E0M7E|EBAhE|EGO6E,
+war_chapter4.s2m,warcampaign,19595,18,7200768,8114176,913408,mixed-unknown,47,,Erm0E|ETsME|B3Bg|BWG6C|CWG6C|DYc7D|DwToD|DwToDP,
+war_chapter4.s2m,warcampaign,19595,19,8114176,9424896,1310720,binary-opaque,35,,,
+war_chapter4.s2m,warcampaign,19595,20,9424896,9711616,286720,mixed-unknown,35,,LogicLayerK,
+war_chapter4.s2m,warcampaign,19595,21,9711616,10235904,524288,mixed-unknown,35,,ProximityLayerK,
+war_chapter4.s2m,warcampaign,19595,22,10235904,10381615,145711,entities-and-systems,83,,rHgv|sH2Sj|xHfz|Action|ActorAssets|BsHh|BtH6|BuildingAssetsZ,103x104:53|105x105:17|95x93:8|106x107:6|96x93:6|102x101:4
+war_chapter6.s2m,warcampaign,17796,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,DsnVD|EXKyE|PUEp6mE|PUEw|QfcCQfcC|nErC|AkQQ|B0V7C,
+war_chapter6.s2m,warcampaign,17796,1,266240,786432,520192,binary-opaque,35,,,
+war_chapter6.s2m,warcampaign,17796,2,786432,1187840,401408,binary-opaque,41,,,257x514:4|512x257:4|512x513:4|513x257:4|514x514:4|514x515:4
+war_chapter6.s2m,warcampaign,17796,3,1187840,1536000,348160,binary-opaque,36,,,512x1024:3
+war_chapter6.s2m,warcampaign,17796,4,1536000,1843200,307200,binary-opaque,35,,,
+war_chapter6.s2m,warcampaign,17796,5,1843200,2105344,262144,binary-opaque,35,,,
+war_chapter6.s2m,warcampaign,17796,6,2105344,2268581,163237,entities-and-systems,69,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,1285x1285:4
+war_chapter6.s2m,warcampaign,17796,7,2268581,3596288,1327707,environment-fx,84,FX_ENVIRONMENT_,FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_MARSH|FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_INSECTS,
+war_chapter6.s2m,warcampaign,17796,8,3596288,4300800,704512,binary-opaque,35,,,
+war_chapter6.s2m,warcampaign,17796,9,4300800,4562944,262144,grid-or-terrain,85,,BiDiPathfinder|Camera|ClanMgr|EmitterMgr|Estate|EstateRails|Fire|Forest,768x768:46|512x512:17|512x1024:15
+war_chapter6.s2m,warcampaign,17796,10,4562944,4907008,344064,entities-and-systems,83,,Cfff|C33s|B33s|Bfff|Afff|ZH96|A33s|Actor,768x1024:114|137x256:22|47x43:6|59x78:6|42x43:5|53x43:5
+war_chapter6.s2m,warcampaign,17796,11,4907008,5226496,319488,grid-or-terrain,88,,YHhvEE|AppleFarm|AppleTree|Armoury|AutoPlacementY|Bakery|Barracks|Building,256x256:13|512x512:11|512x1024:9|57x43:7|128x257:5|256x512:3
+war_chapter6.s2m,warcampaign,17796,12,5226496,5529600,303104,binary-opaque,35,,,
+war_chapter6.s2m,warcampaign,17796,13,5529600,5791744,262144,entities-and-systems,77,,Cq8CD|D4CsD|DMLDD|DRNiD|DW2dD|DangerLayer|DesirabilityLayer|Dk4eD2,
+war_chapter6.s2m,warcampaign,17796,14,5791744,6078464,286720,mixed-unknown,47,,ELxGE|DMLDD|EMpoE|EQNgE|Cq8CD|D4CsD|Dk4eD|ERzhE,
+war_chapter6.s2m,warcampaign,17796,15,6078464,6340608,262144,mixed-unknown,47,,EXKyE|DW2dD|EDt8E|EXKyEXKyE|EsnVD|jNEACJE|DFZbD|DRNiD,
+war_chapter6.s2m,warcampaign,17796,16,6340608,6733824,393216,mixed-unknown,47,,D4JZD|EyVnE|B0V7C|DYnMD|EcBVE|Edt5E|B9Er|BjDI,
+war_chapter6.s2m,warcampaign,17796,17,6733824,7032832,299008,mixed-unknown,47,,DhZxD|D72uD|DaMuD|PUEKfVE|PUEw|BitjB|CRa8D|CmK_D,
+war_chapter6.s2m,warcampaign,17796,18,7032832,7708672,675840,binary-opaque,35,,,
+war_chapter6.s2m,warcampaign,17796,19,7708672,8757248,1048576,mixed-unknown,40,,QEDkTE|RE6cRE|CErdDE|IUEGNUE|IUEGNUEDkTEG|LE6cREW|PEDkTEG|PUEGNUE,
+war_chapter6.s2m,warcampaign,17796,20,8757248,9134080,376832,mixed-unknown,40,,QEDkTE|RE6cRE|CErdDE|IUEGNUE|IUEGNUEDkTEG|LE6cREW|PEDkTEG|PUEGNUE,
+war_chapter6.s2m,warcampaign,17796,21,9134080,9396224,262144,grid-or-terrain,77,,LinkageLayer|LogicLayer,256x256:2870|32x32:2771|128x128:2642|512x512:334|544x544:80|32x544:56
+war_chapter6.s2m,warcampaign,17796,22,9396224,9920512,524288,entities-and-systems,65,,ProximityLayer,
+war_chapter6.s2m,warcampaign,17796,23,9920512,10079618,159106,entities-and-systems,80,,Action|ActorAssetsp|BuildingAssetso|CZHc|Clusterz|DhH3s|DyrH2|EE3AH,120x121:66|124x123:6|118x117:5
+war_chapter8.s2m,warcampaign,17963,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,DgDiD|jDu7|D7qjD|DQNdDQNdD|DUoMD|DfIpD|EF8eDF8eDc|OEEF,
+war_chapter8.s2m,warcampaign,17963,1,266240,786432,520192,binary-opaque,35,,,
+war_chapter8.s2m,warcampaign,17963,2,786432,1347584,561152,binary-opaque,37,,,513x257:4|256x257:3
+war_chapter8.s2m,warcampaign,17963,3,1347584,1675264,327680,binary-opaque,35,,,
+war_chapter8.s2m,warcampaign,17963,4,1675264,1937408,262144,grid-or-terrain,71,,,255x255:63546
+war_chapter8.s2m,warcampaign,17963,5,1937408,2100832,163424,grid-or-terrain,79,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:537|256x256:212|1024x768:67|1024x1024:66|512x512:61|768x256:61
+war_chapter8.s2m,warcampaign,17963,6,2100832,2547712,446880,environment-fx,83,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_WINDLIGHT|ActorMgr|BuildingHandler,257x257:5
+war_chapter8.s2m,warcampaign,17963,7,2547712,2871296,323584,binary-opaque,35,,,
+war_chapter8.s2m,warcampaign,17963,8,2871296,3682304,811008,mixed-unknown,36,,aoEvluE|EVmhE|fEvluEVmhE,
+war_chapter8.s2m,warcampaign,17963,9,3682304,4136960,454656,binary-opaque,35,,,
+war_chapter8.s2m,warcampaign,17963,10,4136960,4399104,262144,grid-or-terrain,83,,Cfff|C33s|B33s|Bfff|GhO6|H8EGD|HtvLE|Afff,255x255:9
+war_chapter8.s2m,warcampaign,17963,11,4399104,4755456,356352,entities-and-systems,83,,Actor|ActorGroup|Animal|Archer|Ballista|C33s|Crossbowman|EKKG,768x1024:80|137x256:72|41x42:43|49x42:11|59x51:11|40x40:10
+war_chapter8.s2m,warcampaign,17963,12,4755456,5025792,270336,grid-or-terrain,88,,Apothecary|AppleFarm|AppleTree|ArmourerWorkshop|Armoury|AutoPlacement|BDmwADf|Bakery,256x256:39|65x42:30|512x512:23|140x42:11|71x512:11|72x512:11
+war_chapter8.s2m,warcampaign,17963,13,5025792,5484544,458752,mixed-unknown,47,,AAAA|ABBA|AAAAAA|ABCCBA|AAAAA|ABBBA|ABCBA|AAAAAAAA,
+war_chapter8.s2m,warcampaign,17963,14,5484544,5902336,417792,entities-and-systems,66,,ConnectionLayer|ContextLayer,
+war_chapter8.s2m,warcampaign,17963,15,5902336,6164480,262144,entities-and-systems,76,,Cwi4C|D2PID|DBsiD|DangerLayer|DesirabilityLayer|Dp1fD|Eg1hE|EmRQE,
+war_chapter8.s2m,warcampaign,17963,16,6164480,6438912,274432,mixed-unknown,47,,DBsiD|DQNdDQNdD|TEc6|k6ERD|AEht|BENM6ER|BfIpDfIpDfIpD|BmEu,
+war_chapter8.s2m,warcampaign,17963,17,6438912,6717440,278528,mixed-unknown,47,,EqGwE|Cwi4C|D2PID|Dp1fD|Ele3E|EygNE|DxzUD|E58hEL,
+war_chapter8.s2m,warcampaign,17963,18,6717440,7000064,282624,mixed-unknown,47,,MVE3S|EvT6E|vhv6|EV00E|EvbDE|EzN3E|ReJC|T8U1,
+war_chapter8.s2m,warcampaign,17963,19,7000064,7266304,266240,mixed-unknown,47,,DPNtD|EkCJE|MVE3S|k6ERD|D7qjD|DQNdD|DVOED|EVHnE,
+war_chapter8.s2m,warcampaign,17963,20,7266304,7610368,344064,mixed-unknown,47,,E3PjE|E7g5E|E7lBE|EaJWE|nKM8|D0GOD|DHyQD|DgDiDgDiD,
+war_chapter8.s2m,warcampaign,17963,21,7610368,8671232,1060864,mixed-unknown,36,,aoEvluE|aoEvluEvluEVmhEvluE|fEVmhE,
+war_chapter8.s2m,warcampaign,17963,22,8671232,9506816,835584,binary-opaque,35,,,
+war_chapter8.s2m,warcampaign,17963,23,9506816,9773056,266240,grid-or-terrain,77,,LinkageLayer|LogicLayer,2048x2048:21306|32x32:1266|1024x1024:804|128x128:63|64x64:48|288x288:36
+war_chapter8.s2m,warcampaign,17963,24,9773056,10297344,524288,entities-and-systems,66,,ProximityLayer,2048x2048:281
+war_chapter8.s2m,warcampaign,17963,25,10297344,10563584,266240,entities-and-systems,80,,EJuQF|ActorAssets|BuildingAssets|CGGg|DRFff|EHgjH|Emitter|F23rD,160x161:16|166x165:8|164x165:3
+war_chapter8.s2m,warcampaign,17963,26,10563584,10623843,60259,mixed-unknown,43,,Action|Cluster|GateTeleport|LevelTeleport|ScriptAction|SmokeEmitter|SpiralStairTeleport|Teleport,168x169:62|170x170:17|171x172:6|172x172:3
+war_chapter9.s2m,warcampaign,14725,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,aEHw|fgEtF|AME3|AwnZA|B239D|B2PyC|BAWvB|BEBV,
+war_chapter9.s2m,warcampaign,14725,1,266240,786432,520192,binary-opaque,35,,,
+war_chapter9.s2m,warcampaign,14725,2,786432,1048576,262144,binary-opaque,38,,,259x512:3|512x1024:3|513x769:3
+war_chapter9.s2m,warcampaign,14725,3,1048576,1347584,299008,grid-or-terrain,75,,,1024x1024:4|1024x1028:4|768x768:4|771x1280:4|771x512:4
+war_chapter9.s2m,warcampaign,14725,4,1347584,1675264,327680,binary-opaque,35,,,
+war_chapter9.s2m,warcampaign,14725,5,1675264,1937408,262144,grid-or-terrain,71,,,255x255:64453
+war_chapter9.s2m,warcampaign,14725,6,1937408,2100832,163424,grid-or-terrain,79,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,255x255:537|256x256:94|1024x1024:23|512x256:20|512x512:19|768x256:13
+war_chapter9.s2m,warcampaign,14725,7,2100832,2736128,635296,environment-fx,82,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_WINDHEAVY|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_RIVER|FX_ENVIRONMENT_INSECTS|ActorMgr|BuildingHandler,257x257:4
+war_chapter9.s2m,warcampaign,14725,8,2736128,3010560,274432,mixed-unknown,39,,PFrkRF|SFmySF|TF_tSFC|TFzmSF|hSFmySF|nKF3|tSFC|zmSF,
+war_chapter9.s2m,warcampaign,14725,9,3010560,3272704,262144,mixed-unknown,41,,ylDFylDFylDFylDF|EF2SEF|VQFKZQF|FleGF|HFvhJF|MFvhJF|NFtLQF|SFtLQF,
+war_chapter9.s2m,warcampaign,14725,10,3272704,4132864,860160,mixed-unknown,37,,QFktNF|GFKTFFr|HFktNFT|jtNFT,
+war_chapter9.s2m,warcampaign,14725,11,4132864,4399104,266240,entities-and-systems,81,,C33s|B33s|Cfff|Bfff|A33s|Actor|ActorGroup|Archer,1000x512:20|768x1024:17|137x256:15|41x42:8
+war_chapter9.s2m,warcampaign,14725,12,4399104,4661248,262144,entities-and-systems,81,,AppleTree|Building|Element|G9GcE|GUGZE|GateHouse|GbZ0B|IGJk,1000x512:82|768x1024:80|137x256:70|41x42:22|56x42:13|50x42:10
+war_chapter9.s2m,warcampaign,14725,13,4661248,5296128,634880,grid-or-terrain,88,,AppleFarm|Armoury|AutoPlacementp|Barracks|Brazier|BuildingLayery|BurningLog|BurningLogTipper,63x256:12|71x512:10|256x256:9|71x256:9|113x42:8|512x512:6
+war_chapter9.s2m,warcampaign,14725,14,5296128,5718016,421888,mixed-unknown,35,,ContextLayery,
+war_chapter9.s2m,warcampaign,14725,15,5718016,5996544,278528,mixed-unknown,47,,AEGg8EX|Al4k|BN6y|CAWvBJ|CDlW|CE4vA6_|CEkB|CVDwD,
+war_chapter9.s2m,warcampaign,14725,16,5996544,6844416,847872,mixed-unknown,47,,FVe1|tNR7|D7h2D|Dxz5D|E238E|E2hyE|E50zE|EDWzE,
+war_chapter9.s2m,warcampaign,14725,17,6844416,7155712,311296,mixed-unknown,47,,EmWTE|UEIHUE|CtzhC|D239D|DTMTD|EB9vE|EGQoE|EN6uE,
+war_chapter9.s2m,warcampaign,14725,18,7155712,7458816,303104,mixed-unknown,38,,SFmySF|JPF8|MQEm|PFrkRF0|TFrkRF|WEF8|qE5LjE,
+war_chapter9.s2m,warcampaign,14725,19,7458816,7729152,270336,mixed-unknown,44,,EF2SEF|VQFKZQF|CBFX|DHF2SEF|FFylDFylDF|FleGF|HFvhJF|LFvhJF,
+war_chapter9.s2m,warcampaign,14725,20,7729152,8507392,778240,mixed-unknown,37,,QFktNF|GFKTFF8|IFKTFF|KFktNFT|OFjtNFT,
+war_chapter9.s2m,warcampaign,14725,21,8507392,8790016,282624,binary-opaque,35,,,
+war_chapter9.s2m,warcampaign,14725,22,8790016,9256960,466944,binary-opaque,35,,,
+war_chapter9.s2m,warcampaign,14725,23,9256960,9519104,262144,mixed-unknown,35,,LogicLayery,
+war_chapter9.s2m,warcampaign,14725,24,9519104,10043392,524288,mixed-unknown,35,,ProximityLayery,
+war_chapter9.s2m,warcampaign,14725,25,10043392,10305536,262144,entities-and-systems,79,,AH8S|AHofa|GHXud|OH3C|PH2C|A1Hf|AH4SL|AH4sM,138x139:7|144x145:5
+war_chapter9.s2m,warcampaign,14725,26,10305536,10567680,262144,mixed-unknown,47,,E3MGH|AG3c|AG3sO|AGfFU|AHGfv|BG3sT|BGfFZ|BGiFt,144x145:7
+war_chapter9.s2m,warcampaign,14725,27,10567680,10608440,40760,mixed-unknown,40,,Action|Cluster|GateTeleport|LevelTeleport|ScriptAction|SpiralStairTeleport|Teleport,146x147:91|148x148:7
+Whitebear.s2m,kingmaker,12795,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,Cr5oC|AEEWo|AEzXA|AUEkMUE|AWEi7WE|AvCy|B9BQC|B9cQC,
+Whitebear.s2m,kingmaker,12795,1,266240,786432,520192,binary-opaque,35,,,
+Whitebear.s2m,kingmaker,12795,2,786432,1187840,401408,grid-or-terrain,76,,,513x257:6|514x515:5|256x257:4|512x512:4|769x259:4|771x770:4
+Whitebear.s2m,kingmaker,12795,3,1187840,1454080,266240,binary-opaque,36,,,1024x512:4
+Whitebear.s2m,kingmaker,12795,4,1454080,1843200,389120,binary-opaque,35,,,
+Whitebear.s2m,kingmaker,12795,5,1843200,2105344,262144,binary-opaque,35,,,
+Whitebear.s2m,kingmaker,12795,6,2105344,2268751,163407,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+Whitebear.s2m,kingmaker,12795,7,2268751,4300800,2032049,environment-fx,81,FX_ENVIRONMENT_,FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_WINDLIGHT|FX_ENVIRONMENT_BROOK|FX_ENVIRONMENT_BIRDBUSY|FX_ENVIRONMENT_VILLAGELIFE|ActorMgr|BuildingHandler|BuildingMgr,
+Whitebear.s2m,kingmaker,12795,8,4300800,4562944,262144,entities-and-systems,77,,BiDiPathfinder|CGfWMB|Camera|ClanMgr|EmitterMgr|Estate|F5H5rZE|FHSd,
+Whitebear.s2m,kingmaker,12795,9,4562944,4911104,348160,entities-and-systems,77,,C33s|Cfff|Bfff|B33s|Afff|A33s|BCfff|FvrNE,41x41:10
+Whitebear.s2m,kingmaker,12795,10,4911104,5427200,516096,entities-and-systems,68,,ChannelLayer|ClaimLayer|ConnectionLayer|ContextLayer,128x257:4
+Whitebear.s2m,kingmaker,12795,11,5427200,5713920,286720,entities-and-systems,77,,AEfa|BEbDME|CEr3|D5mwC|DangerLayer|DesirabilityLayer|E8GbEA|EDZCE,
+Whitebear.s2m,kingmaker,12795,12,5713920,6090752,376832,mixed-unknown,47,,CeKAC|EEphqE|EphqE|GEsxbE|PUEg|PUEmN|REWYRE|YUET,
+Whitebear.s2m,kingmaker,12795,13,6090752,6352896,262144,mixed-unknown,47,,Cr5oC|CTPQC|CeKAC|DQh5D|DRaLD|ESlRE|BeKAC|BvJNC,
+Whitebear.s2m,kingmaker,12795,14,6352896,6647808,294912,mixed-unknown,47,,CCmtC|CN4FC|Cu0hC|Dv1CD|E1A6E|EKuTE|EQZ6E|BOjEB,
+Whitebear.s2m,kingmaker,12795,15,6647808,6934528,286720,mixed-unknown,47,,DaDID|EecQE|YUET|E7a0E|EUyfE|UEgPWE|BEd4SE|C562C,
+Whitebear.s2m,kingmaker,12795,16,6934528,9035776,2101248,binary-opaque,35,,,
+Whitebear.s2m,kingmaker,12795,17,9035776,9302016,266240,grid-or-terrain,77,,LinkageLayer|LogicLayer,128x128:3630|256x256:3479|512x512:2330|128x512:104|512x128:94|320x256:48
+Whitebear.s2m,kingmaker,12795,18,9302016,9826304,524288,grid-or-terrain,72,,ProximityLayer,128x128:32|512x512:8
+Whitebear.s2m,kingmaker,12795,19,9826304,9860198,33894,entities-and-systems,70,,u52R8|ActorAssets|BuildingAssets|Emitter|RippleEmitter|SearchLayer|SpreadLayer|TempLayer,61x62:4
+World_Europe.s2m,kingmaker,16245,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,EMglE|XHDSIhD|AkHFBkq|B5MuD|BusHC|C5crD|CAO1D|CD41cD,
+World_Europe.s2m,kingmaker,16245,1,266240,786432,520192,binary-opaque,35,,,
+World_Europe.s2m,kingmaker,16245,2,786432,1187840,401408,grid-or-terrain,76,,,513x257:6|512x256:4|512x257:4|256x256:3|256x257:3|256x513:3
+World_Europe.s2m,kingmaker,16245,3,1187840,1515520,327680,grid-or-terrain,72,,,1024x1024:4|771x512:4
+World_Europe.s2m,kingmaker,16245,4,1515520,1843200,327680,binary-opaque,35,,,
+World_Europe.s2m,kingmaker,16245,5,1843200,2105344,262144,binary-opaque,35,,,
+World_Europe.s2m,kingmaker,16245,6,2105344,4300800,2195456,entities-and-systems,72,,ActorHandler|ActorMgr|BuildingHandler|BuildingMgr|Campaign|ElementMgr|EnvironmentalSound|FlyHandler,
+World_Europe.s2m,kingmaker,16245,7,4300800,4567040,266240,grid-or-terrain,84,,G5crD|H7bzE|HwBaE|Hz8SE|BiDiPathfinder|Camera|ClanMgr|EmitterMgr,255x255:17|66x255:3
+World_Europe.s2m,kingmaker,16245,8,4567040,4849664,282624,mixed-unknown,47,,AAAA|ABBA|ABCCBA|AAAAA|AABA|AABBA|AAAAAA|ABBBA,
+World_Europe.s2m,kingmaker,16245,9,4849664,5185536,335872,binary-opaque,35,,,
+World_Europe.s2m,kingmaker,16245,10,5185536,5447680,262144,mixed-unknown,47,,ADLA1D|CAO1D|CIzLD|CKIGD|CUCp|CUcKC|ChZ4D4okD|CusHC,
+World_Europe.s2m,kingmaker,16245,11,5447680,5722112,274432,mixed-unknown,47,,CUcKC|CAO1D|CKIGD|CUCp|CusHC|DYnkD|EIl5E|ADLA1D,
+World_Europe.s2m,kingmaker,16245,12,5722112,6258688,536576,mixed-unknown,47,,DSIhD|D7OvD|E581E|EyD6E|XHDSIhD|B1wFC|DMNBE|DUL3D,
+World_Europe.s2m,kingmaker,16245,13,6258688,6688768,430080,mixed-unknown,47,,E96VE|EMglEMglE|D7bzE|EDQbE|CAgJC|DoiGE|E2HzE|ELZ5E,
+World_Europe.s2m,kingmaker,16245,14,6688768,7217152,528384,binary-opaque,35,,,
+World_Europe.s2m,kingmaker,16245,15,7217152,8265728,1048576,binary-opaque,35,,,
+World_Europe.s2m,kingmaker,16245,16,8265728,8790016,524288,binary-opaque,35,,,
+World_Europe.s2m,kingmaker,16245,17,8790016,9060352,270336,grid-or-terrain,77,,LinkageLayer0|LogicLayer0,128x128:2025|256x256:1132|32x32:62|64x64:46|512x512:42|320x320:18
+World_Europe.s2m,kingmaker,16245,18,9060352,9584640,524288,mixed-unknown,35,,ProximityLayer0,
+World_Europe.s2m,kingmaker,16245,19,9584640,9615854,31214,entities-and-systems,74,,Action|ActorAssets|BuildingAssets|ClaimLayer0|ClusterF|DeerClanB|S2Clan|ScriptActionE,408x100:30|468x113:30|63x63:30|64x64:30
+World_Korea.s2m,kingmaker,12634,0,0,266240,266240,mixed-unknown,47,S2Game|Simulation|Floaters|Landscape,BLDEzCD|DVMBE|QDb04DU|AEBS|BE7tQEq|BEal8Ey|BoCO7|C9aCC9aC,
+World_Korea.s2m,kingmaker,12634,1,266240,786432,520192,binary-opaque,35,,,
+World_Korea.s2m,kingmaker,12634,2,786432,1187840,401408,binary-opaque,41,,,256x513:4|259x768:4|259x771:4|513x257:4|258x258:3|258x513:3
+World_Korea.s2m,kingmaker,12634,3,1187840,1560576,372736,binary-opaque,35,,,
+World_Korea.s2m,kingmaker,12634,4,1560576,1843200,282624,binary-opaque,35,,,
+World_Korea.s2m,kingmaker,12634,5,1843200,2105344,262144,binary-opaque,35,,,
+World_Korea.s2m,kingmaker,12634,6,2105344,2268569,163225,entities-and-systems,68,,ActorHandler|Campaign|EnvironmentalSound|FlyHandler|S2ActorHandler|S2FlyHandler|WorldMgr,
+World_Korea.s2m,kingmaker,12634,7,2268569,4300800,2032231,environment-fx,82,FX_ENVIRONMENT_,FX_ENVIRONMENT_OCEAN|FX_ENVIRONMENT_BEACH|FX_ENVIRONMENT_BIRDSPARSE|FX_ENVIRONMENT_INSECTS|FX_ENVIRONMENT_VILLAGELIFE|FX_ENVIRONMENT_WINDLIGHT|ActorMgr|BuildingHandler,
+World_Korea.s2m,kingmaker,12634,8,4300800,4669440,368640,grid-or-terrain,84,,Cfff|C33s|H4FkD|HB91E|Actor|ActorGroup|Animal|AutoPlacement1,50x42:57|255x255:3
+World_Korea.s2m,kingmaker,12634,9,4669440,5177344,507904,mixed-unknown,36,,ChannelLayer7|ConnectionLayer7|ContextLayer7,
+World_Korea.s2m,kingmaker,12634,10,5177344,5443584,266240,mixed-unknown,38,,DangerLayer7|DesirabilityLayer7|EstateLayer7|HeightLayer7|w3Cp|w3Cy,
+World_Korea.s2m,kingmaker,12634,11,5443584,5963776,520192,mixed-unknown,47,,EBgME|tXEd|Db04D|w3Cp|w3Cy|A0Dj|A4E3k|BCXi,
+World_Korea.s2m,kingmaker,12634,12,5963776,6238208,274432,mixed-unknown,47,,EmJfE|DDQ4D|E5M5E|E9YgE|ED1gE|ENKzE|EXFCE|EhIHE,
+World_Korea.s2m,kingmaker,12634,13,6238208,6680576,442368,mixed-unknown,47,,BLDEzCD|Cb04D|DC15D|Dj3LD|DyI8D|E4j0E|EbPkE|EbwfE,
+World_Korea.s2m,kingmaker,12634,14,6680576,7917568,1236992,mixed-unknown,35,,DUM8D,
+World_Korea.s2m,kingmaker,12634,15,7917568,8781824,864256,binary-opaque,35,,,
+World_Korea.s2m,kingmaker,12634,16,8781824,9043968,262144,grid-or-terrain,74,,LinkageLayer7|LogicLayer7,2048x2048:39657|1024x1024:86|32x32:36
+World_Korea.s2m,kingmaker,12634,17,9043968,9568256,524288,mixed-unknown,36,,ProximityLayer7,2048x2048:152
+World_Korea.s2m,kingmaker,12634,18,9568256,9614285,46029,entities-and-systems,77,,mmmmmmmm|Action|ActorAssetsG|BuildingAssetsF|ClaimLayer7|ClusterT|CrowClanI|DeerClanI,78x73:4

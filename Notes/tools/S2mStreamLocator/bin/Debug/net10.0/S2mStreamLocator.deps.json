@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "S2mStreamLocator/1.0.0": {
+        "runtime": {
+          "S2mStreamLocator.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "S2mStreamLocator/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
