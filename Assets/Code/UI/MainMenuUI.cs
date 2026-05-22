@@ -69,15 +69,13 @@ namespace Assets.Code.UI
     {
       GameObject logoObject = new("MainMenuLogo");
       logoObject.transform.SetParent(menuColumn, false);
+      logoObject.transform.localScale = new Vector3(1.35f, 1.35f, 1f);
 
       Image logoImage = logoObject.AddComponent<Image>();
       logoImage.sprite = SpriteLoader.LoadSprite(UIAssets.LogoTexture);
       logoImage.preserveAspect = true;
 
       LayoutElement layoutElement = logoObject.AddComponent<LayoutElement>();
-      layoutElement.preferredWidth = 340f;
-      layoutElement.preferredHeight = 170f;
-      layoutElement.minHeight = 170f;
     }
 
     /// <summary>
@@ -124,19 +122,19 @@ namespace Assets.Code.UI
       GameObject columnObject = new("MainMenuColumn");
       columnObject.transform.SetParent(contentRoot, false);
       menuColumn = columnObject.AddComponent<RectTransform>();
-      menuColumn.anchorMin = new Vector2(0f, 0.5f);
-      menuColumn.anchorMax = new Vector2(0f, 0.5f);
-      menuColumn.pivot = new Vector2(0f, 0.5f);
-      menuColumn.anchoredPosition = new Vector2(30f, 0f);
+      menuColumn.anchorMin = new Vector2(0f, 1f);
+      menuColumn.anchorMax = new Vector2(0f, 1f);
+      menuColumn.pivot = new Vector2(0f, 1f);
+      menuColumn.sizeDelta = new Vector2(Screen.height * (381f / 768f), Screen.height);
 
       VerticalLayoutGroup layoutGroup = columnObject.AddComponent<VerticalLayoutGroup>();
       layoutGroup.childAlignment = TextAnchor.UpperCenter;
       layoutGroup.childControlWidth = true;
-      layoutGroup.childControlHeight = false;
+      layoutGroup.childControlHeight = true;
       layoutGroup.childForceExpandWidth = true;
       layoutGroup.childForceExpandHeight = false;
-      layoutGroup.spacing = 18f;
-      layoutGroup.padding = new RectOffset(10, 10, 30, 30);
+      layoutGroup.spacing = 12f;
+      layoutGroup.padding = new RectOffset(10, 30, 30, 50);
     }
 
     private void CreateMenuButton(string buttonText)
@@ -154,9 +152,9 @@ namespace Assets.Code.UI
       button.transition = Selectable.Transition.None;
 
       LayoutElement layoutElement = buttonObject.AddComponent<LayoutElement>();
-      layoutElement.preferredWidth = 320f;
-      layoutElement.preferredHeight = 60f;
-      layoutElement.minHeight = 60f;
+      //layoutElement.preferredWidth = 320f;
+      //layoutElement.preferredHeight = 60f;
+      //layoutElement.minHeight = 60f;
 
       RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
       buttonRect.sizeDelta = new Vector2(320f, 60f);
@@ -199,6 +197,11 @@ namespace Assets.Code.UI
       if (contentRoot != null)
       {
         contentRoot.sizeDelta = new Vector2(Screen.height * (4f / 3f), Screen.height);
+      }
+
+      if (menuColumn != null)
+      {
+        menuColumn.sizeDelta = new Vector2(Screen.height * (381f / 768f), Screen.height);
       }
 
       if (AspectRatioBars != null)
