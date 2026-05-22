@@ -16,4 +16,4 @@ Studies, such as research on the file formats, will be found in the `Notes` dire
 ## Current Status
 The project currently can play the intro videos (after auto-converting them to MP4 and WebM for alpha) and has the start of a UI library for runtime rendering the TGA textures as UI. Alignment and scaling is being worked on and in parallel so is .s2m binary format decoding.
 
-<img width="1603" height="720" alt="image" src="https://github.com/user-attachments/assets/8620f641-6674-4654-8865-c593d99baace" />
+<img width="1912" height="987" alt="image" src="https://github.com/user-attachments/assets/e5730f8b-00a3-49be-9d5b-af50a28fbe85" />
