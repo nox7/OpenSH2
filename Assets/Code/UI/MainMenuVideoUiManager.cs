@@ -33,7 +33,9 @@ namespace Assets.Code.UI
         width: parent.rect.width * BackgroundWidthPercent,
         anchorX: 1f,
         pivotX: 1f,
-        parent: parent);
+        parent: parent,
+        aspectRatio: 1f,
+        gameObjectName: "MainMenuBackgroundPlayer");
 
       curtainPlayer = VideoPlayerUI.Play(
         GetCachedVideoPath(VideoFilePaths.MainMenuCurtainOpen),
@@ -44,38 +46,38 @@ namespace Assets.Code.UI
         width: parent.rect.width * CurtainPercent,
         anchorX: 0f,
         pivotX: 0f,
+        aspectRatio: 381f / 768f,
         parent: parent);
 
       isVisible = true;
-      UpdateLayout(force: true);
     }
 
     public void UpdateLayout(bool force = false)
     {
-      if (!isVisible || parent == null)
-      {
-        return;
-      }
+      //if (!isVisible || parent == null)
+      //{
+      //  return;
+      //}
 
-      float parentWidth = parent.rect.width;
-      float parentHeight = parent.rect.height;
-      if (!force && Mathf.Approximately(lastParentWidth, parentWidth) && Mathf.Approximately(lastParentHeight, parentHeight))
-      {
-        return;
-      }
+      //float parentWidth = parent.rect.width;
+      //float parentHeight = parent.rect.height;
+      //if (!force && Mathf.Approximately(lastParentWidth, parentWidth) && Mathf.Approximately(lastParentHeight, parentHeight))
+      //{
+      //  return;
+      //}
 
-      lastParentWidth = parentWidth;
-      lastParentHeight = parentHeight;
+      //lastParentWidth = parentWidth;
+      //lastParentHeight = parentHeight;
 
-      backgroundPlayer?.UpdateLayout(
-        width: parentWidth * BackgroundWidthPercent,
-        anchorX: 1f,
-        pivotX: 1f);
+      //backgroundPlayer?.UpdateLayout(
+      //  width: parentWidth * BackgroundWidthPercent,
+      //  anchorX: 1f,
+      //  pivotX: 1f);
 
-      curtainPlayer?.UpdateLayout(
-        width: parent.rect.width * CurtainPercent,
-        anchorX: 0f,
-        pivotX: 0f);
+      //curtainPlayer?.UpdateLayout(
+      //  width: parent.rect.width * CurtainPercent,
+      //  anchorX: 0f,
+      //  pivotX: 0f);
     }
 
     public void Hide()
@@ -119,9 +121,8 @@ namespace Assets.Code.UI
         width: parent.rect.width * CurtainPercent,
         anchorX: 0f,
         pivotX: 0f,
+        aspectRatio: 381f / 768f,
         parent: parent);
-
-      UpdateLayout(force: true);
     }
 
     private string GetCachedVideoPath(string originalBikPath)

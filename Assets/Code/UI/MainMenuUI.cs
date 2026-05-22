@@ -12,16 +12,6 @@ namespace Assets.Code.UI
   /// </summary>
   class MainMenuUI
   {
-    private static readonly string[] DefaultButtonTexts =
-    {
-      "Campaign",
-      "Multiplayer",
-      "Custom Game",
-      "Map Editor",
-      "Options",
-      "Quit"
-    };
-
     public MainMenuVideoUiManager VideoUiManager = new();
     public bool IsShown = false;
     private GameObject uiRoot;
@@ -48,7 +38,7 @@ namespace Assets.Code.UI
       CreateUiRoot();
       CreateLogo();
       CreateMenuButtons();
-      UpdateLayout(force: true);
+      UpdateLayout();
       VideoUiManager.Show(videoRoot);
       IsShown = true;
     }
@@ -95,10 +85,12 @@ namespace Assets.Code.UI
     /// </summary>
     private void CreateMenuButtons()
     {
-      foreach (string buttonText in DefaultButtonTexts)
-      {
-        CreateMenuButton(buttonText);
-      }
+      CreateMenuButton("Play");
+      CreateMenuButton("Multiplayer");
+      CreateMenuButton("Map Editor");
+      CreateMenuButton("Options");
+      CreateMenuButton("Load");
+      CreateMenuButton("Exit");
     }
 
     private void CreateUiRoot()
@@ -118,6 +110,8 @@ namespace Assets.Code.UI
       contentRoot.anchorMin = new Vector2(0.5f, 0.5f);
       contentRoot.anchorMax = new Vector2(0.5f, 0.5f);
       contentRoot.pivot = new Vector2(0.5f, 0.5f);
+      contentRoot.sizeDelta = new Vector2(Screen.height * (4f / 3f), Screen.height);
+      contentRoot.anchoredPosition = new Vector2(0f, 0f);
 
       GameObject videoObject = new("MainMenuVideoRoot");
       videoObject.transform.SetParent(contentRoot, false);
@@ -200,29 +194,17 @@ namespace Assets.Code.UI
       hoverHighlightToggle.SetHighlightGraphic(highlightImage);
     }
 
-    public void UpdateLayout(bool force = false)
+    public void UpdateLayout()
     {
-      if (contentRoot == null || menuColumn == null)
+      if (contentRoot != null)
       {
-        return;
+        contentRoot.sizeDelta = new Vector2(Screen.height * (4f / 3f), Screen.height);
       }
 
-      if (!force && lastScreenWidth == Screen.width && lastScreenHeight == Screen.height)
+      if (AspectRatioBars != null)
       {
-        return;
+        AspectRatioBars.UpdateLayout();
       }
-
-      lastScreenWidth = Screen.width;
-      lastScreenHeight = Screen.height;
-
-      float contentWidth = Screen.height * (4f / 3f);
-      float contentHeight = Screen.height;
-
-      contentRoot.sizeDelta = new Vector2(contentWidth, contentHeight);
-      contentRoot.anchoredPosition = Vector2.zero;
-      menuColumn.sizeDelta = new Vector2(360f, contentHeight - 40f);
-      VideoUiManager.UpdateLayout(force);
-      AspectRatioBars?.UpdateLayout();
     }
 
     private static void EnsureEventSystem()

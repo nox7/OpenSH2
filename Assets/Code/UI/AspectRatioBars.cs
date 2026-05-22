@@ -31,18 +31,25 @@ namespace Assets.Code.UI
       GameObject leftBar = new("LeftAspectRatioBar");
       leftBar.transform.SetParent(UIRoot.transform, false);
 
+      AspectRatioFitter leftARFitter = leftBar.AddComponent<AspectRatioFitter>();
+      leftARFitter.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
+      leftARFitter.aspectRatio = 211f / 900f;
+
       Image leftBarImage = leftBar.AddComponent<Image>();
       leftBarImage.sprite = SpriteLoader.LoadSprite(UIAssets.StoneSidebar2KTexture);
       leftBarImage.raycastTarget = false;
 
       leftBarRect = leftBar.GetComponent<RectTransform>();
-      leftBarRect.anchorMin = new Vector2(0f, 0f);
+      leftBarRect.anchorMin = new Vector2(0f, 1f);
       leftBarRect.anchorMax = new Vector2(0f, 1f);
-      leftBarRect.pivot = new Vector2(0f, 0.5f);
-      leftBarRect.anchoredPosition = Vector2.zero;
+      leftBarRect.pivot = new Vector2(0f, 1f);
 
       GameObject rightBar = new("RightAspectRatioBar");
       rightBar.transform.SetParent(UIRoot.transform, false);
+
+      AspectRatioFitter rightARFitter = rightBar.AddComponent<AspectRatioFitter>();
+      rightARFitter.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
+      rightARFitter.aspectRatio = 211f / 900f;
 
       Image rightBarImage = rightBar.AddComponent<Image>();
       rightBarImage.sprite = SpriteLoader.LoadSprite(UIAssets.StoneSidebar2KTexture);
@@ -51,7 +58,7 @@ namespace Assets.Code.UI
       rightBarRect = rightBar.GetComponent<RectTransform>();
       rightBarRect.anchorMin = new Vector2(1f, 0f);
       rightBarRect.anchorMax = new Vector2(1f, 1f);
-      rightBarRect.pivot = new Vector2(1f, 0.5f);
+      rightBarRect.pivot = new Vector2(1f, 1f);
       rightBarRect.anchoredPosition = Vector2.zero;
 
       UpdateLayout();

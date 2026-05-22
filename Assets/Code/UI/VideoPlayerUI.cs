@@ -19,7 +19,8 @@ namespace Assets.Code.UI
     private bool isLooping;
     private bool isCompleted;
 
-    public static VideoPlayerUI Play(string videoPath, Action onFinished = null, int fadeOutMs = 0, int sortingOrder = 1000, bool isLooping = false, float width = 0f, float height = 0f, float anchorX = 0.5f, float anchorY = 0.5f, float pivotX = 0.5f, float pivotY = 0.5f, float offsetX = 0f, float offsetY = 0f, RectTransform parent = null)
+    public static VideoPlayerUI Play(
+      string videoPath, Action onFinished = null, int fadeOutMs = 0, int sortingOrder = 1000, bool isLooping = false, float width = 0f, float height = 0f, float anchorX = 0.5f, float anchorY = 0.5f, float pivotX = 0.5f, float pivotY = 0.5f, float offsetX = 0f, float offsetY = 0f, RectTransform parent = null, string gameObjectName = "VideoPlayerUI", float aspectRatio = 0f)
     {
       if (!File.Exists(videoPath))
       {
@@ -27,8 +28,16 @@ namespace Assets.Code.UI
         return null;
       }
 
-      GameObject root = new("VideoPlayerUI");
+      GameObject root = new(gameObjectName);
       VideoPlayerUI player = root.AddComponent<VideoPlayerUI>();
+
+      if (aspectRatio > 0f)
+      {
+        AspectRatioFitter arFitter = root.AddComponent<AspectRatioFitter>();
+        arFitter.aspectMode = AspectRatioFitter.AspectMode.HeightControlsWidth;
+        arFitter.aspectRatio = aspectRatio;
+      }
+
       player.Initialize(videoPath, onFinished, fadeOutMs, sortingOrder, isLooping, width, height, anchorX, anchorY, pivotX, pivotY, offsetX, offsetY, parent);
       return player;
     }
