@@ -1,78 +1,82 @@
 using System.Threading.Tasks;
-using Assets.Code.UI;
+using Assets.Code;
+using Assets.Code.Video;
 using UnityEngine;
 
 public class Main : MonoBehaviour
 {
-  private Task conversionTask;
-  private string cachedIntroVideoPath;
-  private bool introVideoStarted;
-
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
   {
-    // Convert the game intro video into an MP4 if it doesn't exist in the cache.
-    string pathToVideoCache = Application.dataPath + "/Cache/Video";
-    string pathToIntroVideoBIK = Constants.GamePath + "/ui/frontend/Stronghold2 FMV.bik";
-
-    string basename = System.IO.Path.GetFileNameWithoutExtension(pathToIntroVideoBIK);
-    cachedIntroVideoPath = pathToVideoCache + "/" + basename + ".mp4";
-
-    // Check if it's already cached
-    if (System.IO.File.Exists(cachedIntroVideoPath))
-    {
-      Debug.Log("Intro video already cached, skipping conversion.");
-      StartIntroVideoPlayback();
-      return;
-    }
-
-    conversionTask = Task.Run(() => Converter.ConvertToMP4(pathToIntroVideoBIK, cachedIntroVideoPath));
-    Debug.Log("Started intro video conversion in background.");
+    Game.Initialize();
   }
 
   // Update is called once per frame
   void Update()
   {
-    if (conversionTask == null)
-    {
-      return;
-    }
+    var game = Game.GetInstance();
 
-    if (!conversionTask.IsCompleted)
+    if (game.State == GameState.NONE)
     {
-      return;
+      // Immediately swap to loading assets
+      game.State = GameState.LOADING_ASSETS;
     }
+    else if (game.State == GameState.LOADING_ASSETS)
+    {
+      if (game.cacheManager.assetLoadingTask == null)
+      {
+        Debug.Log("Loading assets");
+        game.cacheManager.assetLoadingTask = Task.Run(() =>
+        {
+          foreach (var status in game.cacheManager.ConvertAndCacheVideoAssets())
+          {
+            if (!status.IsFinished)
+            {
+              Debug.Log($"Started conversion of asset {status.AssetPath}.");
+            }
+            else
+            {
+              Debug.Log($"Finished conversion of asset {status.AssetPath}.");
+            }
+          }
+        });
+      }
+      else if (game.cacheManager.assetLoadingTask.IsCompleted)
+      {
+        game.State = GameState.INTRO_VIDEOS;
+      }
+    }
+    else if (game.State == GameState.INTRO_VIDEOS)
+    {
+      if (Input.GetMouseButtonDown(0))
+      {
+        game.videoManager.SkipCurrentIntroVideo();
+      }
 
-    if (conversionTask.IsFaulted)
-    {
-      Debug.LogError($"Intro video conversion task failed: {conversionTask.Exception}");
+      if (game.videoManager.introVideosTask == null)
+      {
+        Debug.Log("Playing intro videos");
+        game.videoManager.introVideosTask = PlayIntroVideosAsync(game);
+      }
+      else if (game.videoManager.introVideosTask.IsCompleted)
+      {
+        game.State = GameState.MAIN_MENU;
+      }
     }
-    else
+    else if (game.State == GameState.MAIN_MENU)
     {
-      Debug.Log("Intro video conversion task finished.");
-      StartIntroVideoPlayback();
-    }
+      if (!game.mainMenuUI.IsShown)
+      {
+        game.mainMenuUI.Show();
+      }
 
-    conversionTask = null;
+      game.mainMenuUI.UpdateLayout();
+    }
   }
 
-  private void StartIntroVideoPlayback()
+  private async Task PlayIntroVideosAsync(Game game)
   {
-    if (introVideoStarted)
-    {
-      return;
-    }
-
-    if (!System.IO.File.Exists(cachedIntroVideoPath))
-    {
-      Debug.LogError($"Cached intro video not found: {cachedIntroVideoPath}");
-      return;
-    }
-
-    introVideoStarted = true;
-    FullscreenVideoPlayer.Play(cachedIntroVideoPath, () =>
-    {
-      Debug.Log("Intro video playback finished.");
-    });
+    await game.videoManager.PlayFullscreenBinkVideo(VideoFilePaths.FireflyLogo, fadeOutMs: 300);
+    await game.videoManager.PlayFullscreenBinkVideo(VideoFilePaths.Intro, fadeOutMs: 300);
   }
 }
