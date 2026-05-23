@@ -1,0 +1,28 @@
+ScenarioEventStart=1458 WinActionStart=2481
+[LordDiesTrigger] id=8 tag=9 base=Trigger start=1724 metaEnd=1762 payloadBytes=0
+ints=
+
+[Trigger] id=9 tag=0 base= start=1747 metaEnd=1770 payloadBytes=25
+ints=1,1,-4086528,2303,-14766336,-386121473
+
+[AlwaysTrigger] id=10 tag=9 base= start=1795 metaEnd=1824 payloadBytes=29
+ints=0,1,1,-4086528,2815,-14766336,-386158337
+
+[HonourAcquiredTrigger] id=11 tag=9 base= start=1853 metaEnd=1890 payloadBytes=41
+ints=0,1,1,-4086528,3071,0,1024,25600,-14766336,-386023169
+
+[NoGongInYourEstatesTrigger] id=12 tag=9 base= start=1931 metaEnd=1973 payloadBytes=29
+ints=0,1,1,-4086528,3327,-14766336,-108535553
+
+[NoFoodInGranaryTrigger] id=13 tag=9 base= start=2002 metaEnd=2040 payloadBytes=45
+ints=0,1,1,-4086528,3583,0,2048,0,0,-14766336,-386035457
+
+[NoRatsInYourEstatesTrigger] id=14 tag=9 base= start=2085 metaEnd=2127 payloadBytes=29
+ints=0,1,1,-4086528,3839,-14766336,-379879169
+
+[NoCriminalsTrigger] id=15 tag=9 base= start=2156 metaEnd=2190 payloadBytes=29
+ints=0,1,1,-4086528,4095,-14766336,1397672191
+
+[EnemyGoodsAcquiredTrigger] id=16 tag=9 base= start=2219 metaEnd=2260 payloadBytes=221
+ints=0,1,1,-4086528,4351,256,47104,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
