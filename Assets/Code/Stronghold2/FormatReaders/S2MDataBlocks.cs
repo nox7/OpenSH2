@@ -158,7 +158,7 @@ namespace Assets.Code.Stronghold2.FormatReaders
   {
     public int GoodsVectorStartIndex { get; set; } = -1;
 
-    public Dictionary<GoodsAcquiredEnum, int> GoodsAmounts { get; } = new Dictionary<GoodsAcquiredEnum, int>();
+    public Dictionary<MapEditorScenarioResources, int> GoodsAmounts { get; } = new Dictionary<MapEditorScenarioResources, int>();
   }
 
   public class S2MEnemyGoodsAcquiredTrigger : S2MScenarioTrigger
@@ -169,7 +169,7 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
     public int TargetLordSelector { get; set; }
 
-    public Dictionary<GoodsAcquiredEnum, int> GoodsAmounts { get; } = new Dictionary<GoodsAcquiredEnum, int>();
+    public Dictionary<MapEditorScenarioResources, int> GoodsAmounts { get; } = new Dictionary<MapEditorScenarioResources, int>();
   }
 
   public class S2MGoldAcquiredTrigger : S2MScenarioTrigger
@@ -182,6 +182,14 @@ namespace Assets.Code.Stronghold2.FormatReaders
     public int RequiredGoldAmount { get; set; }
 
     public int TargetLordSelector { get; set; }
+  }
+
+  public enum S2MTurnIndustriesScopeMode
+  {
+    Unknown = -1,
+    AllEstates = 0,
+    MarkedEstate = 1,
+    LordsEstate = 2,
   }
 
   public class S2MHonourAcquiredTrigger : S2MScenarioTrigger
@@ -471,6 +479,411 @@ namespace Assets.Code.Stronghold2.FormatReaders
     public int PeasantCount { get; set; }
   }
 
+  public class S2MTurnIndustriesOnOffAction : S2MScenarioAction
+  {
+    // Control/mode code observed at payload offset +24.
+    public int ScopeModeCode { get; set; }
+
+    // Interpreted estate scope mode from ScopeModeCode.
+    public S2MTurnIndustriesScopeMode ScopeMode { get; set; } = S2MTurnIndustriesScopeMode.Unknown;
+
+    // Marked-estate flag color selector code observed at payload offset +28.
+    public int MarkedEstateFlagColorCode { get; set; }
+
+    // Marked-estate flag number selector (zero-based) observed at payload offset +32.
+    public int MarkedEstateFlagNumberCode { get; set; }
+
+    // Lord selector code observed at payload offset +36.
+    public int LordSelectorCode { get; set; }
+
+    // Control bytes currently stable in samples (offsets +40..+42).
+    public int ControlByte40 { get; set; }
+
+    public int ControlByte41 { get; set; }
+
+    public int ControlByte42 { get; set; }
+
+    // Confirmed via two-probe delta tests.
+    public int GeeseToggleCode { get; set; }
+
+    public int CheeseToggleCode { get; set; }
+
+    // Raw packed toggle segment observed after selector bytes and before trailing footer bytes.
+    public List<byte> RawToggleSegment { get; set; } = new List<byte>();
+  }
+
+  public class S2MCapResourcesAction : S2MScenarioAction
+  {
+    // Control/mode code observed at payload offset +24.
+    public int ScopeModeCode { get; set; }
+
+    // Interpreted estate scope mode from ScopeModeCode.
+    public S2MTurnIndustriesScopeMode ScopeMode { get; set; } = S2MTurnIndustriesScopeMode.Unknown;
+
+    // Marked-estate flag color selector code observed at payload offset +28.
+    public int MarkedEstateFlagColorCode { get; set; }
+
+    // Marked-estate flag number selector (zero-based) observed at payload offset +32.
+    public int MarkedEstateFlagNumberCode { get; set; }
+
+    // Lord selector code observed at payload offset +36.
+    public int LordSelectorCode { get; set; }
+
+    // Stable control byte currently observed at payload offset +40.
+    public int ControlByte40 { get; set; }
+
+    // Unaligned int32 slot vector currently observed at payload offset +45 with stride 4.
+    // In current sample, off/unset slots are stored as -1.
+    public List<int> ResourceCapSlots { get; set; } = new List<int>();
+
+    // Tail values currently observed at payload offsets payloadLen-16 and payloadLen-12.
+    public int GoldCap { get; set; }
+
+    public int DateCapCode { get; set; }
+  }
+
+  public class S2MGiveResourcesAction : S2MScenarioAction
+  {
+    // Control/mode code observed at payload offset +24.
+    public int ScopeModeCode { get; set; }
+
+    // Interpreted estate scope mode from ScopeModeCode.
+    public S2MTurnIndustriesScopeMode ScopeMode { get; set; } = S2MTurnIndustriesScopeMode.Unknown;
+
+    // Marked-estate flag color selector code observed at payload offset +28.
+    public int MarkedEstateFlagColorCode { get; set; }
+
+    // Marked-estate flag number selector (zero-based) observed at payload offset +32.
+    public int MarkedEstateFlagNumberCode { get; set; }
+
+    // Lord selector code observed at payload offset +36.
+    public int LordSelectorCode { get; set; }
+
+    // Stable control byte currently observed at payload offset +40.
+    public int ControlByte40 { get; set; }
+
+    // Unaligned int32 slot vector currently observed at payload offset +45 with stride 4.
+    // In current sample, default/unset slots are stored as 0.
+    public List<int> ResourceGiveSlots { get; set; } = new List<int>();
+
+    // Tail values currently observed at payload offsets payloadLen-16 and payloadLen-12.
+    public int GoldAmount { get; set; }
+
+    public int DateCode { get; set; }
+  }
+
+  public enum S2MAllyRelationship
+  {
+    Unknown = -1,
+    Neutral = 0,
+    Friend = 1,
+    Enemy = 2,
+  }
+
+  public class S2MSetAlliesAction : S2MScenarioAction
+  {
+    // Structural control/mode code observed at payload offset +24.
+    public int ScopeModeCode { get; set; }
+
+    // Relationship code observed at payload offset +28.
+    public int PlayerRelationCode { get; set; }
+
+    public S2MAllyRelationship PlayerRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    // Relationship codes observed at payload offsets +32..+64 (step 4),
+    // currently mapped in RescueLord order.
+    public int OlafRelationCode { get; set; }
+
+    public int LordBarclayRelationCode { get; set; }
+
+    public int TheHawkRelationCode { get; set; }
+
+    public int TheBullRelationCode { get; set; }
+
+    public int LadySerenRelationCode { get; set; }
+
+    public int EdwinRelationCode { get; set; }
+
+    public int TheKingRelationCode { get; set; }
+
+    public int SirWilliamRelationCode { get; set; }
+
+    public int SirGreyRelationCode { get; set; }
+
+    public S2MAllyRelationship OlafRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship LordBarclayRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship TheHawkRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship TheBullRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship LadySerenRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship EdwinRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship TheKingRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship SirWilliamRelation { get; set; } = S2MAllyRelationship.Unknown;
+
+    public S2MAllyRelationship SirGreyRelation { get; set; } = S2MAllyRelationship.Unknown;
+  }
+
+  public enum S2MMoveLordExitMode
+  {
+    Unknown = -1,
+    DontLeaveMap = 0,
+    LeaveMap = 1,
+  }
+
+  public class S2MMoveLordAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Lord selector code observed at payload offset +24.
+    public int LordSelectorCode { get; set; }
+
+    // Target flag number selector (currently appears zero-based) at payload offset +28.
+    public int TargetFlagNumberCode { get; set; }
+
+    // Target flag color selector observed at payload offset +32.
+    public int TargetFlagColorCode { get; set; }
+
+    // Leave-map mode byte observed at payload offset +36.
+    public int ExitModeCode { get; set; }
+
+    public S2MMoveLordExitMode ExitMode { get; set; } = S2MMoveLordExitMode.Unknown;
+  }
+
+  public class S2MTakeEnemysCastleAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Lord selector code observed at payload offset +24.
+    public int LordSelectorCode { get; set; }
+  }
+
+  public class S2MConvertEstateToVillageAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Target flag color selector code observed at payload offset +24.
+    public int TargetFlagColorCode { get; set; }
+
+    // Target flag number selector code (currently appears zero-based) at payload offset +28.
+    public int TargetFlagNumberCode { get; set; }
+  }
+
+  public enum S2MQuestChoice
+  {
+    Unknown = -1,
+    QuestA = 0,
+    QuestB = 1,
+    QuestC = 2,
+  }
+
+  public class S2MQuestAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Quest selector code observed at payload offset +24.
+    public int QuestIndex { get; set; }
+
+    public S2MQuestChoice QuestChoice { get; set; } = S2MQuestChoice.Unknown;
+  }
+
+  public class S2MQuestFailedAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Quest selector code observed at payload offset +24.
+    public int QuestIndex { get; set; }
+
+    public S2MQuestChoice QuestChoice { get; set; } = S2MQuestChoice.Unknown;
+  }
+
+  public class S2MSetAvailableTroopTypesAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Raw availability/toggle byte segment currently observed from +24 up to trailer.
+    public List<byte> RawToggleBytes { get; set; } = new List<byte>();
+
+    // Relative offsets within RawToggleBytes where value is 0.
+    public List<int> ZeroToggleOffsets { get; set; } = new List<int>();
+  }
+
+  public enum S2MProductionLevel
+  {
+    Unknown = -1,
+    Off = 0,
+    VeryLow = 1,
+    Low = 2,
+    Normal = 3,
+    High = 4,
+    VeryHigh = 5,
+  }
+
+  public class S2MGongProductionAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Production level selector code observed at payload offset +24.
+    public int ProductionLevelCode { get; set; }
+
+    public S2MProductionLevel ProductionLevel { get; set; } = S2MProductionLevel.Unknown;
+  }
+
+  public class S2MRatProductionAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Production level selector code observed at payload offset +24.
+    public int ProductionLevelCode { get; set; }
+
+    public S2MProductionLevel ProductionLevel { get; set; } = S2MProductionLevel.Unknown;
+  }
+
+  public class S2MDiseaseProductionAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Production level selector code observed at payload offset +24.
+    public int ProductionLevelCode { get; set; }
+
+    public S2MProductionLevel ProductionLevel { get; set; } = S2MProductionLevel.Unknown;
+  }
+
+  public class S2MCrimeRateAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Production level selector code observed at payload offset +24.
+    public int ProductionLevelCode { get; set; }
+
+    public S2MProductionLevel ProductionLevel { get; set; } = S2MProductionLevel.Unknown;
+  }
+
+  public enum S2MOutlawProductionLocation
+  {
+    Unknown = -1,
+    AllMap = 0,
+    OwnEstate = 1,
+    NeighboringEstates = 2,
+    OwnAndNeighboringEstates = 3,
+    HumanEstate = 4,
+  }
+
+  public class S2MOutlawProductionAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Production level selector code observed at payload offset +24.
+    public int ProductionLevelCode { get; set; }
+
+    // Outlaw production cap / max value observed at payload offset +28.
+    public int MaxOutlaws { get; set; }
+
+    // Location selector code observed at payload offset +32.
+    public int LocationCode { get; set; }
+
+    public S2MProductionLevel ProductionLevel { get; set; } = S2MProductionLevel.Unknown;
+
+    public S2MOutlawProductionLocation Location { get; set; } = S2MOutlawProductionLocation.Unknown;
+  }
+
+  public class S2MWolfSpawnRateAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Production level selector code observed at payload offset +24.
+    public int ProductionLevelCode { get; set; }
+
+    public S2MProductionLevel ProductionLevel { get; set; } = S2MProductionLevel.Unknown;
+  }
+
+  public enum S2MWeaponProductionType
+  {
+    Bow = 0,
+    Crossbow = 1,
+    Spear = 2,
+    Pike = 3,
+    Mace = 4,
+    Sword = 5,
+  }
+
+  public class S2MLimitWeaponProductionAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Raw limit/toggle byte segment currently observed from +24 up to trailer.
+    public List<byte> RawToggleBytes { get; set; } = new List<byte>();
+
+    // Relative offsets within RawToggleBytes where value is 0.
+    public List<int> ZeroToggleOffsets { get; set; } = new List<int>();
+
+    // Interpreted from current sample for offsets 0..5.
+    public List<S2MWeaponProductionType> DisabledWeaponTypes { get; set; } = new List<S2MWeaponProductionType>();
+  }
+
+  public class S2MSetCampfirePeasantsAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Number of peasants configured in editor, observed at payload offset +24.
+    public int PeasantsCount { get; set; }
+
+    // Campfire flag color selector observed at payload offset +28.
+    public int CampfireFlagColorCode { get; set; }
+
+    // Campfire flag number selector (currently appears zero-based) at payload offset +32.
+    public int CampfireFlagNumberCode { get; set; }
+  }
+
+  public enum S2MBuildingSitesState
+  {
+    Unknown = -1,
+    Inactive = 0,
+    Active = 1,
+  }
+
+  public class S2MControlConstructingBuildingsAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Number of building sites configured in editor, observed at payload offset +24.
+    public int BuildingSitesCount { get; set; }
+
+    // Active/inactive state byte observed at payload offset +28.
+    public int BuildingSitesStateCode { get; set; }
+
+    public S2MBuildingSitesState BuildingSitesState { get; set; } = S2MBuildingSitesState.Unknown;
+  }
+
+  public class S2MMaxOutPeasasntsAction : S2MScenarioAction
+  {
+    // Structural control code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Target lord selector observed at payload offset +24.
+    public int TargetLordSelector { get; set; }
+  }
+
   public class S2MRedirectVillageOutputAction : S2MScenarioAction
   {
     // Source village flag color selector code, currently observed at payload offset +24.
@@ -520,6 +933,10 @@ namespace Assets.Code.Stronghold2.FormatReaders
   {
   }
 
+  public class S2MEnterBriefingAction : S2MScenarioAction
+  {
+  }
+
   public class S2MWitchcraftAction : S2MScenarioAction
   {
   }
@@ -530,6 +947,19 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
   public class S2MSetWolvesToDefensiveAction : S2MScenarioAction
   {
+  }
+
+  public class S2MKillAllWolvesAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MKillAllLordsTroopsAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Lord selector observed at payload offset +24.
+    public int TargetLordSelector { get; set; }
   }
 
   public class S2MBadWeatherAction : S2MScenarioAction

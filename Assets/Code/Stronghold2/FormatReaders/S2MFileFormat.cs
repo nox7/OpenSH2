@@ -587,6 +587,111 @@ namespace Assets.Code.Stronghold2.FormatReaders
         return ParseProtestAction(record);
       }
 
+      if (record.Name == "TurnIndustriesOnOffAction")
+      {
+        return ParseTurnIndustriesOnOffAction(record);
+      }
+
+      if (record.Name == "CapResourcesAction")
+      {
+        return ParseCapResourcesAction(record);
+      }
+
+      if (record.Name == "GiveResourcesAction")
+      {
+        return ParseGiveResourcesAction(record);
+      }
+
+      if (record.Name == "SetAlliesAction")
+      {
+        return ParseSetAlliesAction(record);
+      }
+
+      if (record.Name == "MoveLordAction")
+      {
+        return ParseMoveLordAction(record);
+      }
+
+      if (record.Name == "TakeEnemysCastleAction")
+      {
+        return ParseTakeEnemysCastleAction(record);
+      }
+
+      if (record.Name == "ConvertEstateToVillageAction")
+      {
+        return ParseConvertEstateToVillageAction(record);
+      }
+
+      if (record.Name == "QuestAction")
+      {
+        return ParseQuestAction(record);
+      }
+
+      if (record.Name == "QuestFailedAction")
+      {
+        return ParseQuestFailedAction(record);
+      }
+
+      if (record.Name == "SetAvailableTroopTypesAction")
+      {
+        return ParseSetAvailableTroopTypesAction(record);
+      }
+
+      if (record.Name == "GongProductionAction")
+      {
+        return ParseGongProductionAction(record);
+      }
+
+      if (record.Name == "RatProductionAction")
+      {
+        return ParseRatProductionAction(record);
+      }
+
+      if (record.Name == "DiseaseProductionAction")
+      {
+        return ParseDiseaseProductionAction(record);
+      }
+
+      if (record.Name == "CrimeRateAction")
+      {
+        return ParseCrimeRateAction(record);
+      }
+
+      if (record.Name == "OutlawProductionAction")
+      {
+        return ParseOutlawProductionAction(record);
+      }
+
+      if (record.Name == "WolfSpawnRateAction")
+      {
+        return ParseWolfSpawnRateAction(record);
+      }
+
+      if (record.Name == "LimitWeaponProductionAction")
+      {
+        return ParseLimitWeaponProductionAction(record);
+      }
+
+      if (record.Name == "SetCampfirePeasantsAction")
+      {
+        return ParseSetCampfirePeasantsAction(record);
+      }
+
+      if (record.Name == "ControlConstructingBuildingsAction")
+      {
+        return ParseControlConstructingBuildingsAction(record);
+      }
+
+      if (record.Name == "MaxOutPeasasntsAction")
+      {
+        return ParseMaxOutPeasasntsAction(record);
+      }
+
+      if (record.Name == "KillAllLordsTroopsAction")
+      {
+        return ParseKillAllLordsTroopsAction(record);
+      }
+
       if (record.Name == "RedirectVillageOutputAction")
       {
         return ParseRedirectVillageOutputAction(record);
@@ -610,6 +715,19 @@ namespace Assets.Code.Stronghold2.FormatReaders
       if (record.Name == "SetAllBuildingsOnFireAction")
       {
         return new S2MSetAllBuildingsOnFireAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "EnterBriefingAction")
+      {
+        return new S2MEnterBriefingAction
         {
           RecordId = record.Id,
           RecordStart = record.RecordStart,
@@ -649,6 +767,19 @@ namespace Assets.Code.Stronghold2.FormatReaders
       if (record.Name == "SetWolvesToDefensiveAction")
       {
         return new S2MSetWolvesToDefensiveAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "KillAllWolvesAction")
+      {
+        return new S2MKillAllWolvesAction
         {
           RecordId = record.Id,
           RecordStart = record.RecordStart,
@@ -904,6 +1035,880 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
       // The probe shows a fixed structural word at +20 and the editable peasant count at +24.
       action.PeasantCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MTurnIndustriesOnOffAction ParseTurnIndustriesOnOffAction(S2MTokenRecord record)
+    {
+      var action = new S2MTurnIndustriesOnOffAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current mapping from three controlled probes for TurnIndustriesOnOffAction:
+      // - +24: scope/mode code
+      // - +28: marked-estate flag color selector
+      // - +32: marked-estate flag number selector (zero-based)
+      // - +36: lord selector code
+      // - +40/+41/+42: stable control bytes in current samples
+      // - +56: Geese toggle byte (confirmed via Cheese/Geese swap probe)
+      // - +65: Cheese toggle byte (confirmed via Cheese/Geese swap probe)
+      // The packed resource toggles remain under investigation, so we preserve the raw segment.
+      action.ScopeModeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      if (action.ScopeModeCode == 0)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.AllEstates;
+      }
+      else if (action.ScopeModeCode == 1)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.MarkedEstate;
+      }
+      else if (action.ScopeModeCode == 2)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.LordsEstate;
+      }
+
+      action.MarkedEstateFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.MarkedEstateFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.LordSelectorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 36));
+      action.ControlByte40 = ReadByteAt(record.PayloadBytes, 40);
+      action.ControlByte41 = ReadByteAt(record.PayloadBytes, 41);
+      action.ControlByte42 = ReadByteAt(record.PayloadBytes, 42);
+      action.GeeseToggleCode = ReadByteAt(record.PayloadBytes, 56);
+      action.CheeseToggleCode = ReadByteAt(record.PayloadBytes, 65);
+
+      int toggleSegmentStart = Math.Min(44, record.PayloadBytes.Length);
+      int toggleSegmentEnd = Math.Max(toggleSegmentStart, record.PayloadBytes.Length - 8);
+      action.RawToggleSegment = record.PayloadBytes
+        .Skip(toggleSegmentStart)
+        .Take(toggleSegmentEnd - toggleSegmentStart)
+        .ToList();
+
+      return action;
+    }
+
+    private static S2MCapResourcesAction ParseCapResourcesAction(S2MTokenRecord record)
+    {
+      var action = new S2MCapResourcesAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for CapResourcesAction:
+      // - +24: scope/mode code
+      // - +28: marked-estate flag color selector
+      // - +32: marked-estate flag number selector (zero-based)
+      // - +36: lord selector code
+      // - +40: control byte
+      // - +45..(payloadLen-16): unaligned int32 slot vector (stride 4, -1 seen as unset)
+      // - payloadLen-16: gold cap
+      // - payloadLen-12: date cap code
+      action.ScopeModeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      if (action.ScopeModeCode == 0)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.AllEstates;
+      }
+      else if (action.ScopeModeCode == 1)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.MarkedEstate;
+      }
+      else if (action.ScopeModeCode == 2)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.LordsEstate;
+      }
+
+      action.MarkedEstateFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.MarkedEstateFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.LordSelectorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 36));
+      action.ControlByte40 = ReadByteAt(record.PayloadBytes, 40);
+
+      int slotVectorStart = 45;
+      int goldCapOffset = Math.Max(slotVectorStart, record.PayloadBytes.Length - 16);
+      for (int offset = slotVectorStart; offset + 3 < goldCapOffset; offset += 4)
+      {
+        action.ResourceCapSlots.Add(ReadInt32At(record.PayloadBytes, offset));
+      }
+
+      action.GoldCap = ReadInt32At(record.PayloadBytes, record.PayloadBytes.Length - 16);
+      action.DateCapCode = ReadInt32At(record.PayloadBytes, record.PayloadBytes.Length - 12);
+
+      return action;
+    }
+
+    private static S2MGiveResourcesAction ParseGiveResourcesAction(S2MTokenRecord record)
+    {
+      var action = new S2MGiveResourcesAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for GiveResourcesAction:
+      // - +24: scope/mode code
+      // - +28: marked-estate flag color selector
+      // - +32: marked-estate flag number selector (zero-based)
+      // - +36: lord selector code
+      // - +40: control byte
+      // - +45..(payloadLen-16): unaligned int32 slot vector (stride 4, 0 seen as default)
+      // - payloadLen-16: gold amount
+      // - payloadLen-12: date code
+      action.ScopeModeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      if (action.ScopeModeCode == 0)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.AllEstates;
+      }
+      else if (action.ScopeModeCode == 1)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.MarkedEstate;
+      }
+      else if (action.ScopeModeCode == 2)
+      {
+        action.ScopeMode = S2MTurnIndustriesScopeMode.LordsEstate;
+      }
+
+      action.MarkedEstateFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.MarkedEstateFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.LordSelectorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 36));
+      action.ControlByte40 = ReadByteAt(record.PayloadBytes, 40);
+
+      int slotVectorStart = 45;
+      int goldAmountOffset = Math.Max(slotVectorStart, record.PayloadBytes.Length - 16);
+      for (int offset = slotVectorStart; offset + 3 < goldAmountOffset; offset += 4)
+      {
+        action.ResourceGiveSlots.Add(ReadInt32At(record.PayloadBytes, offset));
+      }
+
+      action.GoldAmount = ReadInt32At(record.PayloadBytes, record.PayloadBytes.Length - 16);
+      action.DateCode = ReadInt32At(record.PayloadBytes, record.PayloadBytes.Length - 12);
+
+      return action;
+    }
+
+    private static S2MSetAlliesAction ParseSetAlliesAction(S2MTokenRecord record)
+    {
+      var action = new S2MSetAlliesAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for SetAlliesAction:
+      // - +24: structural control/mode code
+      // - +28: player relation code
+      // - +32..+64: nine lord relation codes in RescueLord order
+      //   (Olaf, Barclay, Hawk, Bull, LadySeren, Edwin, TheKing, SirWilliam, SirGrey)
+      action.ScopeModeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      action.PlayerRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.OlafRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.LordBarclayRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 36));
+      action.TheHawkRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 40));
+      action.TheBullRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 44));
+      action.LadySerenRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 48));
+      action.EdwinRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 52));
+      action.TheKingRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 56));
+      action.SirWilliamRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 60));
+      action.SirGreyRelationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 64));
+
+      action.PlayerRelation = ParseAllyRelationship(action.PlayerRelationCode);
+      action.OlafRelation = ParseAllyRelationship(action.OlafRelationCode);
+      action.LordBarclayRelation = ParseAllyRelationship(action.LordBarclayRelationCode);
+      action.TheHawkRelation = ParseAllyRelationship(action.TheHawkRelationCode);
+      action.TheBullRelation = ParseAllyRelationship(action.TheBullRelationCode);
+      action.LadySerenRelation = ParseAllyRelationship(action.LadySerenRelationCode);
+      action.EdwinRelation = ParseAllyRelationship(action.EdwinRelationCode);
+      action.TheKingRelation = ParseAllyRelationship(action.TheKingRelationCode);
+      action.SirWilliamRelation = ParseAllyRelationship(action.SirWilliamRelationCode);
+      action.SirGreyRelation = ParseAllyRelationship(action.SirGreyRelationCode);
+
+      return action;
+    }
+
+    private static S2MAllyRelationship ParseAllyRelationship(int code)
+    {
+      if (code == 0)
+      {
+        return S2MAllyRelationship.Neutral;
+      }
+
+      if (code == 1)
+      {
+        return S2MAllyRelationship.Friend;
+      }
+
+      if (code == 2)
+      {
+        return S2MAllyRelationship.Enemy;
+      }
+
+      return S2MAllyRelationship.Unknown;
+    }
+
+    private static S2MMoveLordAction ParseMoveLordAction(S2MTokenRecord record)
+    {
+      var action = new S2MMoveLordAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for MoveLordAction:
+      // - +20: structural control code
+      // - +24: lord selector code
+      // - +28: target flag number selector (currently appears zero-based)
+      // - +32: target flag color selector
+      // - +36: leave-map mode byte (0 = Don't leave map, 1 = Leave map)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.LordSelectorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.TargetFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.TargetFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.ExitModeCode = ReadByteAt(record.PayloadBytes, 36);
+
+      if (action.ExitModeCode == 0)
+      {
+        action.ExitMode = S2MMoveLordExitMode.DontLeaveMap;
+      }
+      else if (action.ExitModeCode == 1)
+      {
+        action.ExitMode = S2MMoveLordExitMode.LeaveMap;
+      }
+
+      return action;
+    }
+
+    private static S2MTakeEnemysCastleAction ParseTakeEnemysCastleAction(S2MTokenRecord record)
+    {
+      var action = new S2MTakeEnemysCastleAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for TakeEnemysCastleAction:
+      // - +20: structural control code
+      // - +24: lord selector code
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.LordSelectorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MConvertEstateToVillageAction ParseConvertEstateToVillageAction(S2MTokenRecord record)
+    {
+      var action = new S2MConvertEstateToVillageAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for ConvertEstateToVillageAction:
+      // - +20: structural control code
+      // - +24: target flag color selector code
+      // - +28: target flag number selector code (currently appears zero-based)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.TargetFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.TargetFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+
+      return action;
+    }
+
+    private static S2MQuestAction ParseQuestAction(S2MTokenRecord record)
+    {
+      var action = new S2MQuestAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for QuestAction:
+      // - +20: structural control code
+      // - +24: quest selector code (0=A, 1=B, 2=C)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.QuestIndex = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.QuestIndex == 0)
+      {
+        action.QuestChoice = S2MQuestChoice.QuestA;
+      }
+      else if (action.QuestIndex == 1)
+      {
+        action.QuestChoice = S2MQuestChoice.QuestB;
+      }
+      else if (action.QuestIndex == 2)
+      {
+        action.QuestChoice = S2MQuestChoice.QuestC;
+      }
+
+      return action;
+    }
+
+    private static S2MQuestFailedAction ParseQuestFailedAction(S2MTokenRecord record)
+    {
+      var action = new S2MQuestFailedAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for QuestFailedAction:
+      // - +20: structural control code
+      // - +24: quest selector code (0=A, 1=B, 2=C)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.QuestIndex = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.QuestIndex == 0)
+      {
+        action.QuestChoice = S2MQuestChoice.QuestA;
+      }
+      else if (action.QuestIndex == 1)
+      {
+        action.QuestChoice = S2MQuestChoice.QuestB;
+      }
+      else if (action.QuestIndex == 2)
+      {
+        action.QuestChoice = S2MQuestChoice.QuestC;
+      }
+
+      return action;
+    }
+
+    private static S2MSetAvailableTroopTypesAction ParseSetAvailableTroopTypesAction(S2MTokenRecord record)
+    {
+      var action = new S2MSetAvailableTroopTypesAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for SetAvailableTroopTypesAction:
+      // - +20: structural control code
+      // - +24..(payloadLen-8): dense toggle-like byte segment (1/0 values in sample)
+      // - Knight toggle confirmed at segment-relative offset 72 (payload offset +96)
+      // Exact troop-order mapping of this segment remains unresolved.
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+
+      int toggleStart = 24;
+      int toggleEnd = Math.Max(toggleStart, record.PayloadBytes.Length - 8);
+      for (int i = toggleStart; i < toggleEnd; i++)
+      {
+        action.RawToggleBytes.Add(record.PayloadBytes[i]);
+      }
+
+      for (int i = 0; i < action.RawToggleBytes.Count; i++)
+      {
+        if (action.RawToggleBytes[i] == 0)
+        {
+          action.ZeroToggleOffsets.Add(i);
+        }
+      }
+
+      return action;
+    }
+
+    private static S2MGongProductionAction ParseGongProductionAction(S2MTokenRecord record)
+    {
+      var action = new S2MGongProductionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for GongProductionAction:
+      // - +20: structural control code
+      // - +24: production level selector code
+      //   (Off, VeryLow, Low, Normal, High, VeryHigh)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.ProductionLevelCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.ProductionLevelCode == 0)
+      {
+        action.ProductionLevel = S2MProductionLevel.Off;
+      }
+      else if (action.ProductionLevelCode == 1)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryLow;
+      }
+      else if (action.ProductionLevelCode == 2)
+      {
+        action.ProductionLevel = S2MProductionLevel.Low;
+      }
+      else if (action.ProductionLevelCode == 3)
+      {
+        action.ProductionLevel = S2MProductionLevel.Normal;
+      }
+      else if (action.ProductionLevelCode == 4)
+      {
+        action.ProductionLevel = S2MProductionLevel.High;
+      }
+      else if (action.ProductionLevelCode == 5)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryHigh;
+      }
+
+      return action;
+    }
+
+    private static S2MRatProductionAction ParseRatProductionAction(S2MTokenRecord record)
+    {
+      var action = new S2MRatProductionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for RatProductionAction:
+      // - +20: structural control code
+      // - +24: production level selector code
+      //   (Off, VeryLow, Low, Normal, High, VeryHigh)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.ProductionLevelCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.ProductionLevelCode == 0)
+      {
+        action.ProductionLevel = S2MProductionLevel.Off;
+      }
+      else if (action.ProductionLevelCode == 1)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryLow;
+      }
+      else if (action.ProductionLevelCode == 2)
+      {
+        action.ProductionLevel = S2MProductionLevel.Low;
+      }
+      else if (action.ProductionLevelCode == 3)
+      {
+        action.ProductionLevel = S2MProductionLevel.Normal;
+      }
+      else if (action.ProductionLevelCode == 4)
+      {
+        action.ProductionLevel = S2MProductionLevel.High;
+      }
+      else if (action.ProductionLevelCode == 5)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryHigh;
+      }
+
+      return action;
+    }
+
+    private static S2MDiseaseProductionAction ParseDiseaseProductionAction(S2MTokenRecord record)
+    {
+      var action = new S2MDiseaseProductionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for DiseaseProductionAction:
+      // - +20: structural control code
+      // - +24: production level selector code
+      //   (Off, VeryLow, Low, Normal, High, VeryHigh)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.ProductionLevelCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.ProductionLevelCode == 0)
+      {
+        action.ProductionLevel = S2MProductionLevel.Off;
+      }
+      else if (action.ProductionLevelCode == 1)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryLow;
+      }
+      else if (action.ProductionLevelCode == 2)
+      {
+        action.ProductionLevel = S2MProductionLevel.Low;
+      }
+      else if (action.ProductionLevelCode == 3)
+      {
+        action.ProductionLevel = S2MProductionLevel.Normal;
+      }
+      else if (action.ProductionLevelCode == 4)
+      {
+        action.ProductionLevel = S2MProductionLevel.High;
+      }
+      else if (action.ProductionLevelCode == 5)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryHigh;
+      }
+
+      return action;
+    }
+
+    private static S2MCrimeRateAction ParseCrimeRateAction(S2MTokenRecord record)
+    {
+      var action = new S2MCrimeRateAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for CrimeRateAction:
+      // - +20: structural control code
+      // - +24: production level selector code
+      //   (Off, VeryLow, Low, Normal, High, VeryHigh)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.ProductionLevelCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.ProductionLevelCode == 0)
+      {
+        action.ProductionLevel = S2MProductionLevel.Off;
+      }
+      else if (action.ProductionLevelCode == 1)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryLow;
+      }
+      else if (action.ProductionLevelCode == 2)
+      {
+        action.ProductionLevel = S2MProductionLevel.Low;
+      }
+      else if (action.ProductionLevelCode == 3)
+      {
+        action.ProductionLevel = S2MProductionLevel.Normal;
+      }
+      else if (action.ProductionLevelCode == 4)
+      {
+        action.ProductionLevel = S2MProductionLevel.High;
+      }
+      else if (action.ProductionLevelCode == 5)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryHigh;
+      }
+
+      return action;
+    }
+
+    private static S2MOutlawProductionAction ParseOutlawProductionAction(S2MTokenRecord record)
+    {
+      var action = new S2MOutlawProductionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for OutlawProductionAction:
+      // - +20: structural control code
+      // - +24: production level selector code
+      // - +28: outlaw cap / max value
+      // - +32: location selector code
+      // Confirmed via location-only toggle:
+      //   Neighboring Estates (2) -> Own Estate (1) changed only +32.
+      // Confirmed via max+location toggle:
+      //   Own Estate (1), max 30 -> All Map (0), max 35 changed +32 and +28 only.
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.ProductionLevelCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.MaxOutlaws = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.LocationCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+
+      if (action.ProductionLevelCode == 0)
+      {
+        action.ProductionLevel = S2MProductionLevel.Off;
+      }
+      else if (action.ProductionLevelCode == 1)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryLow;
+      }
+      else if (action.ProductionLevelCode == 2)
+      {
+        action.ProductionLevel = S2MProductionLevel.Low;
+      }
+      else if (action.ProductionLevelCode == 3)
+      {
+        action.ProductionLevel = S2MProductionLevel.Normal;
+      }
+      else if (action.ProductionLevelCode == 4)
+      {
+        action.ProductionLevel = S2MProductionLevel.High;
+      }
+      else if (action.ProductionLevelCode == 5)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryHigh;
+      }
+
+      if (action.LocationCode == 0)
+      {
+        action.Location = S2MOutlawProductionLocation.AllMap;
+      }
+      else if (action.LocationCode == 1)
+      {
+        action.Location = S2MOutlawProductionLocation.OwnEstate;
+      }
+      else if (action.LocationCode == 2)
+      {
+        action.Location = S2MOutlawProductionLocation.NeighboringEstates;
+      }
+      else if (action.LocationCode == 3)
+      {
+        action.Location = S2MOutlawProductionLocation.OwnAndNeighboringEstates;
+      }
+      else if (action.LocationCode == 4)
+      {
+        action.Location = S2MOutlawProductionLocation.HumanEstate;
+      }
+
+      return action;
+    }
+
+    private static S2MWolfSpawnRateAction ParseWolfSpawnRateAction(S2MTokenRecord record)
+    {
+      var action = new S2MWolfSpawnRateAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for WolfSpawnRateAction:
+      // - +20: structural control code
+      // - +24: production level selector code
+      //   (Off, VeryLow, Low, Normal, High, VeryHigh)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.ProductionLevelCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.ProductionLevelCode == 0)
+      {
+        action.ProductionLevel = S2MProductionLevel.Off;
+      }
+      else if (action.ProductionLevelCode == 1)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryLow;
+      }
+      else if (action.ProductionLevelCode == 2)
+      {
+        action.ProductionLevel = S2MProductionLevel.Low;
+      }
+      else if (action.ProductionLevelCode == 3)
+      {
+        action.ProductionLevel = S2MProductionLevel.Normal;
+      }
+      else if (action.ProductionLevelCode == 4)
+      {
+        action.ProductionLevel = S2MProductionLevel.High;
+      }
+      else if (action.ProductionLevelCode == 5)
+      {
+        action.ProductionLevel = S2MProductionLevel.VeryHigh;
+      }
+
+      return action;
+    }
+
+    private static S2MLimitWeaponProductionAction ParseLimitWeaponProductionAction(S2MTokenRecord record)
+    {
+      var action = new S2MLimitWeaponProductionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for LimitWeaponProductionAction:
+      // - +20: structural control code
+      // - +24..(payloadLen-8): compact weapon enable/disable toggle bytes
+      //   sample 1 (Bows + Pikes disabled): zeroes at relative offsets 0 and 3
+      //   sample 2 (+Crossbows disabled): offset 1 flips 1 -> 0 while others stay stable
+      //   sample 3 (Spears only disabled): offset 2 is 0 while offsets 0,1,3 are restored to 1
+      //   sample 4 (Maces + Swords disabled): offsets 4 and 5 are 0 while offset 2 is restored to 1
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+
+      int toggleStart = 24;
+      int toggleEnd = Math.Max(toggleStart, record.PayloadBytes.Length - 8);
+      for (int i = toggleStart; i < toggleEnd; i++)
+      {
+        action.RawToggleBytes.Add(record.PayloadBytes[i]);
+      }
+
+      for (int i = 0; i < action.RawToggleBytes.Count; i++)
+      {
+        if (action.RawToggleBytes[i] == 0)
+        {
+          action.ZeroToggleOffsets.Add(i);
+        }
+      }
+
+      // Provisional mapping for first six toggles based on current UI order:
+      // Bow, Crossbow, Spear, Pike, Mace, Sword
+      for (int i = 0; i < 6 && i < action.RawToggleBytes.Count; i++)
+      {
+        if (action.RawToggleBytes[i] == 0)
+        {
+          action.DisabledWeaponTypes.Add((S2MWeaponProductionType)i);
+        }
+      }
+
+      return action;
+    }
+
+    private static S2MSetCampfirePeasantsAction ParseSetCampfirePeasantsAction(S2MTokenRecord record)
+    {
+      var action = new S2MSetCampfirePeasantsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for SetCampfirePeasantsAction:
+      // - +20: structural control code
+      // - +24: peasants count
+      // - +28: campfire flag color selector
+      // - +32: campfire flag number selector
+      // Probe 1 -> Probe 2 changed only these aligned words:
+      // - +24: 17 -> 16
+      // - +28: 1 (Green) -> 2 (Blue)
+      // - +32: 1 (Flag #2) -> 3 (Flag #4)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.PeasantsCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.CampfireFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.CampfireFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+
+      return action;
+    }
+
+    private static S2MControlConstructingBuildingsAction ParseControlConstructingBuildingsAction(S2MTokenRecord record)
+    {
+      var action = new S2MControlConstructingBuildingsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for ControlConstructingBuildingsAction:
+      // - +20: structural control code
+      // - +24: building sites count
+      // - +28: active/inactive state byte
+      // Sample used: count 8, state Inactive
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.BuildingSitesCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.BuildingSitesStateCode = ReadByteAt(record.PayloadBytes, 28);
+
+      if (action.BuildingSitesStateCode == 0)
+      {
+        action.BuildingSitesState = S2MBuildingSitesState.Inactive;
+      }
+      else if (action.BuildingSitesStateCode == 1)
+      {
+        action.BuildingSitesState = S2MBuildingSitesState.Active;
+      }
+
+      return action;
+    }
+
+    private static S2MMaxOutPeasasntsAction ParseMaxOutPeasasntsAction(S2MTokenRecord record)
+    {
+      var action = new S2MMaxOutPeasasntsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for MaxOutPeasasntsAction:
+      // - +20: structural control code
+      // - +24: target lord selector
+      // Sample used: target lord = Olaf
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MKillAllLordsTroopsAction ParseKillAllLordsTroopsAction(S2MTokenRecord record)
+    {
+      var action = new S2MKillAllLordsTroopsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for KillAllLordsTroopsAction:
+      // - +20: structural control code
+      // - +24: target lord selector
+      // Sample used: target lord = Lord Barclay
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
 
       return action;
     }
@@ -1979,7 +2984,7 @@ namespace Assets.Code.Stronghold2.FormatReaders
       return 0;
     }
 
-    private static void NormalizeGoodsAmountDictionary(Dictionary<GoodsAcquiredEnum, int> goodsAmounts)
+    private static void NormalizeGoodsAmountDictionary(Dictionary<MapEditorScenarioResources, int> goodsAmounts)
     {
       if (goodsAmounts == null || goodsAmounts.Count == 0)
       {
@@ -2047,14 +3052,14 @@ namespace Assets.Code.Stronghold2.FormatReaders
       return best ?? new List<int>();
     }
 
-    private static void PopulateGoodsAmounts(List<int> payloadInt32, int goodsVectorStartIndex, Dictionary<GoodsAcquiredEnum, int> destination)
+    private static void PopulateGoodsAmounts(List<int> payloadInt32, int goodsVectorStartIndex, Dictionary<MapEditorScenarioResources, int> destination)
     {
       if (goodsVectorStartIndex < 0)
       {
         return;
       }
 
-      var goods = Enum.GetValues(typeof(GoodsAcquiredEnum)).Cast<GoodsAcquiredEnum>().ToArray();
+      var goods = Enum.GetValues(typeof(MapEditorScenarioResources)).Cast<MapEditorScenarioResources>().ToArray();
 
       // Two leading unknown slots are observed before visible goods list starts.
       const int leadingUnknownSlots = 2;

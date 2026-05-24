@@ -972,7 +972,7 @@ Token identity from latest `BinaryCheck-Triggers.s2m` edit:
 
 - `name=MaintainMinimumFoodLevelAction`, `tag=7`, `baseName=ScenarioAction`
 
-Probe result:
+Probe results:
 
 - The payload now includes a single editable food threshold value.
 - The probe shows a fixed structural word at payload offset `+20` and the food threshold at payload offset `+24`.
@@ -999,7 +999,7 @@ Token identity from latest `BinaryCheck-Triggers.s2m` edit:
 
 - `name=PlagueOfRatsAction`, `tag=7`, `baseName=ScenarioAction`
 
-Probe result:
+Probe results:
 
 - The payload now includes a single editable rats count value.
 - The probe shows a fixed structural word at payload offset `+20` and the rats count at payload offset `+24`.
@@ -1026,7 +1026,7 @@ Token identity from latest `BinaryCheck-Triggers.s2m` edit:
 
 - `name=RatInvasionAction`, `tag=7`, `baseName=ScenarioAction`
 
-Probe result:
+Probe results:
 
 - The payload includes three editable fields after a fixed structural word at `+20`.
 - `+24` holds the target flag color selector.
@@ -1254,6 +1254,1064 @@ Evidence artifacts:
 - `Notes/reports/redirect_village_output_action_probe_1.txt`
 - `Notes/reports/redirect_village_output_action_probe_2.txt`
 - `Notes/reports/redirect_village_output_action_probe1_vs_probe2_diff.txt`
+
+### `TurnIndustriesOnOffAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=TurnIndustriesOnOffAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `94`, with a fixed structural word at `+20` (`61` in current sample).
+- Probe 1 sample used editor settings:
+  - Stop resource production for all resources except `Iron`, `Wheat`, `Meat`, `Cheese`, `Spears`.
+  - Estate scope set to `Lord's estate` with lord `Player`.
+- Three-probe field mapping (current confidence):
+  - `+24`: scope/mode code
+    - `0 = All Estates`
+    - `1 = Marked Estate`
+    - `2 = Lord's Estate`
+  - `+28`: marked-estate flag color selector code
+  - `+32`: marked-estate flag number selector (zero-based)
+  - `+36`: lord selector code
+  - `+40/+41/+42`: stable control bytes (`1/1/1` in current samples)
+- A packed boolean-like segment exists from `+44` through `payloadLen-8` in current sample and is now preserved as raw bytes.
+- Exact per-resource ordering/bit mapping for all `29` resources is not yet fully proven by offsets, but interpretation now follows the provided enum order assumption.
+
+Two-probe confidence update (Cheese/Geese swap):
+
+- Follow-up sample changed only these editor toggles:
+  - `Cheese: off -> on`
+  - `Geese: on -> off`
+- Probe diff changed only two bytes:
+  - `+56: 01 -> 00` (maps to `Geese`)
+  - `+65: 00 -> 01` (maps to `Cheese`)
+- This confirms at least two resource-toggle offsets in the packed segment:
+  - `GeeseToggleCode` at `+56`
+  - `CheeseToggleCode` at `+65`
+
+Three-probe confidence update (Estate scope switched to Marked Estate):
+
+- Follow-up sample changed only estate targeting:
+  - Scope: `Lord's estate -> Marked Estate`
+  - Marked flag: `green`, number `5`
+- Probe diff changed only:
+  - `+24: 2 -> 1` (scope/mode code)
+  - `+28: 0 -> 1` (marked-estate flag color selector code, green)
+  - `+32: 0 -> 4` (marked-estate flag number selector, zero-based for displayed `5`)
+- `+36` remained `1`, consistent with lord selector being present but inactive in marked-estate mode.
+
+Four-probe confidence update (Estate scope switched to All Estates):
+
+- Follow-up sample changed only estate targeting mode:
+  - Scope: `Marked Estate -> All Estates`
+- Probe diff changed only:
+  - `+24: 1 -> 0` (scope/mode code)
+- No other payload bytes changed in this transition.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with decoded estate scope selectors.
+- Resource toggles are preserved as raw bytes, and current semantic interpretation uses `MapEditorScenarioResources` enum order as requested.
+
+Implementation status:
+
+- Parser now recognizes `TurnIndustriesOnOffAction` and decodes scope/estate selector fields listed above.
+- Parser now interprets `scopeModeCode` into `AllEstates`, `MarkedEstate`, or `LordsEstate`.
+- Parser also decodes confirmed resource bytes for `Geese` (`+56`) and `Cheese` (`+65`).
+- Debug output prints decoded scope/estate selector fields, stable control bytes, `geeseToggleCode`, `cheeseToggleCode`, and raw toggle segment length.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_stopresourceprod_run.txt`
+- `Notes/reports/turn_industries_on_off_action_probe_1.txt`
+- `Notes/reports/turn_industries_on_off_action_probe_2.txt`
+- `Notes/reports/turn_industries_on_off_action_probe1_vs_probe2_diff.txt`
+- `Notes/reports/turn_industries_on_off_action_probe_3_marked_estate.txt`
+- `Notes/reports/turn_industries_on_off_action_probe2_vs_probe3_marked_estate_diff.txt`
+- `Notes/reports/turn_industries_on_off_action_probe_4_all_estates.txt`
+- `Notes/reports/turn_industries_on_off_action_probe3_vs_probe4_all_estates_diff.txt`
+
+### `CapResourcesAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=CapResourcesAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `237`, with a fixed structural word at `+20` (`204` in current sample).
+- Sample editor settings used:
+  - Estate scope: `Marked Estate`, red flag `#1`
+  - Resource caps: `Wood=0`, `Cheese=10`, `Spears=52`, all other visible resources left `Off`
+  - `Gold cap = 200`
+  - `Date cap = 30`
+- Current field mapping confidence:
+  - `+24`: scope/mode code (`1` in this marked-estate sample)
+  - `+28`: marked-estate flag color selector (`0` for red in this sample)
+  - `+32`: marked-estate flag number selector (`0` for displayed flag `#1`, zero-based)
+  - `+36`: lord selector code (`1` in this sample)
+  - `+40`: control byte (`255` in this sample)
+  - `payloadLen-16` (`+221` here): gold cap (`200`)
+  - `payloadLen-12` (`+225` here): date cap code (`30`)
+- Cap slots are currently serialized as an unaligned int32 vector:
+  - starts at `+45`
+  - stride `4`
+  - continues to just before `payloadLen-16`
+  - unset/off slots are `-1` in this sample
+  - observed configured slot values in this sample:
+    - slot `0` = `0`
+    - slot `23` = `10`
+    - slot `34` = `52`
+
+Two-probe confidence update (changed only `Stone=5`):
+
+- Follow-up sample changed only Stone cap (`Off -> 5`).
+- Probe diff changed only bytes `+49..+52` (`FF FF FF FF -> 05 00 00 00`).
+- This is cap-slot index `1` in the current slot vector (`+45 + 1*4`).
+- This matches the enum-order assumption (`Wood=0`, `Stone=1`) and increases confidence that first visible resources are laid out in direct enum order for this action family.
+
+Current interpretation:
+
+- `CapResourcesAction` uses the same estate-target scope family as `TurnIndustriesOnOffAction`.
+- Gold and date caps are confidently mapped from the tail words.
+- Resource slot-to-enum mapping remains provisional from one sample; parser preserves all slot values explicitly.
+- Semantic interpretation of slot order follows the provided enum-order assumption.
+- Current direct confirmations in this action family:
+  - slot `0` => `Wood` (`0`)
+  - slot `1` => `Stone` (`5`)
+  - slot `23` => `Cheese` (`10`)
+  - slot `34` => `Spears` (`52`)
+
+Implementation status:
+
+- Parser now recognizes `CapResourcesAction` and decodes scope/estate fields, cap slot vector, gold cap, and date cap code.
+- Debug output prints scope fields, gold/date caps, and configured slot/value pairs.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_capresources_run.txt`
+- `Notes/reports/cap_resources_action_probe_1.txt`
+- `Notes/reports/cap_resources_action_probe_2_stone5.txt`
+- `Notes/reports/cap_resources_action_probe1_vs_probe2_stone5_diff.txt`
+
+### `GiveResourcesAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=GiveResourcesAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `237`, with the same structural/action-family framing seen in `CapResourcesAction`.
+- Sample editor settings used:
+  - Resource amounts set in editor: `Wood=10`, `Grapes=5`, `Mace=2`, `Pikes=5`
+  - Estate scope: `Lord's Estate`, selected lord `Olaf`
+  - `Gold = 200`
+  - `Date/day value = 10`
+- Current field mapping confidence:
+  - `+24`: scope/mode code (`2` in this sample => `LordsEstate`)
+  - `+28`: marked-estate flag color selector code (`0` in this sample)
+  - `+32`: marked-estate flag number selector (`0` in this sample)
+  - `+36`: lord selector code (`2` in this sample; matches expected Olaf selector)
+  - `+40`: control byte (`0` in this sample)
+  - `payloadLen-16` (`+221` here): gold amount (`200`)
+  - `payloadLen-12` (`+225` here): date code (`10`)
+- Resource amounts are serialized as an unaligned int32 slot vector:
+  - starts at `+45`
+  - stride `4`
+  - continues to just before `payloadLen-16`
+  - default/unset slots are `0` in this sample
+  - observed non-zero slot values:
+    - slot `0` = `5`
+    - slot `7` = `5`
+    - slot `32` = `2`
+    - slot `33` = `5`
+
+Current interpretation:
+
+- `GiveResourcesAction` shares the same estate-target envelope and tail cap/date fields as `CapResourcesAction`.
+- Lord selector mapping is consistent with existing selector interpretation (`Olaf => 2` in this action family).
+- Resource slot indexing is structurally stable and consistent with the clarified sample values (`Wood=5`, `Grapes=5`, `Mace=2`, `Pikes=5`).
+- Semantic slot interpretation currently follows enum-order assumptions already validated in adjacent action families, with direct non-zero slot confirmations in this sample at slots `0`, `7`, `32`, and `33`.
+
+Implementation status:
+
+- Parser now recognizes `GiveResourcesAction` and decodes scope/estate fields, resource slot vector, gold amount, and date code.
+- Debug output prints scope fields plus non-zero give-slot/value pairs.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_giveresources_run.txt`
+- `Notes/reports/give_resources_action_probe_1.txt`
+
+### `SetAlliesAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SetAlliesAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `77`.
+- Sample editor settings used:
+  - Neutral: `Olaf`
+  - Friends: `Lady Seren`, `The King`, `Sir William`, `Sir Grey`
+  - Enemies: `Lord Barclay`, `The Hawk`, `The Bull`, `Edwin`
+- Current single-sample field mapping:
+  - `+24`: structural control/mode code (`0` in this sample)
+  - `+28`: player relation code (`1` in this sample)
+  - `+32..+64` (step `4`): nine lord relation codes in RescueLord order:
+    - `Olaf`, `LordBarclay`, `TheHawk`, `TheBull`, `LadySeren`, `Edwin`, `TheKing`, `SirWilliam`, `SirGrey`
+  - decoded code semantics in this sample:
+    - `0 = Neutral`
+    - `1 = Friend`
+    - `2 = Enemy`
+
+Decoded mapping for this sample:
+
+- `Olaf = Neutral` (`0`)
+- `LordBarclay = Enemy` (`2`)
+- `TheHawk = Enemy` (`2`)
+- `TheBull = Enemy` (`2`)
+- `LadySeren = Friend` (`1`)
+- `Edwin = Enemy` (`2`)
+- `TheKing = Friend` (`1`)
+- `SirWilliam = Friend` (`1`)
+- `SirGrey = Friend` (`1`)
+
+Current interpretation:
+
+- `SetAlliesAction` stores one relation code per lord, consistent with the three editor categories.
+- The current sample is fully consistent with the configured friend/enemy/neutral groups.
+- Relation-order mapping is high confidence for current sample order, but still based on one sample for this action token.
+
+Implementation status:
+
+- Parser now recognizes `SetAlliesAction` and decodes player/lord relationship codes.
+- Debug output prints decoded per-lord relationships.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_setallies_run.txt`
+- `Notes/reports/set_allies_action_probe_1.txt`
+
+### `MoveLordAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=MoveLordAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `46`.
+- Sample editor settings used:
+  - Lord: `Lord Barclay`
+  - Target flag: `Yellow #3`
+  - Exit option: `Don't leave map`
+- Current two-probe field mapping:
+  - `+20`: structural control code (`13` in this sample)
+  - `+24`: lord selector code (`3` in this sample; consistent with Barclay selector in this family)
+  - `+28`: target flag number selector (`2` in this sample; consistent with zero-based `#3`)
+  - `+32`: target flag color selector (`3` in this sample; consistent with Yellow)
+  - `+36` (byte): leave-map mode code
+    - `0 = Don't leave map`
+    - `1 = Leave map` (confirmed by leave-map toggle probe)
+
+Two-probe confidence update (changed only `Don't leave map -> Leave map`):
+
+- Diff changed only one byte:
+  - `+37: 00 -> 01`
+- This is the low byte of the aligned word at `+36`, confirming `ExitModeCode` toggles independently while lord/flag selectors remain stable.
+
+Current interpretation:
+
+- `MoveLordAction` stores one lord selector, one target flag selector pair, and an exit-mode byte.
+- This mapping is high confidence for the configured sample values.
+- Leave-map byte semantics are now high confidence from the one-field toggle pair.
+
+Implementation status:
+
+- Parser now recognizes `MoveLordAction` and decodes control/lord/flag selectors plus exit mode code.
+- Debug output prints decoded selector fields and interpreted exit mode.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_movelord_run.txt`
+- `Notes/reports/move_lord_action_probe_1.txt`
+- `Notes/reports/move_lord_action_probe_2_leavemap.txt`
+- `Notes/reports/move_lord_action_probe1_vs_probe2_leavemap_diff.txt`
+
+### `TakeEnemysCastleAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=TakeEnemysCastleAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Target lord: `The Hawk`
+- Current two-probe field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: lord selector code
+    - `4` for `The Hawk`
+    - `2` for `Olaf`
+
+Two-probe confidence update (changed only target lord `The Hawk -> Olaf`):
+
+- Diff changed only one byte:
+  - `+25: 04 -> 02`
+- This is the active byte of the aligned word at `+24`, confirming `+24` is the lord selector field for this action family.
+
+Current interpretation:
+
+- `TakeEnemysCastleAction` currently appears to encode one lord selector plus one structural control field.
+- Lord selector mapping is now high confidence at offset `+24` from a controlled one-field toggle pair.
+
+Implementation status:
+
+- Parser now recognizes `TakeEnemysCastleAction` and decodes control/lord selector codes.
+- Debug output prints the decoded fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_takeenemyscastle_run.txt`
+- `Notes/reports/take_enemys_castle_action_probe_1.txt`
+- `Notes/reports/take_enemys_castle_action_probe_2_olaf.txt`
+- `Notes/reports/take_enemys_castle_action_probe1_vs_probe2_olaf_diff.txt`
+
+### `ConvertEstateToVillageAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=ConvertEstateToVillageAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `41`.
+- Sample editor settings used:
+  - Target flag: `Blue #7`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`8` in this sample)
+  - `+24`: target flag color selector code (`2` in this sample; consistent with Blue)
+  - `+28`: target flag number selector code (`6` in this sample; consistent with zero-based `#7`)
+
+Current interpretation:
+
+- `ConvertEstateToVillageAction` stores one target-flag selector pair plus one structural control field.
+- Flag selector mapping is high confidence for the configured sample values.
+- One additional color-or-number toggle pair would finalize two-probe confidence for this token.
+
+Implementation status:
+
+- Parser now recognizes `ConvertEstateToVillageAction` and decodes control and target flag selectors.
+- Debug output prints the decoded fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_convert_estate_to_village_run.txt`
+- `Notes/reports/convert_estate_to_village_action_probe_1.txt`
+
+### `QuestAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=QuestAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Complete quest: `Quest B`
+- Current two-probe field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: quest selector code
+    - `1` for `Quest B`
+    - `0` for `Quest A`
+
+Two-probe confidence update (changed only complete-quest selection `B -> A`):
+
+- Diff changed only one byte:
+  - `+25: 01 -> 00`
+- This is the active byte of the aligned word at `+24`, confirming `+24` is the quest selector field.
+
+Current interpretation:
+
+- `QuestAction` currently appears to encode one quest selector plus one structural control field.
+- Action-level quest selector mapping in this token is currently interpreted as:
+  - `0 = Quest A`
+  - `1 = Quest B`
+  - `2 = Quest C`
+- Quest selector mapping now has high confidence for `A/B` from controlled two-probe validation.
+- This section intentionally focuses on action payload decoding only; quest-state storage outside this action remains unresolved.
+
+Implementation status:
+
+- Parser now recognizes `QuestAction` and decodes control and quest selector fields.
+- Debug output prints decoded quest index and interpreted quest choice.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_complete_quest_run.txt`
+- `Notes/reports/quest_action_probe_1_quest_b.txt`
+- `Notes/reports/quest_action_probe_2_quest_a.txt`
+- `Notes/reports/quest_action_probe1_vs_probe2_questb_to_questa_diff.txt`
+
+### `QuestFailedAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=QuestFailedAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Failed quest: `Quest C`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: quest selector code (`2` in this sample; consistent with Quest C)
+
+Current interpretation:
+
+- `QuestFailedAction` currently appears to encode one quest selector plus one structural control field.
+- Action-level quest selector mapping in this token is currently interpreted as:
+  - `0 = Quest A`
+  - `1 = Quest B`
+  - `2 = Quest C`
+- This section intentionally focuses on action payload decoding only; broader quest-state storage remains unresolved.
+
+Implementation status:
+
+- Parser now recognizes `QuestFailedAction` and decodes control and quest selector fields.
+- Debug output prints decoded quest index and interpreted quest choice.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_quest_failed_action_run.txt`
+- `Notes/reports/quest_failed_action_probe_1_quest_c.txt`
+
+### `EnterBriefingAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=EnterBriefingAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional user-configurable payload fields are exposed in editor for this action.
+
+Implementation status:
+
+- Parser now recognizes `EnterBriefingAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_enter_briefing_action_run.txt`
+
+### `SetAvailableTroopTypesAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SetAvailableTroopTypesAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `146`.
+- Sample editor settings used:
+  - OFF: `ArmedPeasant`, `Knight`, `Engineer`, `SmallSiegeTower`, `Trebuchet`, `CAT`
+  - all other troop types left ON
+- Current two-probe field mapping:
+  - `+20`: structural control code (`113` in this sample)
+  - `+24..payloadLen-8`: dense toggle-like byte segment (`114` bytes in this sample)
+
+Observed toggle-segment characteristics in this sample:
+
+- Toggle bytes are predominantly `1` with sparse `0` values.
+- Relative zero-byte offsets within the extracted toggle segment are:
+  - `49,50,67,72,89,92`
+
+Two-probe confidence update (changed only `Knight: OFF -> ON`):
+
+- Diff changed only one byte:
+  - payload offset `+96: 00 -> 01`
+- This corresponds to segment-relative offset `72` (`96 - 24`), confirming one concrete mapping in this token:
+  - `Knight` toggle is at segment-relative offset `72`.
+- With Knight ON in probe 2, zero offsets become:
+  - `49,50,67,89,92`
+
+Third-probe verification update (custom OFF set):
+
+- New configured OFF list:
+  - `Engineer`, `Assassin`, `HorseArcher`, `Berserker`, `Mantlet`
+- Probe2 -> Probe3 diff changed exactly 8 bytes, consistent with:
+  - 4 prior OFF troops switched ON (`ArmedPeasant`, `SmallSiegeTower`, `Trebuchet`, `CAT`)
+  - 4 newly selected troops switched OFF (`Assassin`, `HorseArcher`, `Berserker`, `Mantlet`)
+- Changed bytes in payload:
+  - `74: 00 -> 01`
+  - `91: 00 -> 01`
+  - `113: 00 -> 01`
+  - `116: 00 -> 01`
+  - `97: 01 -> 00`
+  - `99: 01 -> 00`
+  - `100: 01 -> 00`
+  - `127: 01 -> 00`
+- Segment-relative view (`offset - 24`):
+  - ON transitions at `50,67,89,92`
+  - OFF transitions at `73,75,76,103`
+- Zero offsets in probe 3 are now:
+  - `49,73,75,76,103`
+
+Refined interpretation from third probe:
+
+- `Engineer` remains the stable OFF entry at segment-relative offset `49`.
+- Toggle behavior strongly matches the requested UI changes in count and direction.
+- Full global troop-index -> byte-offset order is still not proven; offsets are not yet demonstrated to be direct linear enum indices.
+- `MapEditorScenarioTroopType` now includes `Berserker` explicitly, so the prior alias caveat is no longer needed.
+
+Current interpretation:
+
+- `SetAvailableTroopTypesAction` clearly carries a substantial availability bit/byte block.
+- Exact troop-index to byte-offset mapping is still unresolved globally, but `Knight -> offset 72` is now confirmed.
+- The parser currently preserves the full toggle segment and exposes zero-byte offsets for forensic comparison.
+- The supplied editor order from `MapEditorScenarioTroopType` is retained as working reference, but byte-order equivalence is not yet claimed.
+
+Implementation status:
+
+- Parser now recognizes `SetAvailableTroopTypesAction` and decodes:
+  - `controlCode`
+  - `rawToggleBytes`
+  - `zeroToggleOffsets`
+- Debug output prints control code, toggle segment length, and zero offsets.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_set_available_troop_types_run.txt`
+- `Notes/reports/set_available_troop_types_action_probe_1.txt`
+- `Notes/reports/set_available_troop_types_action_probe_2_knight_on.txt`
+- `Notes/reports/set_available_troop_types_action_probe1_vs_probe2_knight_on_diff.txt`
+- `Notes/reports/set_available_troop_types_action_probe_3_custom_offs.txt`
+- `Notes/reports/set_available_troop_types_action_probe2_vs_probe3_custom_offs_diff.txt`
+
+### `GongProductionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=GongProductionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Gone production level: `High`
+- Current two-probe field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: production level selector code
+    - `4` for `High`
+    - `0` for `Off`
+
+Two-probe confidence update (changed only production level `High -> Off`):
+
+- Diff changed only one byte:
+  - `+25: 04 -> 00`
+- This is the active byte of the aligned word at `+24`, confirming `+24` is the production-level selector field.
+
+Current interpretation:
+
+- `GongProductionAction` currently appears to encode one production-level selector plus one structural control field.
+- Working selector interpretation for this action family follows editor ordering:
+  - `0 = Off`
+  - `1 = VeryLow`
+  - `2 = Low`
+  - `3 = Normal`
+  - `4 = High`
+  - `5 = VeryHigh`
+- Selector mapping now has high confidence for `Off` and `High` from controlled two-probe validation.
+
+Implementation status:
+
+- Parser now recognizes `GongProductionAction` and decodes control and production-level fields.
+- Debug output prints decoded level code and interpreted level enum.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_gone_production_run.txt`
+- `Notes/reports/gong_production_action_probe_1_high.txt`
+- `Notes/reports/gong_production_action_probe_2_off.txt`
+- `Notes/reports/gong_production_action_probe1_vs_probe2_high_to_off_diff.txt`
+
+### `RatProductionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=RatProductionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Rat production level: `Very Low`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: production level selector code (`1` in this sample; consistent with `VeryLow`)
+
+Current interpretation:
+
+- `RatProductionAction` currently appears to encode one production-level selector plus one structural control field.
+- Working selector interpretation follows the same scale used in `GongProductionAction`:
+  - `0 = Off`
+  - `1 = VeryLow`
+  - `2 = Low`
+  - `3 = Normal`
+  - `4 = High`
+  - `5 = VeryHigh`
+- This mapping should be treated as provisional pending one toggle confirmation for this specific token.
+
+Implementation status:
+
+- Parser now recognizes `RatProductionAction` and decodes control and production-level fields.
+- Debug output prints decoded level code and interpreted level enum.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_rat_production_run.txt`
+- `Notes/reports/rat_production_action_probe_1_very_low.txt`
+
+### `DiseaseProductionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=DiseaseProductionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Disease frequency: `Normal`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: production level selector code (`3` in this sample; consistent with `Normal`)
+
+Current interpretation:
+
+- `DiseaseProductionAction` appears to encode one production-level selector plus one structural control field.
+- Working selector interpretation follows the same scale used in `GongProductionAction` and `RatProductionAction`:
+  - `0 = Off`
+  - `1 = VeryLow`
+  - `2 = Low`
+  - `3 = Normal`
+  - `4 = High`
+  - `5 = VeryHigh`
+- This mapping should be treated as provisional pending one toggle confirmation for this specific token.
+
+Implementation status:
+
+- Parser now recognizes `DiseaseProductionAction` and decodes control and production-level fields.
+- Debug output prints decoded level code and interpreted level enum.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_disease_frequency_run.txt`
+- `Notes/reports/disease_production_action_probe_1_normal.txt`
+
+### `CrimeRateAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=CrimeRateAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Crime rate: `High`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: production level selector code (`4` in this sample; consistent with `High`)
+
+Current interpretation:
+
+- `CrimeRateAction` appears to encode one production-level selector plus one structural control field.
+- Working selector interpretation follows the same scale used in `GongProductionAction`, `RatProductionAction`, and `DiseaseProductionAction`:
+  - `0 = Off`
+  - `1 = VeryLow`
+  - `2 = Low`
+  - `3 = Normal`
+  - `4 = High`
+  - `5 = VeryHigh`
+- This mapping should be treated as provisional pending one toggle confirmation for this specific token.
+
+Implementation status:
+
+- Parser now recognizes `CrimeRateAction` and decodes control and production-level fields.
+- Debug output prints decoded level code and interpreted level enum.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_crime_rate_run.txt`
+- `Notes/reports/crime_rate_action_probe_1_high.txt`
+
+### `OutlawProductionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=OutlawProductionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `45`.
+- Sample editor settings used:
+  - Outlaw production: `High`
+  - Max value: `30`
+  - Location: `Neighboring Estates`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`12` in this sample)
+  - `+24`: production level selector code (`4` in this sample; consistent with `High`)
+  - `+28`: max-outlaws numeric field (`30` in this sample)
+  - `+32`: location selector code (`2` in this sample; consistent with `Neighboring Estates`)
+
+Current interpretation:
+
+- `OutlawProductionAction` extends the production-level pattern with two additional fields:
+  - a numeric cap value
+  - a location/scope selector
+- Working location selector mapping (provisional) currently follows editor ordering:
+  - `0 = All Map`
+  - `1 = Own Estate`
+  - `2 = Neighboring Estates`
+  - `3 = Own & Neighboring Estates`
+  - `4 = Human Estate`
+- Two-probe location toggle confirmation:
+  - Probe 1: `Neighboring Estates` -> location code `2`
+  - Probe 2: `Own Estate` -> location code `1`
+  - Diff changed only one byte:
+    - `+33: 02 -> 01`
+  - Aligned int32 at `+32` changed from normalized `2 -> 1` with all other decoded fields stable.
+- Third-probe confirmation (`All Map`, `max=35`):
+  - Probe 2 (`Own Estate`, `max=30`) -> Probe 3 (`All Map`, `max=35`) changed only:
+    - `+29: 1E -> 23` (aligned int32 `+28`: normalized `30 -> 35`)
+    - `+33: 01 -> 00` (aligned int32 `+32`: normalized `1 -> 0`)
+- Mapping confidence is now higher for:
+  - `All Map = 0`
+  - `Own Estate = 1`
+  - `Neighboring Estates = 2`
+- Remaining location options are still provisional:
+  - `Own & Neighboring Estates`
+  - `Human Estate`
+
+Implementation status:
+
+- Parser now recognizes `OutlawProductionAction` and decodes control, level, max, and location fields.
+- Debug output prints decoded numeric codes and interpreted level/location enums.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_outlaw_production_run.txt`
+- `Notes/reports/outlaw_production_action_probe_1_high_max30_neighboring.txt`
+- `Notes/reports/outlaw_production_action_probe_2_high_max30_own_estate.txt`
+- `Notes/reports/outlaw_production_action_probe1_vs_probe2_neighboring_to_own_diff.txt`
+- `Notes/reports/outlaw_production_action_probe_3_high_max35_all_map.txt`
+- `Notes/reports/outlaw_production_action_probe2_vs_probe3_own_to_all_max30_to35_diff.txt`
+
+### `WolfSpawnRateAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=WolfSpawnRateAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Wolf spawn rate: `Very Low`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: production level selector code (`1` in this sample; consistent with `VeryLow`)
+
+Current interpretation:
+
+- `WolfSpawnRateAction` appears to follow the same single production-level selector pattern as `GongProductionAction`, `RatProductionAction`, `DiseaseProductionAction`, and `CrimeRateAction`.
+- Working selector interpretation follows the same scale:
+  - `0 = Off`
+  - `1 = VeryLow`
+  - `2 = Low`
+  - `3 = Normal`
+  - `4 = High`
+  - `5 = VeryHigh`
+- This mapping should be treated as provisional pending one toggle confirmation for this specific token.
+
+Implementation status:
+
+- Parser now recognizes `WolfSpawnRateAction` and decodes control and production-level fields.
+- Debug output prints decoded level code and interpreted level enum.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_wolf_spawn_rate_run.txt`
+- `Notes/reports/wolf_spawn_rate_action_probe_1_very_low.txt`
+
+### `LimitWeaponProductionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=LimitWeaponProductionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `39`.
+- Sample editor settings used:
+  - Deselected weapons: `Bows`, `Pikes`
+  - Selected weapons: `Crossbows`, `Spears`, `Maces`, `Swords`
+- Current single-sample field mapping:
+- Probe 1 (`Bows`, `Pikes` deselected):
+  - `+20`: structural control code (`6` in this sample)
+  - `+24..+30`: compact weapon toggle segment (`7` bytes in this sample)
+    - observed bytes: `00 01 01 00 01 01 01`
+    - zero offsets: `0,3`
+- Probe 2 (`Bows`, `Crossbows`, `Pikes` deselected):
+  - `+20`: structural control code (`6`, unchanged)
+  - `+24..+30` observed bytes: `00 00 01 00 01 01 01`
+  - zero offsets: `0,1,3`
+- Probe-1 -> Probe-2 diff changed only one byte:
+  - byte `+26: 01 -> 00` (toggle relative offset `1`)
+- Probe 3 (`Spears` deselected only; others re-enabled):
+  - `+20`: structural control code (`6`, unchanged)
+  - `+24..+30` observed bytes: `01 01 00 01 01 01 01`
+  - zero offsets: `2`
+- Probe-2 -> Probe-3 diff changed four bytes in the toggle block:
+  - byte `+25: 00 -> 01` (Bow restored)
+  - byte `+26: 00 -> 01` (Crossbow restored)
+  - byte `+27: 01 -> 00` (Spear disabled)
+  - byte `+28: 00 -> 01` (Pike restored)
+- Probe 4 (`Maces`, `Swords` deselected only; others enabled):
+  - `+20`: structural control code (`6`, unchanged)
+  - `+24..+30` observed bytes: `01 01 01 01 00 00 01`
+  - zero offsets: `4,5`
+- Probe-3 -> Probe-4 diff changed three bytes in the toggle block:
+  - byte `+27: 00 -> 01` (Spear restored)
+  - byte `+29: 01 -> 00` (Mace disabled)
+  - byte `+30: 01 -> 00` (Sword disabled)
+
+Current interpretation:
+
+- `LimitWeaponProductionAction` appears to use a compact byte toggle block rather than packed int selectors.
+- With this sample, zero offsets `0` and `3` align with the two disabled weapons (`Bows`, `Pikes`) using the expected editor order:
+- Two-probe confirmation now supports:
+- Four-probe confirmation now supports:
+  - offset `0 = Bow`
+  - offset `1 = Crossbow`
+  - offset `2 = Spear`
+  - offset `3 = Pike`
+- Full confirmed order for the first six toggles:
+  - `0 = Bow`
+  - `1 = Crossbow`
+  - `2 = Spear`
+  - `3 = Pike`
+  - `4 = Mace`
+  - `5 = Sword`
+- A seventh toggle byte is present in this sample and currently unresolved.
+- Mapping confidence is now high for all six weapon toggles (`Bow`..`Sword`); only the seventh byte remains provisional/unresolved.
+
+Implementation status:
+
+- Parser now recognizes `LimitWeaponProductionAction`.
+- Decoder captures raw toggle bytes and zero offsets.
+- Debug output includes interpreted disabled weapon names for offsets `0..5` using the provisional order above.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_limit_weapon_production_run.txt`
+- `Notes/reports/limit_weapon_production_action_probe_1_bows_pikes_off.txt`
+- `Notes/reports/limit_weapon_production_action_probe_2_bows_crossbows_pikes_off.txt`
+- `Notes/reports/limit_weapon_production_action_probe1_vs_probe2_crossbow_toggle_diff.txt`
+- `Notes/reports/limit_weapon_production_action_probe_3_spears_only_off.txt`
+- `Notes/reports/limit_weapon_production_action_probe2_vs_probe3_spears_only_diff.txt`
+- `Notes/reports/limit_weapon_production_action_probe_4_maces_swords_off.txt`
+- `Notes/reports/limit_weapon_production_action_probe3_vs_probe4_maces_swords_diff.txt`
+
+### `SetCampfirePeasantsAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SetCampfirePeasantsAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `45`.
+- Sample editor settings used:
+  - Peasants around campfire: `17`
+  - Campfire flag color: `Green`
+  - Campfire flag number: `2`
+- Probe 1 (`17`, `Green`, flag `2`):
+  - `+20`: structural control code (`12` in this sample)
+  - `+24`: peasants count (`17` in this sample)
+  - `+28`: campfire flag color selector code (`1` in this sample)
+  - `+32`: campfire flag number selector code (`1` in this sample)
+- Probe 2 (`16`, `Blue`, flag `4`):
+  - `+20`: structural control code (`12`, unchanged)
+  - `+24`: peasants count (`16`)
+  - `+28`: campfire flag color selector code (`2`)
+  - `+32`: campfire flag number selector code (`3`)
+- Probe-1 -> Probe-2 diff changed only these bytes:
+  - `+25: 11 -> 10` (peasants `17 -> 16`)
+  - `+29: 01 -> 02` (color `Green -> Blue`)
+  - `+33: 01 -> 03` (flag number `2 -> 4`)
+
+Current interpretation:
+
+- `SetCampfirePeasantsAction` encodes one numeric value plus a flag-color / flag-number pair.
+- Two-probe confirmation:
+  - `+24` is peasants count.
+  - `+28` is color selector (`Green=1`, `Blue=2` observed).
+  - `+32` is a zero-based flag number selector (`2 -> code 1`, `4 -> code 3`).
+- Additional color codes remain provisional pending more samples.
+
+Implementation status:
+
+- Parser now recognizes `SetCampfirePeasantsAction` and decodes count/color/number fields.
+- Debug output prints all decoded fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_campfire_peasants_run.txt`
+- `Notes/reports/set_campfire_peasants_action_probe_1_count17_green2.txt`
+- `Notes/reports/set_campfire_peasants_action_probe_2_count16_blue4.txt`
+- `Notes/reports/set_campfire_peasants_action_probe1_vs_probe2_count17_green2_to_count16_blue4_diff.txt`
+
+### `ControlConstructingBuildingsAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=ControlConstructingBuildingsAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `38`.
+- Sample editor settings used:
+  - Building sites count: `8`
+  - State: `Inactive`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`5` in this sample)
+  - `+24`: building sites count (`8` in this sample)
+  - `+28`: active/inactive state byte (`0` in this sample; consistent with `Inactive`)
+
+Current interpretation:
+
+- `ControlConstructingBuildingsAction` appears to encode one numeric count and one active/inactive state flag.
+- Working state mapping from current sample:
+  - `0 = Inactive`
+  - `1 = Active` (provisional)
+- State mapping should be treated as provisional pending one toggle confirmation to `Active`.
+
+Implementation status:
+
+- Parser now recognizes `ControlConstructingBuildingsAction` and decodes count/state fields.
+- Debug output prints decoded state code and interpreted enum.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_building_sites_run.txt`
+- `Notes/reports/control_constructing_buildings_action_probe_1_count8_inactive.txt`
+
+### `MaxOutPeasasntsAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=MaxOutPeasasntsAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Target lord: `Olaf`
+- Probe 1 (`Olaf`):
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: target lord selector (`2` in this sample; consistent with `Olaf`)
+- Probe 2 (`Player Lord`):
+  - `+20`: structural control code (`4`, unchanged)
+  - `+24`: target lord selector (`1` in this sample; consistent with `Player Lord`)
+- Probe-1 -> Probe-2 diff changed one byte:
+  - `+25: 02 -> 01` (aligned int32 at `+24` changed normalized `2 -> 1`)
+
+Current interpretation:
+
+- `MaxOutPeasasntsAction` encodes a single target-lord selector.
+- Two-probe confirmed selector values so far:
+  - `Player Lord = 1`
+  - `Olaf = 2`
+- Additional lord selector values remain provisional pending more samples.
+
+Implementation status:
+
+- Parser now recognizes `MaxOutPeasasntsAction` and decodes target-lord selector.
+- Debug output prints the decoded selector value.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_give_lord_full_peasants_run.txt`
+- `Notes/reports/max_out_peasasnts_action_probe_1_olaf.txt`
+- `Notes/reports/max_out_peasasnts_action_probe_2_player_lord.txt`
+- `Notes/reports/max_out_peasasnts_action_probe1_vs_probe2_olaf_to_player_diff.txt`
+
+### `KillAllWolvesAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=KillAllWolvesAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `25`.
+- Current sample shows no user-configurable scalar field beyond the common structural/trailer bytes.
+
+Current interpretation:
+
+- `KillAllWolvesAction` appears to be existence-only in current samples.
+- No bespoke payload decoding is currently required.
+
+Implementation status:
+
+- Parser now recognizes `KillAllWolvesAction` and returns a typed action with raw payload preserved.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_kill_off_all_wolves_run.txt`
+- `Notes/reports/kill_all_wolves_action_probe_1.txt`
+
+### `KillAllLordsTroopsAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=KillAllLordsTroopsAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor setting used:
+  - Target lord: `Lord Barclay`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: target lord selector (`3` in this sample; consistent with `Lord Barclay` in this selector family)
+
+Current interpretation:
+
+- `KillAllLordsTroopsAction` appears to encode one target-lord selector plus one structural control field.
+- Selector mapping should be treated as provisional pending one lord-toggle confirmation pair.
+
+Implementation status:
+
+- Parser now recognizes `KillAllLordsTroopsAction` and decodes control/lord selector fields.
+- Debug output prints the decoded fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_kill_off_all_lords_troops_run.txt`
+- `Notes/reports/kill_all_lords_troops_action_probe_1_barclay.txt`
 
 - Trigger code behavior update (important):
   - the `triggerCode` field is currently behaving like a **scenario-local instance/order id** (tracks record id/order), not a stable global trigger-type enum.

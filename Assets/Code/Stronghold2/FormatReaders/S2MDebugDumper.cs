@@ -144,6 +144,248 @@ namespace Assets.Code.Stronghold2.FormatReaders
           + $" peasantCount={protest.PeasantCount}";
       }
 
+      if (action is S2MTurnIndustriesOnOffAction turnIndustriesOnOff)
+      {
+        return prefix
+          + $" scopeModeCode={turnIndustriesOnOff.ScopeModeCode}"
+          + $" scopeMode={turnIndustriesOnOff.ScopeMode}"
+          + $" markedEstateFlagColorCode={turnIndustriesOnOff.MarkedEstateFlagColorCode}"
+          + $" markedEstateFlagNumberCode={turnIndustriesOnOff.MarkedEstateFlagNumberCode}"
+          + $" lordSelectorCode={turnIndustriesOnOff.LordSelectorCode}"
+          + $" control40={turnIndustriesOnOff.ControlByte40}"
+          + $" control41={turnIndustriesOnOff.ControlByte41}"
+          + $" control42={turnIndustriesOnOff.ControlByte42}"
+          + $" geeseToggleCode={turnIndustriesOnOff.GeeseToggleCode}"
+          + $" cheeseToggleCode={turnIndustriesOnOff.CheeseToggleCode}"
+          + $" rawToggleSegmentLen={turnIndustriesOnOff.RawToggleSegment.Count}";
+      }
+
+      if (action is S2MCapResourcesAction capResources)
+      {
+        string configuredSlots = string.Join(",", capResources.ResourceCapSlots
+          .Select((value, index) => new { index, value })
+          .Where(x => x.value >= 0)
+          .Select(x => $"{x.index}:{x.value}"));
+
+        if (string.IsNullOrEmpty(configuredSlots))
+        {
+          configuredSlots = "none";
+        }
+
+        return prefix
+          + $" scopeModeCode={capResources.ScopeModeCode}"
+          + $" scopeMode={capResources.ScopeMode}"
+          + $" markedEstateFlagColorCode={capResources.MarkedEstateFlagColorCode}"
+          + $" markedEstateFlagNumberCode={capResources.MarkedEstateFlagNumberCode}"
+          + $" lordSelectorCode={capResources.LordSelectorCode}"
+          + $" control40={capResources.ControlByte40}"
+          + $" goldCap={capResources.GoldCap}"
+          + $" dateCapCode={capResources.DateCapCode}"
+          + $" configuredCapSlots=[{configuredSlots}]"
+          + $" resourceCapSlotCount={capResources.ResourceCapSlots.Count}";
+      }
+
+      if (action is S2MGiveResourcesAction giveResources)
+      {
+        string configuredSlots = string.Join(",", giveResources.ResourceGiveSlots
+          .Select((value, index) => new { index, value })
+          .Where(x => x.value != 0)
+          .Select(x => $"{x.index}:{x.value}"));
+
+        if (string.IsNullOrEmpty(configuredSlots))
+        {
+          configuredSlots = "none";
+        }
+
+        return prefix
+          + $" scopeModeCode={giveResources.ScopeModeCode}"
+          + $" scopeMode={giveResources.ScopeMode}"
+          + $" markedEstateFlagColorCode={giveResources.MarkedEstateFlagColorCode}"
+          + $" markedEstateFlagNumberCode={giveResources.MarkedEstateFlagNumberCode}"
+          + $" lordSelectorCode={giveResources.LordSelectorCode}"
+          + $" control40={giveResources.ControlByte40}"
+          + $" goldAmount={giveResources.GoldAmount}"
+          + $" dateCode={giveResources.DateCode}"
+          + $" configuredGiveSlots=[{configuredSlots}]"
+          + $" resourceGiveSlotCount={giveResources.ResourceGiveSlots.Count}";
+      }
+
+      if (action is S2MSetAlliesAction setAllies)
+      {
+        return prefix
+          + $" scopeModeCode={setAllies.ScopeModeCode}"
+          + $" playerRelation={setAllies.PlayerRelation}"
+          + $" olafRelation={setAllies.OlafRelation}"
+          + $" lordBarclayRelation={setAllies.LordBarclayRelation}"
+          + $" theHawkRelation={setAllies.TheHawkRelation}"
+          + $" theBullRelation={setAllies.TheBullRelation}"
+          + $" ladySerenRelation={setAllies.LadySerenRelation}"
+          + $" edwinRelation={setAllies.EdwinRelation}"
+          + $" theKingRelation={setAllies.TheKingRelation}"
+          + $" sirWilliamRelation={setAllies.SirWilliamRelation}"
+          + $" sirGreyRelation={setAllies.SirGreyRelation}";
+      }
+
+      if (action is S2MMoveLordAction moveLord)
+      {
+        return prefix
+          + $" controlCode={moveLord.ControlCode}"
+          + $" lordSelectorCode={moveLord.LordSelectorCode}"
+          + $" targetFlagNumberCode={moveLord.TargetFlagNumberCode}"
+          + $" targetFlagColorCode={moveLord.TargetFlagColorCode}"
+          + $" exitModeCode={moveLord.ExitModeCode}"
+          + $" exitMode={moveLord.ExitMode}";
+      }
+
+      if (action is S2MTakeEnemysCastleAction takeEnemysCastle)
+      {
+        return prefix
+          + $" controlCode={takeEnemysCastle.ControlCode}"
+          + $" lordSelectorCode={takeEnemysCastle.LordSelectorCode}";
+      }
+
+      if (action is S2MConvertEstateToVillageAction convertEstateToVillage)
+      {
+        return prefix
+          + $" controlCode={convertEstateToVillage.ControlCode}"
+          + $" targetFlagColorCode={convertEstateToVillage.TargetFlagColorCode}"
+          + $" targetFlagNumberCode={convertEstateToVillage.TargetFlagNumberCode}";
+      }
+
+      if (action is S2MQuestAction questAction)
+      {
+        return prefix
+          + $" controlCode={questAction.ControlCode}"
+          + $" questIndex={questAction.QuestIndex}"
+          + $" questChoice={questAction.QuestChoice}";
+      }
+
+      if (action is S2MQuestFailedAction questFailedAction)
+      {
+        return prefix
+          + $" controlCode={questFailedAction.ControlCode}"
+          + $" questIndex={questFailedAction.QuestIndex}"
+          + $" questChoice={questFailedAction.QuestChoice}";
+      }
+
+      if (action is S2MSetAvailableTroopTypesAction setAvailableTroopTypes)
+      {
+        string zeroOffsets = string.Join(",", setAvailableTroopTypes.ZeroToggleOffsets);
+        if (string.IsNullOrEmpty(zeroOffsets))
+        {
+          zeroOffsets = "none";
+        }
+
+        return prefix
+          + $" controlCode={setAvailableTroopTypes.ControlCode}"
+          + $" rawToggleByteCount={setAvailableTroopTypes.RawToggleBytes.Count}"
+          + $" zeroToggleOffsets=[{zeroOffsets}]";
+      }
+
+      if (action is S2MGongProductionAction gongProduction)
+      {
+        return prefix
+          + $" controlCode={gongProduction.ControlCode}"
+          + $" productionLevelCode={gongProduction.ProductionLevelCode}"
+          + $" productionLevel={gongProduction.ProductionLevel}";
+      }
+
+      if (action is S2MRatProductionAction ratProduction)
+      {
+        return prefix
+          + $" controlCode={ratProduction.ControlCode}"
+          + $" productionLevelCode={ratProduction.ProductionLevelCode}"
+          + $" productionLevel={ratProduction.ProductionLevel}";
+      }
+
+      if (action is S2MDiseaseProductionAction diseaseProduction)
+      {
+        return prefix
+          + $" controlCode={diseaseProduction.ControlCode}"
+          + $" productionLevelCode={diseaseProduction.ProductionLevelCode}"
+          + $" productionLevel={diseaseProduction.ProductionLevel}";
+      }
+
+      if (action is S2MCrimeRateAction crimeRate)
+      {
+        return prefix
+          + $" controlCode={crimeRate.ControlCode}"
+          + $" productionLevelCode={crimeRate.ProductionLevelCode}"
+          + $" productionLevel={crimeRate.ProductionLevel}";
+      }
+
+      if (action is S2MOutlawProductionAction outlawProduction)
+      {
+        return prefix
+          + $" controlCode={outlawProduction.ControlCode}"
+          + $" productionLevelCode={outlawProduction.ProductionLevelCode}"
+          + $" productionLevel={outlawProduction.ProductionLevel}"
+          + $" maxOutlaws={outlawProduction.MaxOutlaws}"
+          + $" locationCode={outlawProduction.LocationCode}"
+          + $" location={outlawProduction.Location}";
+      }
+
+      if (action is S2MWolfSpawnRateAction wolfSpawnRate)
+      {
+        return prefix
+          + $" controlCode={wolfSpawnRate.ControlCode}"
+          + $" productionLevelCode={wolfSpawnRate.ProductionLevelCode}"
+          + $" productionLevel={wolfSpawnRate.ProductionLevel}";
+      }
+
+      if (action is S2MLimitWeaponProductionAction limitWeaponProduction)
+      {
+        string zeroOffsets = string.Join(",", limitWeaponProduction.ZeroToggleOffsets);
+        if (string.IsNullOrEmpty(zeroOffsets))
+        {
+          zeroOffsets = "none";
+        }
+
+        string disabledWeaponTypes = string.Join(",", limitWeaponProduction.DisabledWeaponTypes);
+        if (string.IsNullOrEmpty(disabledWeaponTypes))
+        {
+          disabledWeaponTypes = "none";
+        }
+
+        return prefix
+          + $" controlCode={limitWeaponProduction.ControlCode}"
+          + $" rawToggleByteCount={limitWeaponProduction.RawToggleBytes.Count}"
+          + $" zeroToggleOffsets=[{zeroOffsets}]"
+          + $" disabledWeapons=[{disabledWeaponTypes}]";
+      }
+
+      if (action is S2MSetCampfirePeasantsAction setCampfirePeasants)
+      {
+        return prefix
+          + $" controlCode={setCampfirePeasants.ControlCode}"
+          + $" peasantsCount={setCampfirePeasants.PeasantsCount}"
+          + $" campfireFlagColorCode={setCampfirePeasants.CampfireFlagColorCode}"
+          + $" campfireFlagNumberCode={setCampfirePeasants.CampfireFlagNumberCode}";
+      }
+
+      if (action is S2MControlConstructingBuildingsAction controlConstructingBuildings)
+      {
+        return prefix
+          + $" controlCode={controlConstructingBuildings.ControlCode}"
+          + $" buildingSitesCount={controlConstructingBuildings.BuildingSitesCount}"
+          + $" buildingSitesStateCode={controlConstructingBuildings.BuildingSitesStateCode}"
+          + $" buildingSitesState={controlConstructingBuildings.BuildingSitesState}";
+      }
+
+      if (action is S2MMaxOutPeasasntsAction maxOutPeasasnts)
+      {
+        return prefix
+          + $" controlCode={maxOutPeasasnts.ControlCode}"
+          + $" targetLordSelector={maxOutPeasasnts.TargetLordSelector}";
+      }
+
+      if (action is S2MKillAllLordsTroopsAction killAllLordsTroops)
+      {
+        return prefix
+          + $" controlCode={killAllLordsTroops.ControlCode}"
+          + $" targetLordSelector={killAllLordsTroops.TargetLordSelector}";
+      }
+
       if (action is S2MRedirectVillageOutputAction redirectVillageOutput)
       {
         return prefix
@@ -176,6 +418,11 @@ namespace Assets.Code.Stronghold2.FormatReaders
       }
 
       if (action is S2MSetAllBuildingsOnFireAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MEnterBriefingAction)
       {
         return prefix;
       }
@@ -413,7 +660,7 @@ namespace Assets.Code.Stronghold2.FormatReaders
       return prefix;
     }
 
-    private static string FormatGoodsAmounts(Dictionary<GoodsAcquiredEnum, int> amounts)
+    private static string FormatGoodsAmounts(Dictionary<MapEditorScenarioResources, int> amounts)
     {
       if (amounts == null || amounts.Count == 0)
       {

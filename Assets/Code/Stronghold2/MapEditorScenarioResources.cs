@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Assets.Code.Stronghold2
 {
-  public enum GoodsAcquiredEnum
+  public enum MapEditorScenarioResources
   {
     Wood = 0,
     Stone = 1,
