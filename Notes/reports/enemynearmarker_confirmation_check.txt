@@ -1,0 +1,9 @@
+id=44 start=4916 payloadLen=49
+codeRaw=11519 codeNorm=44
+modeRaw=3072 modeNorm=12
+field7Raw=5120 field7Norm=20
+field8Raw=256 field8Norm=1
+field9Raw=512 field9Norm=2
+firstWords=
+0,1,1,-4086528,11519,0,3072,5120,256,512,-14766336,578482431
+payloadHex=00 00 00 00 01 00 00 00 01 00 00 00 00 A5 C1 FF FF 2C 00 00 00 00 00 00 00 0C 00 00 00 14 00 00 00 01 00 00 00 02 00 00 00 AF 1E FF FF F0 7A 22 40

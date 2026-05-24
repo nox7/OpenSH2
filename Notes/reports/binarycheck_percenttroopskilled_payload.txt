@@ -1,0 +1,7 @@
+trigger=PercentTroopsKilledTrigger id=28 payloadLen=49 align=0
+w4=7423 code=28
+w5=0 mode=0
+w6=3072 mode2=12
+w7=256 value=1
+trailerIndex=10 selectorRaw=0 selectorNorm=0
+first16Words=0,1,1,-4086528,7423,0,3072,256,4608,0,-14766336,-2183681

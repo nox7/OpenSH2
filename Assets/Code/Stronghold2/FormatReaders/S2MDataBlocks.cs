@@ -158,7 +158,11 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
   public class S2MEnemyGoodsAcquiredTrigger : S2MScenarioTrigger
   {
+    public int PayloadWordAlignment { get; set; }
+
     public int GoodsVectorStartIndex { get; set; } = -1;
+
+    public int TargetLordSelector { get; set; }
 
     public Dictionary<GoodsAcquiredEnum, int> GoodsAmounts { get; } = new Dictionary<GoodsAcquiredEnum, int>();
   }
@@ -168,9 +172,210 @@ namespace Assets.Code.Stronghold2.FormatReaders
     public int RequiredGoldAmount { get; set; }
   }
 
+  public class S2MEnemyGoldAcquiredTrigger : S2MScenarioTrigger
+  {
+    public int RequiredGoldAmount { get; set; }
+
+    public int TargetLordSelector { get; set; }
+  }
+
   public class S2MHonourAcquiredTrigger : S2MScenarioTrigger
   {
     public int RequiredHonourAmount { get; set; }
+  }
+
+  public class S2MEnemyHonourAcquiredTrigger : S2MScenarioTrigger
+  {
+    public int RequiredHonourAmount { get; set; }
+
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MPopulationReachedTrigger : S2MScenarioTrigger
+  {
+    public int RequiredPopulation { get; set; }
+  }
+
+  public class S2MNoPeopleLeftTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MAnyEnemyOnMapTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MAnyEnemyTroopOnMapTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MNoEnemyOrInvasionsLeftTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MAllYourTroopsDeadTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MPercentTroopsKilledTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+
+    public int PercentTroopsKilled { get; set; }
+  }
+
+  public class S2MGetXTroopsTrigger : S2MScenarioTrigger
+  {
+    public int RequiredTroopCount { get; set; }
+
+    public int TroopTypeCode { get; set; }
+
+    public int TroopClassCode { get; set; }
+  }
+
+  public class S2MLordDamagedTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+
+    public int RequiredDamagePercent { get; set; }
+  }
+
+  public class S2MEnemyLordDiesTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MSpecificEnemyLordDiesTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MRescueLordTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MMultipleLordsDeadTrigger : S2MScenarioTrigger
+  {
+    public int LordSelectionMaskCandidate { get; set; }
+
+    public byte[] LordSelectionFlagsCandidate { get; set; } = Array.Empty<byte>();
+
+    public List<int> SelectedLordSlotsCandidate { get; } = new List<int>();
+  }
+
+  public class S2MPlayerKillsLordXTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MOtherLordsKillsLordXTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MSpecificLordKillsLordXTrigger : S2MScenarioTrigger
+  {
+    public int KillerLordSelector { get; set; }
+
+    public int KilledLordSelector { get; set; }
+  }
+
+  public class S2MOutlawCampDestroyedTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MBreachInWallTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MEnemyTroopsOnWallsTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MSomeEnemiesCloseToKeepTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MManyEnemiesCloseToKeepTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MLiftSiegeTrigger : S2MScenarioTrigger
+  {
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MEnemyNearMarkerTrigger : S2MScenarioTrigger
+  {
+    public int Radius { get; set; }
+
+    public int FlagColorType { get; set; }
+
+    public int FlagNumber { get; set; }
+  }
+
+  public class S2MQuestCompleteTrigger : S2MScenarioTrigger
+  {
+    public bool QuestACompleted { get; set; }
+
+    public bool QuestBCompleted { get; set; }
+
+    public bool QuestCCompleted { get; set; }
+
+    public int CompletedQuestCount { get; set; }
+  }
+
+  public class S2MQuestNotCompleteTrigger : S2MScenarioTrigger
+  {
+    public int QuestIndex { get; set; }
+  }
+
+  public class S2MSingleQuestCompleteTrigger : S2MScenarioTrigger
+  {
+    public int QuestIndex { get; set; }
+  }
+
+  public class S2MNumQuestsCompleteTrigger : S2MScenarioTrigger
+  {
+    public int RequiredQuestCount { get; set; }
+  }
+
+  public class S2MQuestFailedTrigger : S2MScenarioTrigger
+  {
+    public int QuestIndex { get; set; }
+  }
+
+  public class S2MAfterBriefingTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MNoMessagesPlayingTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MConstructedBuildingCompleteTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MConstructedBuildingPercentCompleteTrigger : S2MScenarioTrigger
+  {
+    public int RequiredPercent { get; set; }
+  }
+
+  public class S2MControlNumEstatesTrigger : S2MScenarioTrigger
+  {
+    public int RequiredEstateCount { get; set; }
+  }
+
+  public class S2MNoBearsOnMapTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MNoWolvesOnMapTrigger : S2MScenarioTrigger
+  {
   }
 
   public class S2MNoFoodInGranaryTrigger : S2MScenarioTrigger
@@ -181,6 +386,10 @@ namespace Assets.Code.Stronghold2.FormatReaders
   }
 
   public class S2MAlwaysTrigger : S2MScenarioTrigger
+  {
+  }
+
+  public class S2MLordDiesTrigger : S2MScenarioTrigger
   {
   }
 

@@ -1,0 +1,7 @@
+id=37 start=4308 payloadLen=45
+codeRaw=9727 codeNorm=37
+modeRaw=2048 modeNorm=8
+selectorWord7Raw=512 selectorWord7Norm=2
+selectorWord8Raw=1024 selectorWord8Norm=4
+firstWords=
+0,1,1,-4086528,9727,0,2048,512,1024,-14766336,578420991

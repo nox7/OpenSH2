@@ -1,0 +1,5 @@
+trigger=PercentTroopsKilledTrigger id=27 payloadLen=49 align=0
+codeRaw=7167 codeNorm=27
+selectorRaw=0 selectorNorm=0
+percentRaw=4608 percentNorm=18
+first16Words=0,1,1,-4086528,7167,0,3072,0,4608,0,-14766336,884963583

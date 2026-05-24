@@ -9,8 +9,19 @@ using Assets.Code.Stronghold2;
 
 namespace Assets.Code.Stronghold2.FormatReaders
 {
+  /// <summary>
+  /// The format (we think) is in
+  /// - Header
+  /// - SegmentA
+  /// - SegmentB
+  /// 
+  /// Where the A and B segments are in compressed zlib blocks.
+  /// </summary>
   public static class S2MFileFormat
   {
+    /// <summary>
+    /// I think it is always this length. This is consistent across all the .s2m maps in the game so far.
+    /// </summary>
     private const int SegmentACompressedLength = 8194;
 
     public static S2MFile ParseFile(string filePath)
@@ -273,9 +284,199 @@ namespace Assets.Code.Stronghold2.FormatReaders
         return ParseGoldAcquiredTrigger(record);
       }
 
+      if (record.Name == "EnemyGoldAcquiredTrigger")
+      {
+        return ParseEnemyGoldAcquiredTrigger(record);
+      }
+
       if (record.Name == "HonourAcquiredTrigger")
       {
         return ParseHonourAcquiredTrigger(record);
+      }
+
+      if (record.Name == "EnemyHonourAcquiredTrigger")
+      {
+        return ParseEnemyHonourAcquiredTrigger(record);
+      }
+
+      if (record.Name == "PopulationReachedTrigger")
+      {
+        return ParsePopulationReachedTrigger(record);
+      }
+
+      if (record.Name == "NoPeopleLeftTrigger")
+      {
+        return CreateSimpleTrigger<S2MNoPeopleLeftTrigger>(record);
+      }
+
+      if (record.Name == "AnyEnemyOnMapTrigger")
+      {
+        return CreateSimpleTrigger<S2MAnyEnemyOnMapTrigger>(record);
+      }
+
+      if (record.Name == "AnyEnemyTroopOnMapTrigger")
+      {
+        return CreateSimpleTrigger<S2MAnyEnemyTroopOnMapTrigger>(record);
+      }
+
+      if (record.Name == "NoEnemyOrInvasionsLeftTrigger")
+      {
+        return CreateSimpleTrigger<S2MNoEnemyOrInvasionsLeftTrigger>(record);
+      }
+
+      if (record.Name == "AllYourTroopsDeadTrigger")
+      {
+        return CreateSimpleTrigger<S2MAllYourTroopsDeadTrigger>(record);
+      }
+
+      if (record.Name == "LordDiesTrigger")
+      {
+        return CreateSimpleTrigger<S2MLordDiesTrigger>(record);
+      }
+
+      if (record.Name == "PercentTroopsKilledTrigger")
+      {
+        return ParsePercentTroopsKilledTrigger(record);
+      }
+
+      if (record.Name == "GetXTroopsTrigger")
+      {
+        return ParseGetXTroopsTrigger(record);
+      }
+
+      if (record.Name == "LordDamagedTrigger")
+      {
+        return ParseLordDamagedTrigger(record);
+      }
+
+      if (record.Name == "EnemyLordDiesTrigger")
+      {
+        return CreateSimpleTrigger<S2MEnemyLordDiesTrigger>(record);
+      }
+
+      if (record.Name == "SpecificEnemyLordDiesTrigger")
+      {
+        return ParseSpecificEnemyLordDiesTrigger(record);
+      }
+
+      if (record.Name == "RescueLordTrigger")
+      {
+        return ParseRescueLordTrigger(record);
+      }
+
+      if (record.Name == "MultipleLordsDeadTrigger")
+      {
+        return ParseMultipleLordsDeadTrigger(record);
+      }
+
+      if (record.Name == "PlayerKillsLordXTrigger")
+      {
+        return ParsePlayerKillsLordXTrigger(record);
+      }
+
+      if (record.Name == "OtherLordsKillsLordXTrigger")
+      {
+        return ParseOtherLordsKillsLordXTrigger(record);
+      }
+
+      if (record.Name == "SpecificLordKillsLordXTrigger")
+      {
+        return ParseSpecificLordKillsLordXTrigger(record);
+      }
+
+      if (record.Name == "OutlawCampDestroyedTrigger")
+      {
+        return CreateSimpleTrigger<S2MOutlawCampDestroyedTrigger>(record);
+      }
+
+      if (record.Name == "BreachInWallTrigger")
+      {
+        return ParseBreachInWallTrigger(record);
+      }
+
+      if (record.Name == "EnemyTroopsOnWallsTrigger")
+      {
+        return ParseEnemyTroopsOnWallsTrigger(record);
+      }
+
+      if (record.Name == "SomeEnemiesCloseToKeepTrigger")
+      {
+        return ParseSomeEnemiesCloseToKeepTrigger(record);
+      }
+
+      if (record.Name == "ManyEnemiesCloseToKeepTrigger")
+      {
+        return ParseManyEnemiesCloseToKeepTrigger(record);
+      }
+
+      if (record.Name == "LiftSiegeTrigger")
+      {
+        return ParseLiftSiegeTrigger(record);
+      }
+
+      if (record.Name == "EnemyNearMarkerTrigger")
+      {
+        return ParseEnemyNearMarkerTrigger(record);
+      }
+
+      if (record.Name == "QuestCompleteTrigger")
+      {
+        return ParseQuestCompleteTrigger(record);
+      }
+
+      if (record.Name == "QuestNotCompleteTrigger")
+      {
+        return ParseQuestNotCompleteTrigger(record);
+      }
+
+      if (record.Name == "SingleQuestCompleteTrigger")
+      {
+        return ParseSingleQuestCompleteTrigger(record);
+      }
+
+      if (record.Name == "NumQuestsCompleteTrigger")
+      {
+        return ParseNumQuestsCompleteTrigger(record);
+      }
+
+      if (record.Name == "QuestFailedTrigger")
+      {
+        return ParseQuestFailedTrigger(record);
+      }
+
+      if (record.Name == "AfterBriefingTrigger")
+      {
+        return CreateSimpleTrigger<S2MAfterBriefingTrigger>(record);
+      }
+
+      if (record.Name == "NoMessagesPlayingTrigger")
+      {
+        return CreateSimpleTrigger<S2MNoMessagesPlayingTrigger>(record);
+      }
+
+      if (record.Name == "ConstructedBuildingCompleteTrigger")
+      {
+        return CreateSimpleTrigger<S2MConstructedBuildingCompleteTrigger>(record);
+      }
+
+      if (record.Name == "ConstructedBuildingPercentCompleteTrigger")
+      {
+        return ParseConstructedBuildingPercentCompleteTrigger(record);
+      }
+
+      if (record.Name == "ControlNumEstatesTrigger")
+      {
+        return ParseControlNumEstatesTrigger(record);
+      }
+
+      if (record.Name == "NoBearsOnMapTrigger")
+      {
+        return CreateSimpleTrigger<S2MNoBearsOnMapTrigger>(record);
+      }
+
+      if (record.Name == "NoWolvesOnMapTrigger")
+      {
+        return CreateSimpleTrigger<S2MNoWolvesOnMapTrigger>(record);
       }
 
       if (record.Name == "NoFoodInGranaryTrigger")
@@ -355,6 +556,9 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
     private static S2MGoodsAcquiredTrigger ParseGoodsAcquiredTrigger(S2MTokenRecord record)
     {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
       var trigger = new S2MGoodsAcquiredTrigger
       {
         RecordId = record.Id,
@@ -362,25 +566,28 @@ namespace Assets.Code.Stronghold2.FormatReaders
         RecordName = record.Name,
         Tag = record.Tag,
         BaseName = record.BaseName,
-        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        RawPayloadInt32 = triggerWords,
       };
 
-      PopulateSharedTriggerFields(trigger);
+      PopulateSharedTriggerFields(trigger, triggerWords);
 
-      // GoodsAcquired payload layout currently resolves the goods vector from this marker sequence.
-      var markerIndex = record.PayloadInt32.FindIndex(v => v == 180);
+      // For current payload shape, vector starts at marker index in aligned trigger words.
+      var markerIndex = triggerWords.FindIndex(v => v == 180);
       if (markerIndex >= 0)
       {
-        trigger.GoodsVectorStartIndex = markerIndex + 2;
+        trigger.GoodsVectorStartIndex = markerIndex;
       }
 
-      PopulateGoodsAmounts(record.PayloadInt32, trigger.GoodsVectorStartIndex, trigger.GoodsAmounts);
+      PopulateGoodsAmounts(triggerWords, trigger.GoodsVectorStartIndex, trigger.GoodsAmounts);
 
       return trigger;
     }
 
     private static S2MEnemyGoodsAcquiredTrigger ParseEnemyGoodsAcquiredTrigger(S2MTokenRecord record)
     {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
       var trigger = new S2MEnemyGoodsAcquiredTrigger
       {
         RecordId = record.Id,
@@ -388,25 +595,47 @@ namespace Assets.Code.Stronghold2.FormatReaders
         RecordName = record.Name,
         Tag = record.Tag,
         BaseName = record.BaseName,
-        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        RawPayloadInt32 = triggerWords,
+        PayloadWordAlignment = alignment,
       };
 
-      PopulateSharedTriggerFields(trigger);
+      PopulateSharedTriggerFields(trigger, triggerWords);
 
-      // Enemy-goods variant uses the same vector model with a different marker (184 / 0xB8).
-      var markerIndex = record.PayloadInt32.FindIndex(v => v == 184);
-      if (markerIndex >= 0)
+      // Enemy-goods variant uses marker 184 (0xB8) and an additional 4-int block before goods vector.
+      var markerIndex = triggerWords.FindIndex(v => v == 184);
+      if (markerIndex < 0)
       {
-        trigger.GoodsVectorStartIndex = markerIndex + 2;
+        // Some payloads appear byte-shifted and expose marker as 0x0000B800 in word view.
+        markerIndex = triggerWords.FindIndex(v => v == 47104);
       }
 
-      PopulateGoodsAmounts(record.PayloadInt32, trigger.GoodsVectorStartIndex, trigger.GoodsAmounts);
+      if (markerIndex >= 0)
+      {
+        trigger.GoodsVectorStartIndex = markerIndex + 4;
+      }
+
+      PopulateGoodsAmounts(triggerWords, trigger.GoodsVectorStartIndex, trigger.GoodsAmounts);
+      NormalizeGoodsAmountDictionary(trigger.GoodsAmounts);
+
+      var trailerIndex = triggerWords.FindIndex(v => v == -14766336);
+      if (trailerIndex > 0)
+      {
+        var selector = triggerWords[trailerIndex - 1];
+        selector = NormalizePackedValue(selector);
+        if (selector >= 0 && selector <= 256)
+        {
+          trigger.TargetLordSelector = selector;
+        }
+      }
 
       return trigger;
     }
 
     private static S2MHonourAcquiredTrigger ParseHonourAcquiredTrigger(S2MTokenRecord record)
     {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
       var trigger = new S2MHonourAcquiredTrigger
       {
         RecordId = record.Id,
@@ -414,17 +643,670 @@ namespace Assets.Code.Stronghold2.FormatReaders
         RecordName = record.Name,
         Tag = record.Tag,
         BaseName = record.BaseName,
-        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        RawPayloadInt32 = triggerWords,
       };
 
-      PopulateSharedTriggerFields(trigger);
+      PopulateSharedTriggerFields(trigger, triggerWords);
       trigger.RequiredHonourAmount = trigger.TriggerValue;
 
       return trigger;
     }
 
+    private static S2MEnemyGoldAcquiredTrigger ParseEnemyGoldAcquiredTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MEnemyGoldAcquiredTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.RequiredGoldAmount = trigger.TriggerValue;
+      trigger.TargetLordSelector = ExtractTargetLordSelector(triggerWords);
+
+      return trigger;
+    }
+
+    private static S2MEnemyHonourAcquiredTrigger ParseEnemyHonourAcquiredTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MEnemyHonourAcquiredTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.RequiredHonourAmount = trigger.TriggerValue;
+      trigger.TargetLordSelector = ExtractTargetLordSelector(triggerWords);
+
+      return trigger;
+    }
+
+    private static S2MPopulationReachedTrigger ParsePopulationReachedTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MPopulationReachedTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.RequiredPopulation = trigger.TriggerValue;
+
+      return trigger;
+    }
+
+    private static S2MPercentTroopsKilledTrigger ParsePercentTroopsKilledTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MPercentTroopsKilledTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      // This trigger family stores selector/percent in dedicated consecutive fields.
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.PercentTroopsKilled = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 8));
+
+      // Present the threshold percentage as the logical trigger value for this type.
+      trigger.TriggerValue = trigger.PercentTroopsKilled;
+
+      return trigger;
+    }
+
+    private static S2MGetXTroopsTrigger ParseGetXTroopsTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MGetXTroopsTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      // GetXTroops uses trigger value for required count; extra words likely encode troop identity.
+      trigger.RequiredTroopCount = trigger.TriggerValue;
+      trigger.TroopTypeCode = NormalizePackedValue(TryReadInt(triggerWords, 10));
+      trigger.TroopClassCode = NormalizePackedValue(TryReadInt(triggerWords, 11));
+
+      return trigger;
+    }
+
+    private static S2MLordDamagedTrigger ParseLordDamagedTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MLordDamagedTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      // Similar to PercentTroopsKilled shape but uses mode 0x08 and selector at word 7.
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.RequiredDamagePercent = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 8));
+
+      // Expose threshold as logical trigger value for this family.
+      trigger.TriggerValue = trigger.RequiredDamagePercent;
+
+      return trigger;
+    }
+
+    private static S2MSpecificEnemyLordDiesTrigger ParseSpecificEnemyLordDiesTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MSpecificEnemyLordDiesTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MRescueLordTrigger ParseRescueLordTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MRescueLordTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MMultipleLordsDeadTrigger ParseMultipleLordsDeadTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MMultipleLordsDeadTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      // Candidate multi-target encoding in current sample is exposed as a compact 4-byte flag run
+      // immediately before the trailer marker (0xAF 0x1E 0xFF 0xFF).
+      var trailerOffset = FindTrailerMarkerOffset(record.PayloadBytes);
+      if (trailerOffset >= 9)
+      {
+        var flags = new byte[4];
+        Buffer.BlockCopy(record.PayloadBytes, trailerOffset - 9, flags, 0, flags.Length);
+        trigger.LordSelectionFlagsCandidate = flags;
+        trigger.LordSelectionMaskCandidate =
+          flags[0]
+          | (flags[1] << 8)
+          | (flags[2] << 16)
+          | (flags[3] << 24);
+
+        for (var i = 0; i < flags.Length; i++)
+        {
+          if (flags[i] != 0)
+          {
+            trigger.SelectedLordSlotsCandidate.Add(i);
+          }
+        }
+      }
+      else
+      {
+        // Fallback candidate reconstruction from packed int fields if trailer probing fails.
+        var low = NormalizePackedValue(TryReadInt(triggerWords, 7));
+        var high = NormalizePackedValue(TryReadInt(triggerWords, 8));
+        trigger.LordSelectionMaskCandidate = low | high;
+      }
+
+      return trigger;
+    }
+
+    private static int FindTrailerMarkerOffset(byte[] payloadBytes)
+    {
+      if (payloadBytes == null || payloadBytes.Length < 4)
+      {
+        return -1;
+      }
+
+      for (var i = 0; i <= payloadBytes.Length - 4; i++)
+      {
+        if (payloadBytes[i] == 0xAF
+            && payloadBytes[i + 1] == 0x1E
+            && payloadBytes[i + 2] == 0xFF
+            && payloadBytes[i + 3] == 0xFF)
+        {
+          return i;
+        }
+      }
+
+      return -1;
+    }
+
+    private static S2MPlayerKillsLordXTrigger ParsePlayerKillsLordXTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MPlayerKillsLordXTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MOtherLordsKillsLordXTrigger ParseOtherLordsKillsLordXTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MOtherLordsKillsLordXTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MSpecificLordKillsLordXTrigger ParseSpecificLordKillsLordXTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MSpecificLordKillsLordXTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      // Current sample has two selector fields at words 7 and 8.
+      // Empirically, interpreting word 8 as killer and word 7 as killed matches editor-rendered text.
+      trigger.KilledLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.KillerLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 8));
+
+      trigger.TriggerValue = trigger.KilledLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MBreachInWallTrigger ParseBreachInWallTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MBreachInWallTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MEnemyTroopsOnWallsTrigger ParseEnemyTroopsOnWallsTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MEnemyTroopsOnWallsTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MSomeEnemiesCloseToKeepTrigger ParseSomeEnemiesCloseToKeepTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MSomeEnemiesCloseToKeepTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MManyEnemiesCloseToKeepTrigger ParseManyEnemiesCloseToKeepTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MManyEnemiesCloseToKeepTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MLiftSiegeTrigger ParseLiftSiegeTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MLiftSiegeTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.TargetLordSelector = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.TargetLordSelector;
+
+      return trigger;
+    }
+
+    private static S2MEnemyNearMarkerTrigger ParseEnemyNearMarkerTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MEnemyNearMarkerTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      // Current sample layout: mode=word6, radius=word7, then marker tuple (color type, flag number).
+      trigger.Radius = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.FlagColorType = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 8));
+      trigger.FlagNumber = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 9));
+      trigger.TriggerValue = trigger.Radius;
+
+      return trigger;
+    }
+
+    private static S2MQuestCompleteTrigger ParseQuestCompleteTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MQuestCompleteTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      var trailerOffset = FindTrailerMarkerOffset(record.PayloadBytes);
+      if (trailerOffset >= 3)
+      {
+        // Three quest status bytes are packed immediately before the trailer marker.
+        trigger.QuestACompleted = record.PayloadBytes[trailerOffset - 3] != 0;
+        trigger.QuestBCompleted = record.PayloadBytes[trailerOffset - 2] != 0;
+        trigger.QuestCCompleted = record.PayloadBytes[trailerOffset - 1] != 0;
+      }
+
+      trigger.CompletedQuestCount =
+        (trigger.QuestACompleted ? 1 : 0)
+        + (trigger.QuestBCompleted ? 1 : 0)
+        + (trigger.QuestCCompleted ? 1 : 0);
+
+      return trigger;
+    }
+
+    private static S2MQuestNotCompleteTrigger ParseQuestNotCompleteTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MQuestNotCompleteTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.QuestIndex = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.QuestIndex;
+
+      return trigger;
+    }
+
+    private static S2MSingleQuestCompleteTrigger ParseSingleQuestCompleteTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MSingleQuestCompleteTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.QuestIndex = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.QuestIndex;
+
+      return trigger;
+    }
+
+    private static S2MNumQuestsCompleteTrigger ParseNumQuestsCompleteTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MNumQuestsCompleteTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.RequiredQuestCount = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.RequiredQuestCount;
+
+      return trigger;
+    }
+
+    private static S2MQuestFailedTrigger ParseQuestFailedTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MQuestFailedTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.QuestIndex = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.QuestIndex;
+
+      return trigger;
+    }
+
+    private static S2MConstructedBuildingPercentCompleteTrigger ParseConstructedBuildingPercentCompleteTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MConstructedBuildingPercentCompleteTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+
+      // Current sample stores percent threshold in word 8 (e.g., 21 => 0x1500).
+      trigger.RequiredPercent = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 8));
+      trigger.TriggerValue = trigger.RequiredPercent;
+
+      return trigger;
+    }
+
+    private static S2MControlNumEstatesTrigger ParseControlNumEstatesTrigger(S2MTokenRecord record)
+    {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
+      var trigger = new S2MControlNumEstatesTrigger
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = triggerWords,
+      };
+
+      PopulateSharedTriggerFields(trigger, triggerWords);
+      trigger.RequiredEstateCount = NormalizePercentTroopsPackedField(TryReadInt(triggerWords, 7));
+      trigger.TriggerValue = trigger.RequiredEstateCount;
+
+      return trigger;
+    }
+
+    private static int NormalizePercentTroopsPackedField(int value)
+    {
+      // Seen patterns: 0x??00 (e.g., 18 => 0x1200) and 0x??FF (e.g., 18 => 0x12FF).
+      if ((value & 0xFF) == 0x00)
+      {
+        return value / 256;
+      }
+
+      if ((value & 0xFF) == 0xFF)
+      {
+        return value >> 8;
+      }
+
+      return value;
+    }
+
     private static S2MNoFoodInGranaryTrigger ParseNoFoodInGranaryTrigger(S2MTokenRecord record)
     {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
       var trigger = new S2MNoFoodInGranaryTrigger
       {
         RecordId = record.Id,
@@ -432,10 +1314,10 @@ namespace Assets.Code.Stronghold2.FormatReaders
         RecordName = record.Name,
         Tag = record.Tag,
         BaseName = record.BaseName,
-        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        RawPayloadInt32 = triggerWords,
       };
 
-      PopulateSharedTriggerFields(trigger);
+      PopulateSharedTriggerFields(trigger, triggerWords);
       trigger.FlagColorCode = trigger.TriggerModeCode;
       trigger.FlagSelectionValue = trigger.TriggerValue;
 
@@ -452,24 +1334,116 @@ namespace Assets.Code.Stronghold2.FormatReaders
         RecordName = record.Name,
         Tag = record.Tag,
         BaseName = record.BaseName,
-        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        RawPayloadInt32 = GetBestAlignedTriggerWords(record.PayloadBytes, out _),
       };
 
-      PopulateSharedTriggerFields(trigger);
+      PopulateSharedTriggerFields(trigger, trigger.RawPayloadInt32);
       return trigger;
     }
 
-    private static void PopulateSharedTriggerFields(S2MScenarioTrigger trigger)
+    private static void PopulateSharedTriggerFields(S2MScenarioTrigger trigger, List<int> triggerWords)
     {
-      if (trigger.RawPayloadInt32 == null)
+      if (triggerWords == null)
       {
         return;
       }
 
-      // Shared trigger prefix observed across multiple trigger families.
-      trigger.TriggerCode = TryReadInt(trigger.RawPayloadInt32, 4);
-      trigger.TriggerModeCode = TryReadInt(trigger.RawPayloadInt32, 6);
-      trigger.TriggerValue = TryReadInt(trigger.RawPayloadInt32, 7);
+      // Shared trigger words observed across multiple trigger families.
+      trigger.TriggerCode = TryReadInt(triggerWords, 4);
+      trigger.TriggerModeCode = TryReadInt(triggerWords, 5);
+      trigger.TriggerValue = TryReadInt(triggerWords, 7);
+
+      trigger.TriggerCode = NormalizeTriggerCode(trigger.TriggerCode);
+      trigger.TriggerModeCode = NormalizePackedValue(trigger.TriggerModeCode);
+      trigger.TriggerValue = NormalizePackedValue(trigger.TriggerValue);
+    }
+
+    private static int ExtractTargetLordSelector(List<int> triggerWords)
+    {
+      if (triggerWords == null || triggerWords.Count == 0)
+      {
+        return 0;
+      }
+
+      var trailerIndex = triggerWords.FindIndex(v => v == -14766336);
+      if (trailerIndex > 0)
+      {
+        var selector = NormalizePackedValue(triggerWords[trailerIndex - 1]);
+        if (selector >= 0 && selector <= 256)
+        {
+          return selector;
+        }
+      }
+
+      return 0;
+    }
+
+    private static void NormalizeGoodsAmountDictionary(Dictionary<GoodsAcquiredEnum, int> goodsAmounts)
+    {
+      if (goodsAmounts == null || goodsAmounts.Count == 0)
+      {
+        return;
+      }
+
+      var keys = goodsAmounts.Keys.ToList();
+      foreach (var key in keys)
+      {
+        goodsAmounts[key] = NormalizePackedValue(goodsAmounts[key]);
+      }
+    }
+
+    private static int NormalizePackedValue(int value)
+    {
+      if (value > 255 && value % 256 == 0)
+      {
+        return value / 256;
+      }
+
+      return value;
+    }
+
+    private static int NormalizeTriggerCode(int value)
+    {
+      // For many trigger payloads, code is packed as 0x0000CCFF where CC is the logical code.
+      if ((value & 0xFF) == 0xFF && value > 0xFF)
+      {
+        return (value >> 8) & 0xFF;
+      }
+
+      return NormalizePackedValue(value);
+    }
+
+    private static List<int> GetBestAlignedTriggerWords(byte[] payloadBytes, out int alignment)
+    {
+      alignment = 0;
+      if (payloadBytes == null || payloadBytes.Length < 16)
+      {
+        return new List<int>();
+      }
+
+      var bestScore = int.MinValue;
+      List<int> best = null;
+
+      for (var a = 0; a < 4; a++)
+      {
+        var words = ReadInt32List(payloadBytes, a);
+        var score = 0;
+
+        if (words.Count > 0 && words[0] == 0) score += 2;
+        if (words.Count > 1 && words[1] == 1) score += 2;
+        if (words.Count > 2 && words[2] == 1) score += 2;
+        if (words.Count > 3 && words[3] == -4086528) score += 3;
+        if (words.Count > 4 && words[4] >= 0 && words[4] <= 512) score += 1;
+
+        if (score > bestScore)
+        {
+          bestScore = score;
+          best = words;
+          alignment = a;
+        }
+      }
+
+      return best ?? new List<int>();
     }
 
     private static void PopulateGoodsAmounts(List<int> payloadInt32, int goodsVectorStartIndex, Dictionary<GoodsAcquiredEnum, int> destination)
@@ -505,6 +1479,9 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
     private static S2MGoldAcquiredTrigger ParseGoldAcquiredTrigger(S2MTokenRecord record)
     {
+      int alignment;
+      var triggerWords = GetBestAlignedTriggerWords(record.PayloadBytes, out alignment);
+
       var trigger = new S2MGoldAcquiredTrigger
       {
         RecordId = record.Id,
@@ -512,16 +1489,16 @@ namespace Assets.Code.Stronghold2.FormatReaders
         RecordName = record.Name,
         Tag = record.Tag,
         BaseName = record.BaseName,
-        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        RawPayloadInt32 = triggerWords,
       };
 
-      PopulateSharedTriggerFields(trigger);
+      PopulateSharedTriggerFields(trigger, triggerWords);
       trigger.RequiredGoldAmount = trigger.TriggerValue;
 
       // Fallback for unexpected payload shapes.
       if (trigger.RequiredGoldAmount <= 0)
       {
-        var positiveCandidates = record.PayloadInt32.Where(v => v > 0 && v < 1000000).ToList();
+        var positiveCandidates = triggerWords.Where(v => v > 0 && v < 1000000).ToList();
         if (positiveCandidates.Count > 0)
         {
           trigger.RequiredGoldAmount = positiveCandidates.Max();
@@ -725,10 +1702,10 @@ namespace Assets.Code.Stronghold2.FormatReaders
         .ToList();
     }
 
-    private static List<int> ReadInt32List(byte[] bytes)
+    private static List<int> ReadInt32List(byte[] bytes, int startOffset = 0)
     {
       var values = new List<int>();
-      for (var i = 0; i + 3 < bytes.Length; i += 4)
+      for (var i = Math.Max(0, startOffset); i + 3 < bytes.Length; i += 4)
       {
         values.Add(BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(i, 4)));
       }

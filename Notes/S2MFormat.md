@@ -1,6 +1,6 @@
 # Stronghold 2 `.s2m` map format notes
 
-Last updated: 2026-05-19
+Last updated: 2026-05-24
 Sample used: `maps/war_chapter1.s2m` (size: 673,069 bytes)
 
 ## Current working spec (2026-05-19)
@@ -10,6 +10,25 @@ Sample used: `maps/war_chapter1.s2m` (size: 673,069 bytes)
 - **Certain**: validated on all 48 maps in `maps/`.
 - **High confidence**: strong repeated evidence, but not full schema decode.
 - **Unresolved**: still under reverse-engineering.
+
+### 0) Format vocabulary draft (linear)
+
+This is a working glossary for a future fully linear spec document.
+
+- File header:
+  - deterministic key/value prelude at file start (string options + int options).
+- Segment A:
+  - first zlib block immediately after header (`78 9C` at `headerEnd`), currently observed compressed length `8194` in tested maps.
+  - stores mission/script record graph (`Scenario`, `Mission`, `ScenarioEvent`, `*Action`, `*Trigger`, etc.).
+- Token record:
+  - record-like structure in Segment A with fields `id`, `nameLen`, `name`, `tag`, `baseNameLen`, optional `baseName`, then payload until next record.
+- Scenario event span:
+  - byte range from one `ScenarioEvent` token start to the next `ScenarioEvent` token start (or end of Segment A).
+  - parser currently treats this span as the ownership boundary for child actions/triggers.
+- Trigger payload words:
+  - `int32` view of token payload, usually interpreted as an aligned sequence with a common prefix and trigger-family-specific fields.
+- Dominant world payload:
+  - larger later zlib stream containing simulation/world/environment data (outside Segment A mission logic).
 
 ### 1) Primitive encodings (certain)
 
@@ -71,6 +90,32 @@ Interpretation:
 
 - Tokens are not standalone markers; they carry associated metadata immediately after the token name.
 - `tag` and `baseName` appear to encode type hierarchy/category information (exact semantics still unresolved).
+
+#### Segment A ordering and grouping invariants (high confidence)
+
+Validated behavior from current corpus and latest checks:
+
+- `ScenarioEvent` tokens define parent spans in record order.
+- `*Action` and `*Trigger` records are grouped under the nearest enclosing `ScenarioEvent` span.
+- In tested maps, mission actions/triggers do not appear before the first `ScenarioEvent`.
+- In tested maps, mission actions/triggers do not appear outside any `ScenarioEvent` span.
+
+Current parser rule (deterministic and intentional):
+
+1. Find all `ScenarioEvent` records sorted by `RecordStart`.
+2. Define each event range as `[thisEventStart, nextEventStart)` (last event ends at Segment A decompressed end).
+3. Assign every non-`ScenarioEvent` `*Action`/`*Trigger` token to the event whose range contains that token's start offset.
+
+Evidence snapshot:
+
+- Current `BinaryCheck-Triggers.s2m` has one `ScenarioEvent` span containing `LoseAction`, `LordDiesTrigger`, `WinAction`, and all current test triggers in order.
+- Cross-map check (`23` maps in local set):
+  - `0` cases with action/trigger records before first `ScenarioEvent`.
+  - `0` cases with action/trigger records outside any `ScenarioEvent` range.
+
+Confidence note:
+
+- Treat this as **high confidence**, not absolute certainty. Keep parser behavior stable with this rule, but continue flagging any future counterexample map as a format-variant candidate.
 
 New BinaryCheck comparison finding (2026-05-23):
 
@@ -209,6 +254,8 @@ Follow-up comparison: trigger-heavy single-event mission (`BinaryCheck-Triggers.
 
 Common trigger payload layout (high confidence for the trigger families above):
 
+Note: trigger payload words in this block are currently best decoded with a +1 byte alignment shift from raw payload start.
+
 ```text
 int32 0
 int32 1
@@ -239,8 +286,389 @@ Observed per-trigger parameter shape (from payload ordering, not absolute offset
   - minimal payloads with distinct `triggerCode` values (`0x0C`, `0x0E`, `0x0F` respectively)
   - no additional obvious threshold field in this sample.
 - `EnemyGoodsAcquiredTrigger`:
-  - `triggerCode = 0x10`
-  - payload uses a goods-vector style layout similar to `GoodsAcquiredTrigger`, but with a distinct marker (`0xB8` observed in this sample).
+  - payload uses a goods-vector style layout related to `GoodsAcquiredTrigger`, but with a distinct marker (`0xB8` observed in this sample).
+  - in the current `BinaryCheck-Triggers.s2m` sample:
+    - selected good/value (`Cheese = 10`) is confirmed in the enemy goods vector;
+    - a non-zero selector field appears near the end of the trigger block;
+    - when target lord is `Lord Barclay` (second UI entry), selector value is `3`;
+    - after changing target lord to `Olaf` (first UI entry), selector value changes to `2`;
+    - after changing target lord to `SirGrey` (ninth UI entry), selector value changes to `10`;
+    - this selector is the best current candidate for the chosen target-lord entry (`Lord Barclay` in editor).
+    - provisional mapping now looks 1-based-with-reserved-first-entry (`1` potentially player/self, `2` first enemy UI entry).
+  - current parser interpretation:
+    - enemy goods vector begins after an additional 4-int enemy-specific block compared with normal `GoodsAcquiredTrigger`;
+    - target-lord selector is read from the int immediately before the `0xFFFF1EAF` trailer marker.
+
+Latest trigger expansion in `BinaryCheck-Triggers.s2m` (2026-05-23):
+
+- New trigger tokens confirmed in Segment A:
+  - `EnemyGoldAcquiredTrigger`
+  - `EnemyHonourAcquiredTrigger`
+  - `PopulationReachedTrigger`
+  - `NoPeopleLeftTrigger`
+  - `AnyEnemyOnMapTrigger`
+  - `AnyEnemyTroopOnMapTrigger`
+  - `NoEnemyOrInvasionsLeftTrigger`
+  - `AllYourTroopsDeadTrigger`
+  - `PercentTroopsKilledTrigger`
+  - `GetXTroopsTrigger`
+  - `LordDiesTrigger`
+  - `LordDamagedTrigger`
+  - `EnemyLordDiesTrigger`
+  - `SpecificEnemyLordDiesTrigger`
+  - `RescueLordTrigger`
+  - `MultipleLordsDeadTrigger`
+  - `PlayerKillsLordXTrigger`
+  - `OtherLordsKillsLordXTrigger`
+  - `SpecificLordKillsLordXTrigger`
+  - `OutlawCampDestroyedTrigger`
+  - `BreachInWallTrigger`
+  - `EnemyTroopsOnWallsTrigger`
+  - `SomeEnemiesCloseToKeepTrigger`
+  - `ManyEnemiesCloseToKeepTrigger`
+  - `LiftSiegeTrigger`
+  - `EnemyNearMarkerTrigger`
+  - `QuestCompleteTrigger`
+  - `QuestNotCompleteTrigger`
+  - `SingleQuestCompleteTrigger`
+  - `NumQuestsCompleteTrigger`
+  - `QuestFailedTrigger`
+  - `AfterBriefingTrigger`
+  - `NoMessagesPlayingTrigger`
+  - `ConstructedBuildingCompleteTrigger`
+  - `ConstructedBuildingPercentCompleteTrigger`
+  - `ControlNumEstatesTrigger`
+  - `NoBearsOnMapTrigger`
+  - `NoWolvesOnMapTrigger`
+
+Observed payload field mapping (aligned words, then normalized by parser):
+
+### Trigger encoding families (cleanup view)
+
+This is a structural grouping of trigger payload layouts so the long trigger list can be read as a set of reusable schemas.
+
+1. **Simple state / no-threshold family**
+   - Typical shape: common trigger prefix + trailer, no meaningful configurable value field.
+   - Usually modeled as simple typed triggers in parser.
+   - Examples:
+     - `LordDiesTrigger`
+     - `EnemyLordDiesTrigger`
+     - `OutlawCampDestroyedTrigger`
+     - `AfterBriefingTrigger`
+     - `NoMessagesPlayingTrigger`
+     - `NoWolvesOnMapTrigger`
+     - `NoPeopleLeftTrigger`
+     - `AllYourTroopsDeadTrigger`
+
+2. **Single scalar threshold/count family**
+   - Typical shape: mode code + one logical scalar value.
+   - Scalar location is usually aligned word `7`, but not universal.
+   - Examples:
+     - `GoldAcquiredTrigger` / `HonourAcquiredTrigger` / `PopulationReachedTrigger`
+     - `NumQuestsCompleteTrigger` (`RequiredQuestCount` at word 7)
+     - `ControlNumEstatesTrigger` (`RequiredEstateCount` at word 7)
+     - `ConstructedBuildingPercentCompleteTrigger` (`RequiredPercent` at word 8)
+
+3. **Single selector family (one lord or quest selector)**
+   - Typical shape: selector at aligned word `7` (or equivalent pre-trailer slot in some enemy-* variants).
+   - Used by multiple distinct selector domains:
+     - lord target selector (`SpecificEnemyLordDiesTrigger`, `PlayerKillsLordXTrigger`, `LiftSiegeTrigger`, wall/keep families)
+     - quest index selector (`QuestNotCompleteTrigger`, `SingleQuestCompleteTrigger`, `QuestFailedTrigger`)
+   - Important: selector indexing is **family-specific** (for example, one family may be 0-based while another is offset by reserved entries).
+
+4. **Dual-selector family**
+   - Two selector fields in consecutive words.
+   - Current confirmed example:
+     - `SpecificLordKillsLordXTrigger`
+       - word `7` = killed lord selector
+       - word `8` = killer lord selector
+
+5. **Multi-target bit/flag-set family**
+   - Multiple selected lords encoded as a compact mask/flag run, not one scalar selector.
+   - Current example:
+     - `MultipleLordsDeadTrigger`
+       - candidate 4-byte selection flags before trailer marker
+       - candidate mask and selected slot list derived from those bytes
+
+6. **Marker tuple family**
+   - Multi-parameter payload tuple for marker-driven spatial checks.
+   - Current example:
+     - `EnemyNearMarkerTrigger`
+       - word `7` = `radius`
+       - word `8` = `flagColorType`
+       - word `9` = `flagNumber` (currently appears 0-based in storage)
+
+7. **Quest bitfield/status-byte family**
+   - Quest completion state packed as bytes near trailer marker rather than a single scalar.
+   - Current example:
+     - `QuestCompleteTrigger`
+       - three quest status bytes packed immediately before trailer marker
+       - decoded into `QuestACompleted`, `QuestBCompleted`, `QuestCCompleted`
+
+Practical parser rule:
+
+- Dispatch by token name first.
+- Then decode fields according to the token's encoding family.
+- Do not rely on `triggerCode` as global enum identity (order-dependent in this dataset).
+
+- Trigger code behavior update (important):
+  - the `triggerCode` field is currently behaving like a **scenario-local instance/order id** (tracks record id/order), not a stable global trigger-type enum.
+  - evidence: after deselecting/reselecting `AllYourTroopsDead` and `PercentTroopsKilled`, their codes swapped again with ordering:
+    - current run: `AllYourTroopsDeadTrigger = 0x1B`, `PercentTroopsKilledTrigger = 0x1C`
+    - previous run had the opposite assignment.
+  - parser should continue dispatching by token name, not by this code.
+
+- `EnemyGoldAcquiredTrigger`:
+  - trigger code: `0x14`
+  - mode code: `0x08`
+  - required gold: `60`
+  - target lord selector: `2` (Olaf test)
+- `EnemyHonourAcquiredTrigger`:
+  - trigger code: `0x15`
+  - mode code: `0x08`
+  - required honour: `10`
+  - target lord selector: `4` (The Hawk test)
+- `PopulationReachedTrigger`:
+  - trigger code: `0x16`
+  - mode code: `0x04`
+  - required population: `90`
+- `NoPeopleLeftTrigger`:
+  - trigger code: `0x17`
+  - minimal payload (no extra threshold field observed)
+- `AnyEnemyOnMapTrigger` (editor setting: no enemy on map):
+  - trigger code: `0x18`
+  - mode code: `0x04`
+  - value field observed as `0`
+- `AnyEnemyTroopOnMapTrigger` (editor setting: no enemy troops on map):
+  - trigger code: `0x19`
+  - mode code: `0x04`
+  - value field observed as `0`
+- `NoEnemyOrInvasionsLeftTrigger`:
+  - trigger code: `0x1A`
+  - mode code: `0x04`
+  - value field observed as `0`
+- `AllYourTroopsDeadTrigger`:
+  - trigger code is order-dependent (currently `0x1B` in latest run)
+  - minimal payload (no extra threshold field observed)
+- `PercentTroopsKilledTrigger`:
+  - trigger code is order-dependent (currently `0x1C` in latest run)
+  - mode code: `0x0C`
+  - observed field ordering in this sample:
+    - selector field at aligned word index 7
+    - percentage threshold at aligned word index 8
+  - sample values from latest file revision:
+    - `PercentTroopsKilled = 18`
+    - `TargetLordSelector = 1` (Olaf selection)
+    - `TargetLordSelector = 0` (Player selection)
+    - `TargetLordSelector = -1` (All lords selection)
+  - packed encoding note for this trigger family:
+    - observed values use both `0x??00` and `0x??FF` low-byte forms;
+    - parser normalization now decodes both forms to the same logical value (for example, `18` from `0x1200` or `0x12FF`).
+  - interpretation note:
+    - this trigger family appears to use a different selector/value layout than `EnemyGoldAcquiredTrigger` and `EnemyHonourAcquiredTrigger`, so selector semantics should be re-confirmed with one or two controlled variations (`All lords`, `Player lord`, and another enemy lord).
+- `GetXTroopsTrigger` (editor setting: `RecruitArchers = 70`):
+  - trigger code is order-dependent (currently `0x1D` in latest run)
+  - mode code: `0x04`
+  - required troop count: `70`
+  - additional payload words after the main trailer appear to encode troop identity metadata.
+  - current candidate parse fields:
+    - `troopTypeCode = 8`
+    - `troopClassCode = 9`
+  - these candidate type/class fields need one more controlled comparison with a different troop type to confirm exact semantics.
+- `LordDiesTrigger` (editor setting: `Your Lord Dies`):
+  - trigger token is `LordDiesTrigger`
+  - payload length is `0` in this sample (no extra threshold/config fields observed).
+- `LordDamagedTrigger` (editor setting: `Olaf`, `12%`):
+  - trigger code is order-dependent (currently `0x1E` in latest run)
+  - mode code: `0x08`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+    - damage percent threshold at index 8
+  - sample values from latest run:
+    - `TargetLordSelector = 1`
+    - `RequiredDamagePercent = 12`
+  - note: selector semantics in this trigger family appear closer to `PercentTroopsKilledTrigger` than to `EnemyGoldAcquiredTrigger` / `EnemyHonourAcquiredTrigger`.
+- `EnemyLordDiesTrigger` (editor setting: `All the enemy lords are dead`):
+  - trigger code is order-dependent (currently `0x1F` in latest run)
+  - minimal payload shape (same compact/no-parameter pattern seen in other boolean state triggers).
+- `SpecificEnemyLordDiesTrigger` (editor setting: `Lord Barclay`):
+  - trigger code is order-dependent (currently `0x20` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 2` (matches current Barclay expectation)
+- `RescueLordTrigger` (editor setting: `Olaf`):
+  - trigger code is order-dependent (currently `0x21` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample values from latest runs:
+    - `Olaf -> TargetLordSelector = 0`
+    - `TheHawk -> TargetLordSelector = 2`
+  - current interpretation:
+    - this trigger family appears to use a **0-based enemy-lord selector** (for example, third UI lord entry => selector `2`).
+    - selector semantics are trigger-family-specific and should not be assumed to match `LordDamagedTrigger` / `PercentTroopsKilledTrigger`.
+- `MultipleLordsDeadTrigger` (editor setting: `Olaf + TheHawk`):
+  - trigger code is order-dependent (currently `0x22` in latest run)
+  - mode code candidate: `0x0B`
+  - payload shape differs from single-lord selector triggers and appears to carry a compact multi-select target block.
+  - current sample evidence near trailer marker `AF 1E FF FF`:
+    - four-byte candidate flag run: `01 00 01 00`
+    - candidate mask from those four bytes: `0x00010001` (`65537`)
+    - candidate selected slots: `0` and `2`
+  - current interpretation:
+    - this is likely a multi-target lord selection encoding (not a single selector scalar).
+    - with current test (`Olaf + TheHawk`), the candidate selected slots `0` and `2` match expected 0-based enemy-lord positions.
+  - confidence note:
+    - treat field semantics as provisional until one more controlled comparison is captured (for example, only Olaf, only TheHawk, and Olaf+Barclay).
+- `PlayerKillsLordXTrigger` (editor setting: `Lord Barclay`):
+  - trigger code is order-dependent (currently `0x23` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 3` (Barclay)
+- `OtherLordsKillsLordXTrigger` (editor setting selected as `Olaf`, UI text displayed as `Player`):
+  - trigger code is order-dependent (currently `0x24` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 2`
+  - interpretation note:
+    - selector `2` matches the same lord-selector family used by `PlayerKillsLordXTrigger` / enemy-* selectors where Olaf is `2` and Barclay is `3` (with `1` likely reserved for player/self).
+    - this supports your suspicion that the editor label rendering for this case is wrong (string shows `Player` while stored selector corresponds to Olaf).
+- `SpecificLordKillsLordXTrigger` (editor selection attempted: killer `Olaf`, killed `Player`; UI renders killer `Barclay`, killed `Olaf`):
+  - trigger code is order-dependent (currently `0x25` in latest run)
+  - mode code: `0x08`
+  - field ordering (aligned words):
+    - selector field at index 7 = `2`
+    - selector field at index 8 = `3`
+  - confirmed interpretation (from two controlled runs):
+    - field index `7` is **killed-lord selector**
+    - field index `8` is **killer-lord selector**
+  - confirmation pair:
+    - run A decoded `(w7,w8)=(2,3)` and UI rendered `(killed,killer)=(Olaf,Barclay)`
+    - run B decoded `(w7,w8)=(2,4)` with editor set to killer `TheHawk`, killed `Olaf`
+  - practical conclusion:
+    - this trigger stores two lord-selector indices from the same selector family (`Olaf=2`, `Barclay=3`, `TheHawk=4` observed), and the UI chooser text/mapping can be inconsistent with user intent.
+- `OutlawCampDestroyedTrigger`:
+  - trigger code is order-dependent (currently `0x26` in latest run)
+  - minimal payload shape (same no-parameter boolean pattern as other simple state triggers).
+- `BreachInWallTrigger` (editor setting: `Lord Barclay`):
+  - trigger code is order-dependent (currently `0x27` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 2`
+- `EnemyTroopsOnWallsTrigger` (editor setting: `Lord Barclay`):
+  - trigger code is order-dependent (currently `0x28` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 2`
+- `SomeEnemiesCloseToKeepTrigger` (editor setting: `The Hawk`):
+  - trigger code is order-dependent (currently `0x29` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 3`
+- `ManyEnemiesCloseToKeepTrigger` (editor setting: `The Hawk`):
+  - trigger code is order-dependent (currently `0x2A` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 3`
+- `LiftSiegeTrigger` (editor setting: `Olaf`):
+  - trigger code is order-dependent (currently `0x2B` in latest run)
+  - mode code: `0x04`
+  - field ordering (aligned words):
+    - target lord selector at index 7
+  - sample value from latest run:
+    - `TargetLordSelector = 1`
+- selector-family note for the four triggers above:
+  - observed values indicate a selector family that is offset by `-1` relative to the `PlayerKillsLordX` / `EnemyGoldAcquired` family.
+  - current observed mapping in this family:
+    - `Olaf -> 1`
+    - `Lord Barclay -> 2`
+    - `The Hawk -> 3`
+  - this now has direct confirmation from `LiftSiegeTrigger` (`Olaf -> 1`).
+- `EnemyNearMarkerTrigger`:
+  - trigger code is order-dependent (currently `0x2C` in latest run)
+  - mode code: `0x0C`
+  - confirmed payload fields:
+    - `radius` at aligned word index 7
+    - `flagColorType` at aligned word index 8
+    - `flagNumber` at aligned word index 9
+  - confirmation samples:
+    - sample A: `radius=24`, `flagColorType=0`, `flagNumber=1`
+    - sample B: `radius=20`, `flagColorType=1`, `flagNumber=2`
+  - interpretation note:
+    - changing flag color in editor from prior value to green changed `flagColorType` from `0 -> 1`.
+    - setting flag number to `3` in editor decoded as `2`, so stored `flagNumber` currently appears 0-based.
+- `QuestCompleteTrigger` (editor setting: `Quest A = completed`, `Quest C = completed`):
+  - trigger code is order-dependent (currently `0x2D` in latest run)
+  - mode code: `0x03`
+  - quest completion statuses are packed as three bytes immediately before trailer marker `AF 1E FF FF`.
+  - sample bytes decode to:
+    - `QuestACompleted = true`
+    - `QuestBCompleted = false`
+    - `QuestCCompleted = true`
+  - `CompletedQuestCount = 2`
+- `QuestNotCompleteTrigger` (editor setting: `Quest C`):
+  - trigger code is order-dependent (currently `0x2E` in latest run)
+  - mode code: `0x04`
+  - `QuestIndex = 2` (Quest C)
+- `SingleQuestCompleteTrigger` (editor setting: `Quest A`):
+  - trigger code is order-dependent (currently `0x2F` in latest run)
+  - mode code: `0x04`
+  - `QuestIndex = 0` (Quest A)
+- `NumQuestsCompleteTrigger` (editor setting: `2`):
+  - trigger code is order-dependent (currently `0x30` in latest run)
+  - mode code: `0x04`
+  - `RequiredQuestCount = 2`
+- `QuestFailedTrigger` (editor setting: `Quest B`):
+  - trigger code is order-dependent (currently `0x31` in latest run)
+  - mode code: `0x04`
+  - `QuestIndex = 1` (Quest B)
+- `AfterBriefingTrigger`:
+  - trigger code is order-dependent (currently `0x32` in latest run)
+  - minimal payload shape (no configurable threshold field observed).
+- `NoMessagesPlayingTrigger`:
+  - trigger code is order-dependent (currently `0x33` in latest run)
+  - minimal payload shape (no configurable threshold field observed).
+- `ConstructedBuildingCompleteTrigger`:
+  - trigger code is order-dependent (currently `0x34` in latest run)
+  - mode code: `0x08`
+  - no user-configurable threshold field is exposed in this sample.
+- `ConstructedBuildingPercentCompleteTrigger` (editor setting: `21%`):
+  - trigger code is order-dependent (currently `0x35` in latest run)
+  - mode code: `0x08`
+  - percent threshold is stored at aligned word index `8`
+  - sample value from latest run:
+    - `RequiredPercent = 21`
+- `ControlNumEstatesTrigger` (editor setting: `7`):
+  - trigger code is order-dependent (currently `0x36` in latest run)
+  - mode code: `0x04`
+  - required estate count is stored at aligned word index `7`
+  - sample value from latest run:
+    - `RequiredEstateCount = 7`
+- `NoBearsOnMapTrigger`:
+  - trigger code is order-dependent (currently `0x37` in latest run)
+  - mode code: `0x04`
+  - minimal/no-threshold payload shape in this sample.
+- `NoWolvesOnMapTrigger`:
+  - trigger code is order-dependent (currently `0x38` in latest run)
+  - minimal payload shape (no configurable threshold field observed).
+- quest index mapping (confirmed from current set):
+  - `Quest A -> 0`
+  - `Quest B -> 1`
+  - `Quest C -> 2`
 
 Current hierarchy interpretation:
 

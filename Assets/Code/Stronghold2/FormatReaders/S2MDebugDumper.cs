@@ -95,7 +95,8 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
       if (trigger is S2MEnemyGoodsAcquiredTrigger enemyGoods)
       {
-        return prefix + " " + FormatGoodsAmounts(enemyGoods.GoodsAmounts);
+        return prefix + " " + FormatGoodsAmounts(enemyGoods.GoodsAmounts) +
+          $" targetLordSelector={enemyGoods.TargetLordSelector} payloadAlignment={enemyGoods.PayloadWordAlignment}";
       }
 
       if (trigger is S2MGoldAcquiredTrigger gold)
@@ -103,9 +104,140 @@ namespace Assets.Code.Stronghold2.FormatReaders
         return prefix + $" requiredGold={gold.RequiredGoldAmount}";
       }
 
+      if (trigger is S2MEnemyGoldAcquiredTrigger enemyGold)
+      {
+        return prefix + $" requiredGold={enemyGold.RequiredGoldAmount} targetLordSelector={enemyGold.TargetLordSelector}";
+      }
+
       if (trigger is S2MHonourAcquiredTrigger honour)
       {
         return prefix + $" requiredHonour={honour.RequiredHonourAmount}";
+      }
+
+      if (trigger is S2MEnemyHonourAcquiredTrigger enemyHonour)
+      {
+        return prefix + $" requiredHonour={enemyHonour.RequiredHonourAmount} targetLordSelector={enemyHonour.TargetLordSelector}";
+      }
+
+      if (trigger is S2MPopulationReachedTrigger population)
+      {
+        return prefix + $" requiredPopulation={population.RequiredPopulation}";
+      }
+
+      if (trigger is S2MPercentTroopsKilledTrigger troopsKilled)
+      {
+        return prefix + $" targetLordSelector={troopsKilled.TargetLordSelector} percentTroopsKilled={troopsKilled.PercentTroopsKilled}";
+      }
+
+      if (trigger is S2MGetXTroopsTrigger getXTroops)
+      {
+        return prefix + $" requiredTroopCount={getXTroops.RequiredTroopCount} troopTypeCode={getXTroops.TroopTypeCode} troopClassCode={getXTroops.TroopClassCode}";
+      }
+
+      if (trigger is S2MLordDamagedTrigger lordDamaged)
+      {
+        return prefix + $" targetLordSelector={lordDamaged.TargetLordSelector} requiredDamagePercent={lordDamaged.RequiredDamagePercent}";
+      }
+
+      if (trigger is S2MSpecificEnemyLordDiesTrigger specificEnemyLordDies)
+      {
+        return prefix + $" targetLordSelector={specificEnemyLordDies.TargetLordSelector}";
+      }
+
+      if (trigger is S2MRescueLordTrigger rescueLord)
+      {
+        return prefix + $" targetLordSelector={rescueLord.TargetLordSelector}";
+      }
+
+      if (trigger is S2MMultipleLordsDeadTrigger multipleLordsDead)
+      {
+        var selectedSlots = multipleLordsDead.SelectedLordSlotsCandidate.Count == 0
+          ? "(none)"
+          : string.Join(",", multipleLordsDead.SelectedLordSlotsCandidate);
+        var flags = multipleLordsDead.LordSelectionFlagsCandidate == null || multipleLordsDead.LordSelectionFlagsCandidate.Length == 0
+          ? "(none)"
+          : string.Join(",", multipleLordsDead.LordSelectionFlagsCandidate.Select(v => v.ToString()));
+        return prefix + $" lordSelectionMaskCandidate={multipleLordsDead.LordSelectionMaskCandidate} selectedLordSlotsCandidate={selectedSlots} lordSelectionFlagsCandidate=[{flags}]";
+      }
+
+      if (trigger is S2MPlayerKillsLordXTrigger playerKillsLordX)
+      {
+        return prefix + $" targetLordSelector={playerKillsLordX.TargetLordSelector}";
+      }
+
+      if (trigger is S2MOtherLordsKillsLordXTrigger otherLordsKillsLordX)
+      {
+        return prefix + $" targetLordSelector={otherLordsKillsLordX.TargetLordSelector}";
+      }
+
+      if (trigger is S2MSpecificLordKillsLordXTrigger specificLordKillsLordX)
+      {
+        return prefix + $" killerLordSelector={specificLordKillsLordX.KillerLordSelector} killedLordSelector={specificLordKillsLordX.KilledLordSelector}";
+      }
+
+      if (trigger is S2MBreachInWallTrigger breachInWall)
+      {
+        return prefix + $" targetLordSelector={breachInWall.TargetLordSelector}";
+      }
+
+      if (trigger is S2MEnemyTroopsOnWallsTrigger enemyTroopsOnWalls)
+      {
+        return prefix + $" targetLordSelector={enemyTroopsOnWalls.TargetLordSelector}";
+      }
+
+      if (trigger is S2MSomeEnemiesCloseToKeepTrigger someEnemiesCloseToKeep)
+      {
+        return prefix + $" targetLordSelector={someEnemiesCloseToKeep.TargetLordSelector}";
+      }
+
+      if (trigger is S2MManyEnemiesCloseToKeepTrigger manyEnemiesCloseToKeep)
+      {
+        return prefix + $" targetLordSelector={manyEnemiesCloseToKeep.TargetLordSelector}";
+      }
+
+      if (trigger is S2MLiftSiegeTrigger liftSiege)
+      {
+        return prefix + $" targetLordSelector={liftSiege.TargetLordSelector}";
+      }
+
+      if (trigger is S2MEnemyNearMarkerTrigger enemyNearMarker)
+      {
+        return prefix + $" radius={enemyNearMarker.Radius} flagColorType={enemyNearMarker.FlagColorType} flagNumber={enemyNearMarker.FlagNumber}";
+      }
+
+      if (trigger is S2MQuestCompleteTrigger questComplete)
+      {
+        return prefix + $" questACompleted={questComplete.QuestACompleted} questBCompleted={questComplete.QuestBCompleted} questCCompleted={questComplete.QuestCCompleted} completedQuestCount={questComplete.CompletedQuestCount}";
+      }
+
+      if (trigger is S2MQuestNotCompleteTrigger questNotComplete)
+      {
+        return prefix + $" questIndex={questNotComplete.QuestIndex}";
+      }
+
+      if (trigger is S2MSingleQuestCompleteTrigger singleQuestComplete)
+      {
+        return prefix + $" questIndex={singleQuestComplete.QuestIndex}";
+      }
+
+      if (trigger is S2MNumQuestsCompleteTrigger numQuestsComplete)
+      {
+        return prefix + $" requiredQuestCount={numQuestsComplete.RequiredQuestCount}";
+      }
+
+      if (trigger is S2MQuestFailedTrigger questFailed)
+      {
+        return prefix + $" questIndex={questFailed.QuestIndex}";
+      }
+
+      if (trigger is S2MConstructedBuildingPercentCompleteTrigger buildingPercent)
+      {
+        return prefix + $" requiredPercent={buildingPercent.RequiredPercent}";
+      }
+
+      if (trigger is S2MControlNumEstatesTrigger controlEstates)
+      {
+        return prefix + $" requiredEstateCount={controlEstates.RequiredEstateCount}";
       }
 
       if (trigger is S2MNoFoodInGranaryTrigger noFood)

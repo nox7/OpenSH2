@@ -1,0 +1,2 @@
+[PercentTroopsKilledTrigger] payloadLen=49 codeRaw=7167 codeNorm=27 first10=0,1,1,-4086528,7167,0,3072,0,4608,0
+[AllYourTroopsDeadTrigger] payloadLen=29 codeRaw=7423 codeNorm=28 first10=0,1,1,-4086528,7423,-14766336,-2183681

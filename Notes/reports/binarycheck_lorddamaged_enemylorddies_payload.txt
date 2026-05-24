@@ -1,0 +1,14 @@
+[LordDamagedTrigger] id=30 start=3725 payloadLen=45
+codeRaw=7935 codeNorm=30
+w5=0 n5=0 | w6=2048 n6=8 | w7=256 n7=1 | w8=3072 n8=12
+preTrailerRaw=3072 preTrailerNorm=12
+first16Words=0,1,1,-4086528,7935,0,2048,256,3072,-14766336,884920575
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:1E, 25:08, 29:01, 33:0C, 37:AF, 38:1E, 39:FF, 40:FF, 41:D0, 42:BE, 43:34, 44:40
+
+[EnemyLordDiesTrigger] id=31 start=3804 payloadLen=29
+codeRaw=8191 codeNorm=31
+w5=-14766336 n5=-14766336 | w6=-2183681 n6=-2183681 | w7=0 n7=0 | w8=0 n8=0
+preTrailerRaw=8191 preTrailerNorm=8191
+first16Words=0,1,1,-4086528,8191,-14766336,-2183681
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:1F, 21:AF, 22:1E, 23:FF, 24:FF, 25:AD, 26:DE, 27:FF, 28:FF
+

@@ -1,0 +1,48 @@
+[EnemyGoldAcquiredTrigger] id=20 payloadLen=45 align=0
+headerWords: w4=5375 n4=5375 | w5=0 n5=0 | w6=2048 n6=8 | w7=15360 n7=60
+preTrailer=512 (norm=2)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:14, 25:08, 29:3C, 33:02, 37:AF, 38:1E, 39:FF, 40:FF, 41:80, 42:E2, 43:F9, 44:3F
+first14Words=0,1,1,-4086528,5375,0,2048,15360,512,-14766336,-102596353
+
+[EnemyHonourAcquiredTrigger] id=21 payloadLen=45 align=0
+headerWords: w4=5631 n4=5631 | w5=0 n5=0 | w6=2048 n6=8 | w7=2560 n7=10
+preTrailer=1024 (norm=4)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:15, 25:08, 29:0A, 33:04, 37:AF, 38:1E, 39:FF, 40:FF, 41:50, 42:73, 43:E9, 44:3F
+first14Words=0,1,1,-4086528,5631,0,2048,2560,1024,-14766336,-378318593
+
+[PopulationReachedTrigger] id=22 payloadLen=41 align=0
+headerWords: w4=5887 n4=5887 | w5=0 n5=0 | w6=1024 n6=4 | w7=23040 n7=90
+preTrailer=23040 (norm=90)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:16, 25:04, 29:5A, 33:AF, 34:1E, 35:FF, 36:FF, 37:E0, 38:73, 39:E9, 40:3F
+first14Words=0,1,1,-4086528,5887,0,1024,23040,-14766336,-378281729
+
+[NoPeopleLeftTrigger] id=23 payloadLen=29 align=0
+headerWords: w4=6143 n4=6143 | w5=-14766336 n5=-14766336 | w6=-378220289 n6=-378220289 | w7= n7=0
+preTrailer=6143 (norm=6143)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:17, 21:AF, 22:1E, 23:FF, 24:FF, 25:D0, 26:74, 27:E9, 28:3F
+first14Words=0,1,1,-4086528,6143,-14766336,-378220289
+
+[AnyEnemyOnMapTrigger] id=24 payloadLen=41 align=0
+headerWords: w4=6399 n4=6399 | w5=0 n5=0 | w6=1024 n6=4 | w7=0 n7=0
+preTrailer=0 (norm=0)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:18, 25:04, 33:AF, 34:1E, 35:FF, 36:FF, 37:E8, 38:74, 39:E9, 40:3F
+first14Words=0,1,1,-4086528,6399,0,1024,0,-14766336,-378214145
+
+[AnyEnemyTroopOnMapTrigger] id=25 payloadLen=41 align=0
+headerWords: w4=6655 n4=6655 | w5=0 n5=0 | w6=1024 n6=4 | w7=0 n7=0
+preTrailer=0 (norm=0)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:19, 25:04, 33:AF, 34:1E, 35:FF, 36:FF, 37:28, 38:74, 39:E9, 40:3F
+first14Words=0,1,1,-4086528,6655,0,1024,0,-14766336,-378263297
+
+[NoEnemyOrInvasionsLeftTrigger] id=26 payloadLen=41 align=0
+headerWords: w4=6911 n4=6911 | w5=0 n5=0 | w6=1024 n6=4 | w7=0 n7=0
+preTrailer=0 (norm=0)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:1A, 25:04, 33:AF, 34:1E, 35:FF, 36:FF, 37:58, 38:74, 39:E9, 40:3F
+first14Words=0,1,1,-4086528,6911,0,1024,0,-14766336,-378251009
+
+[AllYourTroopsDeadTrigger] id=27 payloadLen=29 align=0
+headerWords: w4=7167 n4=7167 | w5=-14766336 n5=-14766336 | w6=-2183681 n6=-2183681 | w7= n7=0
+preTrailer=7167 (norm=7167)
+nonzeroBytes=4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:1B, 21:AF, 22:1E, 23:FF, 24:FF, 25:AD, 26:DE, 27:FF, 28:FF
+first14Words=0,1,1,-4086528,7167,-14766336,-2183681
+
