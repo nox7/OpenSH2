@@ -459,6 +459,33 @@ namespace Assets.Code.Stronghold2.FormatReaders
     public int MinimumFoodLevelUnits { get; set; }
   }
 
+  public class S2MFireAction : S2MScenarioAction
+  {
+    // Number of fires configured in editor, observed at payload offset +24.
+    public int FireCount { get; set; }
+  }
+
+  public class S2MProtestAction : S2MScenarioAction
+  {
+    // Number of protesting peasants configured in editor, observed at payload offset +24.
+    public int PeasantCount { get; set; }
+  }
+
+  public class S2MRedirectVillageOutputAction : S2MScenarioAction
+  {
+    // Source village flag color selector code, currently observed at payload offset +24.
+    public int SourceFlagColorCode { get; set; }
+
+    // Source village flag number selector (zero-based), currently observed at payload offset +28.
+    public int SourceFlagNumberCode { get; set; }
+
+    // Target estate flag color selector code, currently observed at payload offset +32.
+    public int TargetEstateFlagColorCode { get; set; }
+
+    // Target estate flag number selector (zero-based), currently observed at payload offset +36.
+    public int TargetEstateFlagNumberCode { get; set; }
+  }
+
   public class S2MPlagueOfRatsAction : S2MScenarioAction
   {
     // Number of rats configured in editor, observed at payload offset +24.
@@ -475,6 +502,30 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
     // Number of rats configured in editor, observed at payload offset +32.
     public int RatsCount { get; set; }
+  }
+
+  public class S2MGongInvasionAction : S2MScenarioAction
+  {
+    // Stored as packed selector code at payload offset +24.
+    public int TargetFlagColorCode { get; set; }
+
+    // Stored as zero-based selector in current samples, at payload offset +28.
+    public int TargetFlagNumberCode { get; set; }
+
+    // Number of gong units configured in editor, observed at payload offset +32.
+    public int GongCount { get; set; }
+  }
+
+  public class S2MSetAllBuildingsOnFireAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MWitchcraftAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MBumperHarvestAction : S2MScenarioAction
+  {
   }
 
   public class S2MSetWolvesToDefensiveAction : S2MScenarioAction

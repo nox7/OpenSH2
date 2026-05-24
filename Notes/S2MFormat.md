@@ -1049,6 +1049,212 @@ Evidence artifacts:
 - `Notes/reports/binarycheck_compare_ratinfestation_run.txt`
 - `Notes/reports/rat_invasion_action_probe_1.txt`
 
+### `GongInvasionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=GongInvasionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload includes three editable fields after a fixed structural word at `+20`.
+- `+24` holds the target flag color selector.
+- `+28` holds the target flag number selector, stored as a zero-based selector in current samples.
+- `+32` holds the gong count.
+- With the editor set to `8` gong, `green` color, and flag number `3`, the decoded values read `gongCount=8`, `targetFlagColorCode=1`, and `targetFlagNumberCode=2`.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with three decoded values: gong count and the two flag selectors.
+- The payload is preserved in raw form as well.
+
+Implementation status:
+
+- Parser now recognizes `GongInvasionAction` and decodes the three fields.
+- Debug output prints the gong count and flag selector codes.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_gonginfestation_run.txt`
+- `Notes/reports/gong_invasion_action_probe_1.txt`
+
+### `FireAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=FireAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload includes a single editable field after a fixed structural word at `+20`.
+- `+24` holds the fire count.
+- With the editor set to `11` fires, the decoded count at `+24` reads `11`.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with one decoded value: number of fires.
+- The payload is preserved in raw form as well.
+
+Implementation status:
+
+- Parser now recognizes `FireAction` and decodes `fireCount`.
+- Debug output prints the fire count.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_startfires_run.txt`
+- `Notes/reports/fire_action_probe_1.txt`
+
+### `SetAllBuildingsOnFireAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SetAllBuildingsOnFireAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload matches the current existence-only scenario-action pattern in samples.
+- No additional editable payload fields were isolated beyond the common action payload structure.
+
+Current interpretation:
+
+- This action is modeled as an existence-only typed scenario action.
+- The payload is preserved in raw form.
+
+Implementation status:
+
+- Parser now recognizes `SetAllBuildingsOnFireAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_allbuildingsfire_run.txt`
+- `Notes/reports/set_all_buildings_on_fire_action_probe_1.txt`
+
+### `WitchcraftAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=WitchcraftAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload matches the current existence-only scenario-action pattern in samples.
+- No additional editable payload fields were isolated beyond the common action payload structure.
+
+Current interpretation:
+
+- This action is modeled as an existence-only typed scenario action.
+- The payload is preserved in raw form.
+
+Implementation status:
+
+- Parser now recognizes `WitchcraftAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_witchcraft_run.txt`
+- `Notes/reports/witchcraft_action_probe_1.txt`
+
+### `ProtestAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=ProtestAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload includes a single editable field after a fixed structural word at `+20`.
+- `+24` holds the peasant count.
+- With the editor set to `26` peasants, the decoded count at `+24` reads `26`.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with one decoded value: number of peasants.
+- The payload is preserved in raw form as well.
+
+Implementation status:
+
+- Parser now recognizes `ProtestAction` and decodes `peasantCount`.
+- Debug output prints the peasant count.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_peasantsrevolt_run.txt`
+- `Notes/reports/protest_action_probe_1.txt`
+
+### `BumperHarvestAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=BumperHarvestAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload matches the current existence-only scenario-action pattern in samples.
+- No additional editable payload fields were isolated beyond the common action payload structure.
+
+Current interpretation:
+
+- This action is modeled as an existence-only typed scenario action.
+- The payload is preserved in raw form.
+
+Implementation status:
+
+- Parser now recognizes `BumperHarvestAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_bumperharvest_run.txt`
+- `Notes/reports/bumper_harvest_action_probe_1.txt`
+
+### `RedirectVillageOutputAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=RedirectVillageOutputAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `49`, with a fixed structural word at `+20` (`16` in current sample).
+- Four selector values are present and currently map as follows:
+  - `+24`: source village flag color selector
+  - `+28`: source village flag number selector (zero-based)
+  - `+32`: target estate flag color selector
+  - `+36`: target estate flag number selector (zero-based)
+- With editor values set to source `red` flag `1` and target `blue` flag `4`, decoded values are:
+  - `sourceFlagColorCode=0`
+  - `sourceFlagNumberCode=3`
+  - `targetEstateFlagColorCode=2`
+  - `targetEstateFlagNumberCode=0`
+
+Two-probe confidence update:
+
+- A follow-up sample changed only source color (`red -> green`).
+- Only offsets `+24` and `+28` changed between probes; `+32` and `+36` remained stable.
+- This supports grouping `+24/+28` as the source selector pair and `+32/+36` as the target selector pair.
+- The editor appears to persist/display the two flag numbers inconsistently, consistent with the reported swap behavior.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with two flag selector sets (source and target).
+- Flag numbers appear zero-based in current samples.
+- The payload is preserved in raw form as well.
+
+Implementation status:
+
+- Parser now recognizes `RedirectVillageOutputAction` and decodes the four selector codes.
+- Debug output prints all source/target selector fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_redirectvillage_run.txt`
+- `Notes/reports/redirect_village_output_action_probe_1.txt`
+- `Notes/reports/redirect_village_output_action_probe_2.txt`
+- `Notes/reports/redirect_village_output_action_probe1_vs_probe2_diff.txt`
+
 - Trigger code behavior update (important):
   - the `triggerCode` field is currently behaving like a **scenario-local instance/order id** (tracks record id/order), not a stable global trigger-type enum.
   - evidence: after deselecting/reselecting `AllYourTroopsDead` and `PercentTroopsKilled`, their codes swapped again with ordering:

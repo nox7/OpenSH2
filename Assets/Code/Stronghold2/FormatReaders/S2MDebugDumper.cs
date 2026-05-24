@@ -132,6 +132,27 @@ namespace Assets.Code.Stronghold2.FormatReaders
           + $" minimumFoodLevelUnits={maintainFood.MinimumFoodLevelUnits}";
       }
 
+      if (action is S2MFireAction fire)
+      {
+        return prefix
+          + $" fireCount={fire.FireCount}";
+      }
+
+      if (action is S2MProtestAction protest)
+      {
+        return prefix
+          + $" peasantCount={protest.PeasantCount}";
+      }
+
+      if (action is S2MRedirectVillageOutputAction redirectVillageOutput)
+      {
+        return prefix
+          + $" sourceFlagColorCode={redirectVillageOutput.SourceFlagColorCode}"
+          + $" sourceFlagNumberCode={redirectVillageOutput.SourceFlagNumberCode}"
+          + $" targetEstateFlagColorCode={redirectVillageOutput.TargetEstateFlagColorCode}"
+          + $" targetEstateFlagNumberCode={redirectVillageOutput.TargetEstateFlagNumberCode}";
+      }
+
       if (action is S2MPlagueOfRatsAction plagueOfRats)
       {
         return prefix
@@ -144,6 +165,29 @@ namespace Assets.Code.Stronghold2.FormatReaders
           + $" targetFlagColorCode={ratInvasion.TargetFlagColorCode}"
           + $" targetFlagNumberCode={ratInvasion.TargetFlagNumberCode}"
           + $" ratsCount={ratInvasion.RatsCount}";
+      }
+
+      if (action is S2MGongInvasionAction gongInvasion)
+      {
+        return prefix
+          + $" targetFlagColorCode={gongInvasion.TargetFlagColorCode}"
+          + $" targetFlagNumberCode={gongInvasion.TargetFlagNumberCode}"
+          + $" gongCount={gongInvasion.GongCount}";
+      }
+
+      if (action is S2MSetAllBuildingsOnFireAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MWitchcraftAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MBumperHarvestAction)
+      {
+        return prefix;
       }
 
       if (action is S2MSetWolvesToDefensiveAction)

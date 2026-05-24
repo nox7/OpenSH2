@@ -577,6 +577,21 @@ namespace Assets.Code.Stronghold2.FormatReaders
         return ParseMaintainMinimumFoodLevelAction(record);
       }
 
+      if (record.Name == "FireAction")
+      {
+        return ParseFireAction(record);
+      }
+
+      if (record.Name == "ProtestAction")
+      {
+        return ParseProtestAction(record);
+      }
+
+      if (record.Name == "RedirectVillageOutputAction")
+      {
+        return ParseRedirectVillageOutputAction(record);
+      }
+
       if (record.Name == "PlagueOfRatsAction")
       {
         return ParsePlagueOfRatsAction(record);
@@ -585,6 +600,50 @@ namespace Assets.Code.Stronghold2.FormatReaders
       if (record.Name == "RatInvasionAction")
       {
         return ParseRatInvasionAction(record);
+      }
+
+      if (record.Name == "GongInvasionAction")
+      {
+        return ParseGongInvasionAction(record);
+      }
+
+      if (record.Name == "SetAllBuildingsOnFireAction")
+      {
+        return new S2MSetAllBuildingsOnFireAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "WitchcraftAction")
+      {
+        return new S2MWitchcraftAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "BumperHarvestAction")
+      {
+        return new S2MBumperHarvestAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
       }
 
       if (record.Name == "SetWolvesToDefensiveAction")
@@ -813,6 +872,67 @@ namespace Assets.Code.Stronghold2.FormatReaders
       return action;
     }
 
+    private static S2MFireAction ParseFireAction(S2MTokenRecord record)
+    {
+      var action = new S2MFireAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // The probe shows a fixed structural word at +20 and the editable fire count at +24.
+      action.FireCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MProtestAction ParseProtestAction(S2MTokenRecord record)
+    {
+      var action = new S2MProtestAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // The probe shows a fixed structural word at +20 and the editable peasant count at +24.
+      action.PeasantCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MRedirectVillageOutputAction ParseRedirectVillageOutputAction(S2MTokenRecord record)
+    {
+      var action = new S2MRedirectVillageOutputAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-sample mapping for RedirectVillageOutputAction:
+      // - +24: source flag color selector
+      // - +28: source flag number selector (zero-based)
+      // - +32: target estate flag color selector
+      // - +36: target estate flag number selector (zero-based)
+      action.SourceFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.SourceFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.TargetEstateFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.TargetEstateFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 36));
+
+      return action;
+    }
+
     private static S2MPlagueOfRatsAction ParsePlagueOfRatsAction(S2MTokenRecord record)
     {
       var action = new S2MPlagueOfRatsAction
@@ -850,6 +970,29 @@ namespace Assets.Code.Stronghold2.FormatReaders
       action.TargetFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
       action.TargetFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
       action.RatsCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+
+      return action;
+    }
+
+    private static S2MGongInvasionAction ParseGongInvasionAction(S2MTokenRecord record)
+    {
+      var action = new S2MGongInvasionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // The probe shows a fixed structural word at +20, then the three editable fields:
+      // - +24: target flag color selector
+      // - +28: target flag number selector (zero-based)
+      // - +32: gong count
+      action.TargetFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.TargetFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.GongCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
 
       return action;
     }
