@@ -30,7 +30,7 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
       foreach (var ev in file.SegmentA.ScenarioEvents)
       {
-        lines.Add($"Event[{ev.EventIndex}] id={ev.RecordId} name={ev.RecordName} month={ev.Month} delay={ev.Delay} range={ev.RecordStart}..{ev.RecordEndExclusive}");
+        lines.Add($"Event[{ev.EventIndex}] id={ev.RecordId} name={ev.RecordName} month={ev.Month} delay={ev.Delay} repeatCount={ev.RepeatCountCode} repeatTime={ev.RepeatTimeCode} range={ev.RecordStart}..{ev.RecordEndExclusive}");
 
         if (ev.Actions.Count == 0)
         {
@@ -124,6 +124,82 @@ namespace Assets.Code.Stronghold2.FormatReaders
         return prefix
           + $" modeCode={createCriminals.ModeCode}"
           + $" createCriminalsPercent={createCriminals.CreateCriminalsPercent}";
+      }
+
+      if (action is S2MMaintainMinimumFoodLevelAction maintainFood)
+      {
+        return prefix
+          + $" minimumFoodLevelUnits={maintainFood.MinimumFoodLevelUnits}";
+      }
+
+      if (action is S2MPlagueOfRatsAction plagueOfRats)
+      {
+        return prefix
+          + $" ratsCount={plagueOfRats.RatsCount}";
+      }
+
+      if (action is S2MRatInvasionAction ratInvasion)
+      {
+        return prefix
+          + $" targetFlagColorCode={ratInvasion.TargetFlagColorCode}"
+          + $" targetFlagNumberCode={ratInvasion.TargetFlagNumberCode}"
+          + $" ratsCount={ratInvasion.RatsCount}";
+      }
+
+      if (action is S2MSetWolvesToDefensiveAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MBadWeatherAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MWheatDiseaseAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MAppleBlightAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MVineRotAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MSwineFeverAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MMadCowDiseaseAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MLostSheepAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MHopWeevilAction)
+      {
+        return prefix;
+      }
+
+      if (action is S2MWolfInvasionAction wolfInvasion)
+      {
+        return prefix
+          + $" controlCode={wolfInvasion.ControlCode}"
+          + $" invasionPointFlagColorCode={wolfInvasion.InvasionPointFlagColorCode}"
+          + $" invasionPointFlagNumberCode={wolfInvasion.InvasionPointFlagNumberCode}"
+          + $" targetPointFlagColorCode={wolfInvasion.TargetPointFlagColorCode}"
+          + $" targetPointFlagNumberCode={wolfInvasion.TargetPointFlagNumberCode}"
+          + $" wolfCount={wolfInvasion.WolfCount}";
       }
 
       return prefix;

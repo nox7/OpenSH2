@@ -667,6 +667,388 @@ Evidence artifacts:
 - `Notes/reports/create_criminals_action_probe_2.txt`
 - `Notes/reports/create_criminals_action_probe1_vs_probe2_diff.txt`
 
+### `WolfInvasionAction` decoding notes (initial)
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=WolfInvasionAction`, `tag=7`, `baseName=ScenarioAction`
+- payload length in this sample: `53` bytes
+
+Configured editor values for this sample:
+
+- Wolf count: `7`
+- Invasion point: Red flag `#3`
+- Target point: Blue flag `#2`
+- Repeat: Always, every `3`
+
+Observed payload highlights (`Notes/reports/wolf_invasion_action_probe_1.txt`):
+
+- normalized int at payload offset `40` (int index `10`) is `7`
+  - high confidence: `WolfCount`
+- normalized int at payload offsets `24`, `28`, `32`, `36` are `0`, `2`, `2`, `1`
+  - high confidence candidate point mapping:
+    - offset `24` => invasion point color selector (`0` for Red in current sample)
+    - offset `28` => invasion point flag number selector (`2` => flag `#3`, zero-based)
+    - offset `32` => target point color selector (`2` => Blue)
+    - offset `36` => target point flag number selector (`1` => flag `#2`, zero-based)
+- normalized int at payload offset `20` (int index `5`) is `20`
+  - medium confidence candidate for action control/repeat-family code
+
+Second toggle test (changed only repeat interval: `every 3 -> every 4`):
+
+- `WolfInvasionAction` payload was byte-identical vs probe 1.
+- No changed byte offsets in `probe1_vs_probe2` diff.
+- Current interpretation:
+  - repeat interval is either:
+    - not serialized in this action payload when repeat mode is `Always`, or
+    - serialized in a different owning record (for example `ScenarioEvent`-level config), not inside `WolfInvasionAction` payload.
+
+Third toggle test (repeat mode changed from `Always` to non-always with repeat count `2`, interval back to `every 3`):
+
+- `WolfInvasionAction` payload remained byte-identical vs both probe 1 and probe 2.
+- No changed byte offsets in either diff:
+  - `probe1_vs_probe3`
+  - `probe2_vs_probe3`
+- Updated interpretation:
+  - repeat mode, repeat interval, and repeat count are not serialized in the current `WolfInvasionAction` payload bytes.
+  - these settings are likely stored outside this action payload (most likely event-level or another linked control record).
+
+Cross-file repeat-interval isolation test (`BinaryCheck-Triggers.s2m` vs `BinaryCheck-Triggers_Wolf2.s2m`):
+
+- `WolfInvasionAction` payload remained byte-identical across files.
+  - diff report: `wolf_invasion_action_crossfile_baseline_vs_every4_diff.txt` (no changes)
+- `ScenarioEvent` payload changed at one normalized int field:
+  - payload offset `12` (int index `3`): `3 -> 4`
+  - diff report: `scenario_event_crossfile_baseline_vs_every4_diff.txt`
+- Updated interpretation:
+  - repeat time is serialized outside `WolfInvasionAction`, with strong current evidence for an event-level field at `ScenarioEvent payload +12`.
+  - event-level `ScenarioEvent payload +8` is the repeat-count field (stable as `2` in the current non-always sample).
+
+Repeat-count toggle test (`BinaryCheck-Triggers.s2m` changed from repeat count `2` to `3`):
+
+- `WolfInvasionAction` payload remained unchanged.
+- `ScenarioEvent` payload changed at two packed fields:
+  - payload offset `8` (int index `2`): `2 -> 3`
+  - payload offset `12` (int index `3`): `3 -> 4`
+- Updated interpretation:
+  - repeat count is at `ScenarioEvent payload +8`.
+  - repeat time is at `ScenarioEvent payload +12`, and in the current editor interaction it moved in lockstep with repeat count.
+
+Current confidence:
+
+- High confidence: point selectors at offsets `24/28/32/36` and wolf count at offset `40`.
+- High confidence: repeat semantics are external to `WolfInvasionAction` payload in current map variants.
+- High confidence: repeat time is at `ScenarioEvent payload +12`.
+- High confidence: repeat count is at `ScenarioEvent payload +8`.
+
+Implementation status:
+
+- Parser now dispatches `WolfInvasionAction` and populates:
+  - `ControlCode`
+  - `InvasionPointFlagColorCode`
+  - `InvasionPointFlagNumberCode`
+  - `TargetPointFlagColorCode`
+  - `TargetPointFlagNumberCode`
+  - `WolfCount`
+- Parser also now exposes event-level repeat data blocks on `ScenarioEvent`:
+  - `RepeatCountCode` (payload +8 candidate)
+  - `RepeatTimeCode` (payload +12 candidate)
+
+Minimal follow-up tests to isolate repeat fields:
+
+- If the editor allows independent control, change only repeat count while explicitly holding interval fixed.
+- If the editor does not allow independent control, treat count and interval as a coupled event-level repeat configuration.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_wolf_run.txt`
+- `Notes/reports/wolf_invasion_action_probe_1.txt`
+- `Notes/reports/wolf_invasion_action_probe_2.txt`
+- `Notes/reports/wolf_invasion_action_probe1_vs_probe2_diff.txt`
+- `Notes/reports/wolf_invasion_action_probe_3.txt`
+- `Notes/reports/wolf_invasion_action_probe1_vs_probe3_diff.txt`
+- `Notes/reports/wolf_invasion_action_probe2_vs_probe3_diff.txt`
+- `Notes/reports/binarycheck_compare_wolf_repeat_crossfile.txt`
+- `Notes/reports/wolf_invasion_action_baseline_crossfile.txt`
+- `Notes/reports/wolf_invasion_action_every4_crossfile.txt`
+- `Notes/reports/wolf_invasion_action_crossfile_baseline_vs_every4_diff.txt`
+- `Notes/reports/scenario_event_baseline_crossfile.txt`
+- `Notes/reports/scenario_event_every4_crossfile.txt`
+- `Notes/reports/scenario_event_crossfile_baseline_vs_every4_diff.txt`
+- `Notes/reports/scenario_event_repeatcount3.txt`
+- `Notes/reports/scenario_event_baseline_vs_repeatcount3_diff.txt`
+
+### `SetWolvesToDefensiveAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SetWolvesToDefensiveAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented.
+
+Implementation status:
+
+- Parser now recognizes `SetWolvesToDefensiveAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_wolf_defensive_run.txt`
+
+### `BadWeatherAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=BadWeatherAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `BadWeatherAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_badweather_run.txt`
+- `Notes/reports/bad_weather_action_probe_1.txt`
+
+### `WheatDiseaseAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=WheatDiseaseAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `WheatDiseaseAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_wheatdisease_run.txt`
+- `Notes/reports/wheat_disease_action_probe_1.txt`
+
+### `AppleBlightAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=AppleBlightAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `AppleBlightAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_appleblight_run.txt`
+- `Notes/reports/apple_blight_action_probe_1.txt`
+
+### `HopWeevilAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=HopWeevilAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `HopWeevilAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_hopweevil_run.txt`
+- `Notes/reports/hop_weevil_action_probe_1.txt`
+
+### `VineRotAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=VineRotAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `VineRotAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_vinerot_run.txt`
+- `Notes/reports/vine_rot_action_probe_1.txt`
+
+### `SwineFeverAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SwineFeverAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `SwineFeverAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_swinefever_run.txt`
+- `Notes/reports/swine_fever_action_probe_1.txt`
+
+### `MadCowDiseaseAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=MadCowDiseaseAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `MadCowDiseaseAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_madcow_run.txt`
+- `Notes/reports/mad_cow_disease_action_probe_1.txt`
+
+### `LostSheepAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=LostSheepAction`, `tag=7`, `baseName=ScenarioAction`
+
+Current interpretation:
+
+- This action appears to be existence-only in current samples.
+- No additional payload fields have been isolated or documented beyond the raw action payload.
+
+Implementation status:
+
+- Parser now recognizes `LostSheepAction` and returns a typed action with raw payload preserved.
+- No bespoke payload decoding is currently applied.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_lostsheep_run.txt`
+- `Notes/reports/lost_sheep_action_probe_1.txt`
+
+### `MaintainMinimumFoodLevelAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=MaintainMinimumFoodLevelAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload now includes a single editable food threshold value.
+- The probe shows a fixed structural word at payload offset `+20` and the food threshold at payload offset `+24`.
+- With the editor set to `17` units, the decoded threshold at `+24` reads `17`.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with one decoded value: minimum food level in units.
+- The payload is preserved in raw form as well.
+
+Implementation status:
+
+- Parser now recognizes `MaintainMinimumFoodLevelAction` and decodes `minimumFoodLevelUnits`.
+- Debug output prints the threshold value.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_maintainfood_run.txt`
+- `Notes/reports/maintain_minimum_food_level_action_probe_1.txt`
+
+### `PlagueOfRatsAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=PlagueOfRatsAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload now includes a single editable rats count value.
+- The probe shows a fixed structural word at payload offset `+20` and the rats count at payload offset `+24`.
+- With the editor set to `13` rats, the decoded count at `+24` reads `13`.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with one decoded value: number of rats.
+- The payload is preserved in raw form as well.
+
+Implementation status:
+
+- Parser now recognizes `PlagueOfRatsAction` and decodes `ratsCount`.
+- Debug output prints the rats count.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_plagueofrats_run.txt`
+- `Notes/reports/plague_of_rats_action_probe_1.txt`
+
+### `RatInvasionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=RatInvasionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- The payload includes three editable fields after a fixed structural word at `+20`.
+- `+24` holds the target flag color selector.
+- `+28` holds the target flag number selector, stored as a zero-based selector in current samples.
+- `+32` holds the rats count.
+- With the editor set to `3` rats, `Any` color, and flag number `2`, the decoded values read `ratsCount=3`, `targetFlagColorCode=-1`, and `targetFlagNumberCode=1`.
+
+Current interpretation:
+
+- This action is modeled as a typed scenario action with three decoded values: rats count and the two flag selectors.
+- The payload is preserved in raw form as well.
+
+Implementation status:
+
+- Parser now recognizes `RatInvasionAction` and decodes the three fields.
+- Debug output prints the rats count and flag selector codes.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_ratinfestation_run.txt`
+- `Notes/reports/rat_invasion_action_probe_1.txt`
+
 - Trigger code behavior update (important):
   - the `triggerCode` field is currently behaving like a **scenario-local instance/order id** (tracks record id/order), not a stable global trigger-type enum.
   - evidence: after deselecting/reselecting `AllYourTroopsDead` and `PercentTroopsKilled`, their codes swapped again with ordering:

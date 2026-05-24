@@ -108,6 +108,11 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
     public byte Delay { get; set; }
 
+    // Candidate event-level repeat control fields derived from controlled diffs.
+    public int RepeatCountCode { get; set; }
+
+    public int RepeatTimeCode { get; set; }
+
     public List<S2MScenarioTrigger> Triggers { get; } = new List<S2MScenarioTrigger>();
 
     public List<S2MScenarioAction> Actions { get; } = new List<S2MScenarioAction>();
@@ -446,6 +451,84 @@ namespace Assets.Code.Stronghold2.FormatReaders
 
     // Percent configured in editor (for example, 14, 15) at payload offset +24.
     public int CreateCriminalsPercent { get; set; }
+  }
+
+  public class S2MMaintainMinimumFoodLevelAction : S2MScenarioAction
+  {
+    // Minimum food threshold configured in editor, observed at payload offset +24.
+    public int MinimumFoodLevelUnits { get; set; }
+  }
+
+  public class S2MPlagueOfRatsAction : S2MScenarioAction
+  {
+    // Number of rats configured in editor, observed at payload offset +24.
+    public int RatsCount { get; set; }
+  }
+
+  public class S2MRatInvasionAction : S2MScenarioAction
+  {
+    // Stored as packed selector code at payload offset +24.
+    public int TargetFlagColorCode { get; set; }
+
+    // Stored as zero-based selector in current samples, at payload offset +28.
+    public int TargetFlagNumberCode { get; set; }
+
+    // Number of rats configured in editor, observed at payload offset +32.
+    public int RatsCount { get; set; }
+  }
+
+  public class S2MSetWolvesToDefensiveAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MBadWeatherAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MWheatDiseaseAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MAppleBlightAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MVineRotAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MSwineFeverAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MMadCowDiseaseAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MLostSheepAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MHopWeevilAction : S2MScenarioAction
+  {
+  }
+
+  public class S2MWolfInvasionAction : S2MScenarioAction
+  {
+    // Control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    public int InvasionPointFlagColorCode { get; set; }
+
+    // Stored as zero-based selector in current WolfInvasionAction samples.
+    public int InvasionPointFlagNumberCode { get; set; }
+
+    public int TargetPointFlagColorCode { get; set; }
+
+    // Stored as zero-based selector in current WolfInvasionAction samples.
+    public int TargetPointFlagNumberCode { get; set; }
+
+    public int WolfCount { get; set; }
   }
 
   public enum S2MInvasionTroopType

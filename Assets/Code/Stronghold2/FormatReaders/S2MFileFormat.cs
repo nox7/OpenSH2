@@ -213,6 +213,15 @@ namespace Assets.Code.Stronghold2.FormatReaders
           scenarioEvent.Delay = segmentA.DecompressedBytes[record.RecordStart + 117];
         }
 
+        // Candidate event-level repeat fields observed in controlled wolf repeat diffs:
+        // - payload +8  : repeat count candidate
+        // - payload +12 : repeat interval candidate
+        if (record.PayloadBytes != null && record.PayloadBytes.Length >= 16)
+        {
+          scenarioEvent.RepeatCountCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 8));
+          scenarioEvent.RepeatTimeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 12));
+        }
+
         segmentA.ScenarioEvents.Add(scenarioEvent);
       }
 
@@ -563,6 +572,143 @@ namespace Assets.Code.Stronghold2.FormatReaders
         return ParseCreateCriminalsAction(record);
       }
 
+      if (record.Name == "MaintainMinimumFoodLevelAction")
+      {
+        return ParseMaintainMinimumFoodLevelAction(record);
+      }
+
+      if (record.Name == "PlagueOfRatsAction")
+      {
+        return ParsePlagueOfRatsAction(record);
+      }
+
+      if (record.Name == "RatInvasionAction")
+      {
+        return ParseRatInvasionAction(record);
+      }
+
+      if (record.Name == "SetWolvesToDefensiveAction")
+      {
+        return new S2MSetWolvesToDefensiveAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "BadWeatherAction")
+      {
+        return new S2MBadWeatherAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "WheatDiseaseAction")
+      {
+        return new S2MWheatDiseaseAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "AppleBlightAction")
+      {
+        return new S2MAppleBlightAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "VineRotAction")
+      {
+        return new S2MVineRotAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "SwineFeverAction")
+      {
+        return new S2MSwineFeverAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "MadCowDiseaseAction")
+      {
+        return new S2MMadCowDiseaseAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "LostSheepAction")
+      {
+        return new S2MLostSheepAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "HopWeevilAction")
+      {
+        return new S2MHopWeevilAction
+        {
+          RecordId = record.Id,
+          RecordStart = record.RecordStart,
+          RecordName = record.Name,
+          Tag = record.Tag,
+          BaseName = record.BaseName,
+          RawPayloadInt32 = new List<int>(record.PayloadInt32),
+        };
+      }
+
+      if (record.Name == "WolfInvasionAction")
+      {
+        return ParseWolfInvasionAction(record);
+      }
+
       return new S2MUnknownAction
       {
         RecordId = record.Id,
@@ -645,6 +791,94 @@ namespace Assets.Code.Stronghold2.FormatReaders
       // - +24: create-criminals percent value
       action.ModeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
       action.CreateCriminalsPercent = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MMaintainMinimumFoodLevelAction ParseMaintainMinimumFoodLevelAction(S2MTokenRecord record)
+    {
+      var action = new S2MMaintainMinimumFoodLevelAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // The probe shows a fixed structural word at +20 and the editable food threshold at +24.
+      action.MinimumFoodLevelUnits = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MPlagueOfRatsAction ParsePlagueOfRatsAction(S2MTokenRecord record)
+    {
+      var action = new S2MPlagueOfRatsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // The probe shows a fixed structural word at +20 and the editable rat count at +24.
+      action.RatsCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MRatInvasionAction ParseRatInvasionAction(S2MTokenRecord record)
+    {
+      var action = new S2MRatInvasionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // The probe shows a fixed structural word at +20, then the three editable fields:
+      // - +24: target flag color selector
+      // - +28: target flag number selector (zero-based)
+      // - +32: rats count
+      action.TargetFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.TargetFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.RatsCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+
+      return action;
+    }
+
+    private static S2MWolfInvasionAction ParseWolfInvasionAction(S2MTokenRecord record)
+    {
+      var action = new S2MWolfInvasionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current deterministic offsets from WolfInvasionAction initial probe:
+      // - +20: control/mode code
+      // - +24: invasion point flag color selector
+      // - +28: invasion point flag number selector (zero-based)
+      // - +32: target point flag color selector
+      // - +36: target point flag number selector (zero-based)
+      // - +40: wolf count
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.InvasionPointFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.InvasionPointFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.TargetPointFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.TargetPointFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 36));
+      action.WolfCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 40));
 
       return action;
     }
