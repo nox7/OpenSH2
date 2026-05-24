@@ -1,0 +1,1 @@
+map=BinaryCheck-Triggers.s2m start=1537 id=6 tag=7 base=ScenarioAction payloadLen=38 payload=00 00 00 00 01 00 00 00 00 A5 C1 FF FF 06 00 00 00 00 00 00 00 05 00 00 00 03 00 00 00 00 AF 1E FF FF 18 8C C2 11

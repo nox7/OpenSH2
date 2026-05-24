@@ -543,6 +543,26 @@ namespace Assets.Code.Stronghold2.FormatReaders
         };
       }
 
+      if (record.Name == "StopInvasionsAction")
+      {
+        return ParseStopInvasionsAction(record);
+      }
+
+      if (record.Name == "InvasionAction")
+      {
+        return ParseInvasionAction(record);
+      }
+
+      if (record.Name == "BearAttackAction")
+      {
+        return ParseBearAttackAction(record);
+      }
+
+      if (record.Name == "CreateCriminalsAction")
+      {
+        return ParseCreateCriminalsAction(record);
+      }
+
       return new S2MUnknownAction
       {
         RecordId = record.Id,
@@ -552,6 +572,210 @@ namespace Assets.Code.Stronghold2.FormatReaders
         BaseName = record.BaseName,
         RawPayloadInt32 = new List<int>(record.PayloadInt32),
       };
+    }
+
+    private static S2MStopInvasionsAction ParseStopInvasionsAction(S2MTokenRecord record)
+    {
+      var action = new S2MStopInvasionsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current mapping from BinaryCheck-Triggers.s2m (single-action isolation):
+      // - byte @ payload offset +29 toggles with editor mode change
+      //   (0 = StopRepeatingInvasions, 1 = StopAllInvasions).
+      // - int32 @ payload offset +24 is packed (value*256) and tracks selected target lord.
+      action.ModeCode = ReadByteAt(record.PayloadBytes, 29);
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.ModeCode == 1)
+      {
+        action.Mode = S2MStopInvasionsMode.StopAllInvasions;
+      }
+      else if (action.ModeCode == 0)
+      {
+        action.Mode = S2MStopInvasionsMode.StopRepeatingInvasions;
+      }
+
+      return action;
+    }
+
+    private static S2MBearAttackAction ParseBearAttackAction(S2MTokenRecord record)
+    {
+      var action = new S2MBearAttackAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Deterministic offsets from BearAttackAction controlled toggles:
+      // - +24: target flag color selector
+      // - +28: target flag number selector (zero-based)
+      // - +32: bear count
+      action.TargetFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.TargetFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.BearCount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+
+      return action;
+    }
+
+    private static S2MCreateCriminalsAction ParseCreateCriminalsAction(S2MTokenRecord record)
+    {
+      var action = new S2MCreateCriminalsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current deterministic offsets from CreateCriminalsAction controlled toggles:
+      // - +20: control/mode code
+      // - +24: create-criminals percent value
+      action.ModeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.CreateCriminalsPercent = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MInvasionAction ParseInvasionAction(S2MTokenRecord record)
+    {
+      var action = new S2MInvasionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current deterministic offsets from BinaryCheck-Triggers controlled edits.
+      action.InvasionPointFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      var invasionPointRaw = ReadInt32At(record.PayloadBytes, 28);
+      action.InvasionPointAnyFlagNumber = invasionPointRaw == -256 || invasionPointRaw == -1;
+      action.InvasionPointFlagNumber = action.InvasionPointAnyFlagNumber
+        ? -1
+        : NormalizePackedValue(invasionPointRaw);
+
+      action.DestinationPointTypeCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.DestinationFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 36));
+
+      // Keep raw contiguous troop slots visible while full slot->troop identity map is finalized.
+      for (var i = 0; i < 29; i++)
+      {
+        var raw = ReadInt32At(record.PayloadBytes, 40 + (i * 4));
+        action.RawTroopSlotCounts.Add(NormalizePackedValue(raw));
+      }
+
+      PopulateConfirmedInvasionTroopCounts(action, record.PayloadBytes);
+
+      action.AttackTargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 176));
+      action.ArmyTypeCode = ReadByteAt(record.PayloadBytes, 181);
+
+      // Warning mode is encoded as a 2-bit field split across two bytes in current samples:
+      // bit1 = byte 183, bit0 = byte 187.
+      var warningBit1 = ReadByteAt(record.PayloadBytes, 183) & 0x01;
+      var warningBit0 = ReadByteAt(record.PayloadBytes, 187) & 0x01;
+      action.WarningTypeCode = (warningBit1 << 1) | warningBit0;
+
+      action.RepeatCountCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 184));
+
+      action.OwnerLordSelectorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 164));
+      action.IncludeLordInArmyCode = ReadByteAt(record.PayloadBytes, 157);
+      action.LeaveMapCode = ReadByteAt(record.PayloadBytes, 160);
+      action.AttackModeCode0 = ReadByteAt(record.PayloadBytes, 186);
+      action.AttackModeCode1 = ReadByteAt(record.PayloadBytes, 187);
+
+      action.WarningType = ParseInvasionWarningType(action.WarningTypeCode);
+      action.ArmyType = ParseInvasionArmyType(action.ArmyTypeCode);
+
+      return action;
+    }
+
+    private static void PopulateConfirmedInvasionTroopCounts(S2MInvasionAction action, byte[] payloadBytes)
+    {
+      if (action == null)
+      {
+        return;
+      }
+
+      action.ConfirmedTroopCounts[S2MInvasionTroopType.ArmedPeasant] = NormalizePackedValue(ReadInt32At(payloadBytes, 40));
+      action.ConfirmedTroopCounts[S2MInvasionTroopType.Archer] = NormalizePackedValue(ReadInt32At(payloadBytes, 48));
+      action.ConfirmedTroopCounts[S2MInvasionTroopType.Knight] = NormalizePackedValue(ReadInt32At(payloadBytes, 68));
+      action.ConfirmedTroopCounts[S2MInvasionTroopType.WarriorMonk] = NormalizePackedValue(ReadInt32At(payloadBytes, 76));
+      action.ConfirmedTroopCounts[S2MInvasionTroopType.Catapult] = NormalizePackedValue(ReadInt32At(payloadBytes, 148));
+      action.ConfirmedTroopCounts[S2MInvasionTroopType.Manglet] = NormalizePackedValue(ReadInt32At(payloadBytes, 152));
+
+      // Latest controlled edit strongly suggests this slot maps to HorseCavalry in this action family.
+      action.ConfirmedTroopCounts[S2MInvasionTroopType.HorseCavalry] = NormalizePackedValue(ReadInt32At(payloadBytes, 112));
+    }
+
+    private static S2MInvasionWarningType ParseInvasionWarningType(int code)
+    {
+      if (code == 0)
+      {
+        return S2MInvasionWarningType.NoWarnings;
+      }
+
+      if (code == 1)
+      {
+        return S2MInvasionWarningType.EarlyWarnings;
+      }
+
+      if (code == 2)
+      {
+        return S2MInvasionWarningType.NormalMessages;
+      }
+
+      if (code == 3)
+      {
+        return S2MInvasionWarningType.FullWarnings;
+      }
+
+      return S2MInvasionWarningType.Unknown;
+    }
+
+    private static S2MInvasionArmyType ParseInvasionArmyType(int code)
+    {
+      if (code == 0)
+      {
+        return S2MInvasionArmyType.MovementArmy;
+      }
+
+      if (code == 1)
+      {
+        return S2MInvasionArmyType.SiegeArmy;
+      }
+
+      if (code == 2)
+      {
+        return S2MInvasionArmyType.DefensiveArmy;
+      }
+
+      if (code == 3)
+      {
+        return S2MInvasionArmyType.AttackingArmy;
+      }
+
+      if (code == 4)
+      {
+        return S2MInvasionArmyType.MovementArmy;
+      }
+
+      return S2MInvasionArmyType.Unknown;
     }
 
     private static S2MGoodsAcquiredTrigger ParseGoodsAcquiredTrigger(S2MTokenRecord record)
@@ -1475,6 +1699,26 @@ namespace Assets.Code.Stronghold2.FormatReaders
       }
 
       return values[index];
+    }
+
+    private static int ReadInt32At(byte[] bytes, int offset)
+    {
+      if (bytes == null || offset < 0 || offset + 4 > bytes.Length)
+      {
+        return 0;
+      }
+
+      return BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(offset, 4));
+    }
+
+    private static int ReadByteAt(byte[] bytes, int offset)
+    {
+      if (bytes == null || offset < 0 || offset >= bytes.Length)
+      {
+        return 0;
+      }
+
+      return bytes[offset];
     }
 
     private static S2MGoldAcquiredTrigger ParseGoldAcquiredTrigger(S2MTokenRecord record)

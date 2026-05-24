@@ -411,6 +411,262 @@ Practical parser rule:
 - Then decode fields according to the token's encoding family.
 - Do not rely on `triggerCode` as global enum identity (order-dependent in this dataset).
 
+### Action decoding notes (initial)
+
+`StopInvasionsAction` (token `tag=7`, `baseName=ScenarioAction`) has now been isolated in a single-trigger/single-action test map.
+
+Current payload mapping from `BinaryCheck-Triggers.s2m` (user setting: `target lord = Lord Barclay`, mode = `Stop All invasions`):
+
+- `byte @ payload +29` -> `modeCode` (`0 = StopRepeatingInvasions`, `1 = StopAllInvasions`)
+- `int32 @ payload +24` -> packed selector (`value * 256`) for `targetLordSelector`
+  - All sample: `0x00000000` -> `0`
+  - Olaf sample: `0x00000200` -> `2`
+  - Barclay sample: `0x00000300` -> `3`
+  - observed delta from Barclay -> Olaf: `-1`
+  - observed delta from Olaf -> All: `-2`
+
+Confidence:
+
+- `targetLordSelector` mapping is high confidence (direct controlled delta on lord change only).
+- mode mapping is high confidence for the observed pair (`StopRepeatingInvasions` vs `StopAllInvasions`) because only this mode byte toggled between the two controlled map versions.
+
+### `InvasionAction` decoding notes (initial single-sample map)
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=InvasionAction`, `tag=7`, `baseName=ScenarioAction`
+- payload length in this sample: `196` bytes
+
+Configured editor values for this sample:
+
+- Troops: `5` Armed Peasant, `5` Warrior Monk, `2` Knight, `1` Manglet
+- Invasion point: Green flag `#2`
+- Destination: Siege point, Red flag `#1`
+- Include lord: Yes
+- Leave map: No
+- Warning type: Early warnings
+- Army type: Defensive army
+- Repeat: Always, repeat time `3`
+- Owner: Lord Barclay
+- Objective: Attack Player lord
+
+Observed normalized int32 view (shift 0) shows these strong matches:
+
+- At payload int index `10` (offset `40`): `5` -> matches Armed Peasant count
+- At payload int index `17` (offset `68`): `2` -> matches Knight count
+- At payload int index `19` (offset `76`): `5` -> matches Warrior Monk count
+
+Interpretation (current confidence):
+
+- High confidence: there is a troop-count block beginning near payload offset `40`; at least the three non-siege troop values above map correctly.
+- Medium confidence: invasion point selector fields are near payload indices `6` and `7` (both normalized `1` in this sample), likely color/index style fields with one index potentially zero-based.
+- Medium confidence: the final control/settings fields appear in the tail region around offsets `152..185`.
+- Low confidence (needs dedicated toggle tests): exact slot for Manglet count and exact enums for warning type, army type, owner/target-lord selectors, repeat semantics, include-lord, and leave-map flags.
+
+Follow-up toggle test (same map, changed only: Manglet `1->2`, warnings `Early->Full`, army type `Defensive/Siege setting->Attacking`):
+
+- Changed bytes vs previous sample:
+  - payload byte `153`: `01 -> 02`
+  - payload byte `181`: `02 -> 03`
+  - payload byte `183`: `00 -> 01`
+- Changed shift-0 int slots:
+  - int index `38` (offset `152`): normalized `1 -> 2`
+  - int index `45` (offset `180`): composite changed because two independent bytes changed in the same 4-byte word
+
+Updated confidence after this toggle:
+
+- High confidence: Manglet troop count is stored at/intimately tied to offset `152` (int index `38`, packed as `count * 256`).
+- Medium-high confidence: army type enum includes byte at offset `181` (`2 -> 3` for this edit).
+- Medium-high confidence: warning type enum includes byte at offset `183` (`0 -> 1` for this edit).
+- Remaining ambiguity: exact canonical enum labels still need one-at-a-time toggles for all warning and army type values.
+
+Third toggle test (same base action; changed only: remove Manglets, set Catapult `=1`, warnings `No warnings`, attacked lord `Player -> Olaf`):
+
+- Changed bytes vs probe 2:
+  - payload byte `149`: `00 -> 01`
+  - payload byte `153`: `02 -> 00`
+  - payload byte `177`: `15 -> 16`
+  - payload byte `183`: `01 -> 00`
+  - payload bytes `186..187`: `01 01 -> 00 00`
+- Changed shift-0 int slots:
+  - int index `37` (offset `148`): normalized `0 -> 1`
+  - int index `38` (offset `152`): normalized `2 -> 0`
+  - int index `44` (offset `176`): normalized `21 -> 22`
+  - int index `45` (offset `180`): composite word changed due to byte edits (not a single enum scalar)
+  - int index `46` (offset `184`): composite/flag word changed to `0`
+
+Updated confidence after third toggle:
+
+- High confidence: Catapult count is at/intimately tied to offset `148` (int index `37`, packed as `count * 256`).
+- High confidence: Manglet count remains at/intimately tied to offset `152` (int index `38`, packed as `count * 256`).
+- High confidence: warning enum byte at offset `183` supports `No warnings = 0` (with prior `Full = 1` sample).
+- Medium confidence: attacked-lord selector likely includes offset `176` (int index `44`) where `21 -> 22` when switching `Player -> Olaf`.
+- Medium confidence: bytes `186..187` are related to attack-target mode/flags (player/lord semantics), changed alongside target-lord selection.
+
+Fourth toggle test (changed only attacked lord: `Olaf -> The Hawk`):
+
+- Changed byte vs probe 3:
+  - payload byte `177`: `16 -> 18`
+- Changed shift-0 int slot:
+  - int index `44` (offset `176`): normalized `22 -> 24`
+
+Updated confidence after fourth toggle:
+
+- High confidence: attacked-lord selector is carried in offset `176` (int index `44`, packed as `value * 256`).
+- Selector movement seen so far in this family:
+  - `Player = 21`
+  - `Olaf = 22`
+  - `The Hawk = 24`
+- Note: gaps in selector values indicate reserved/non-lord entries in this selector domain.
+
+Fifth toggle test (notable mixed change set):
+
+- Config highlights:
+  - Armed Peasant `10`, Archer `15`, Knight `2`, Warrior Monk `5`, Horse cavalry/"horse warrior" `5`, Catapult `1`, Burning Cart `1`
+  - Invasion point Green + `Any` flag number
+  - Target point Red flag `#1`
+  - No lord in army, do not leave map, no warnings, attacking army
+  - Repeat always with `2`
+  - Owner Olaf, target The Hawk
+- Key payload deltas vs probe 4:
+  - byte `29..31`: `01 00 00 -> FF FF FF` (invasion point Any sentinel behavior)
+  - byte `41`: `05 -> 0A` (Armed Peasant `5 -> 10`)
+  - byte `49`: `00 -> 0F` (Archer `0 -> 15`)
+  - byte `113`: `00 -> 05` (Horse-cavalry slot candidate `0 -> 5`)
+  - byte `137`: `00 -> 01` (new 1-count troop/control slot)
+  - byte `157`: `00 -> 01` (include-lord flag changed with "No lord in army")
+  - byte `185`: `00 -> 01` (repeat count/control changed with repeat=2)
+
+Current action enum mapping status:
+
+- Warning type split bits (offsets `183` and `187`):
+  - effective warning code = `(byte183 & 1) * 2 + (byte187 & 1)`
+  - observed high confidence:
+    - `0` (`00`) = `NoWarnings`
+    - `1` (`01`) = `EarlyWarnings`
+    - `2` (`10`) = `NormalMessages`
+    - `3` (`11`) = `FullWarnings`
+- Army type byte (offset `181`):
+  - observed high confidence:
+    - `0 = MovementArmy`
+    - `1 = SiegeArmy`
+    - `2 = DefensiveArmy`
+    - `3 = AttackingArmy`
+
+Sixth toggle test (changed to `Early warnings` and `Siege army`):
+
+- Changed bytes vs probe 5:
+  - payload byte `181`: `03 -> 01` (confirms `SiegeArmy = 1`)
+  - payload byte `187`: `00 -> 01` (warning bit0 set)
+- Byte `183` remained `00`, giving warning bits `01` => effective warning code `1` => `EarlyWarnings`.
+
+Seventh toggle test (changed to `Normal warnings` and `Defensive army`):
+
+- Changed bytes vs probe 6:
+  - payload byte `181`: `01 -> 02` (confirms `DefensiveArmy = 2`)
+  - payload byte `183`: `00 -> 01`
+  - payload byte `187`: `01 -> 00`
+- Warning bits become `10` => effective warning code `2` => `NormalMessages`.
+
+Eighth toggle test (changed only army type to `Movement`):
+
+- Changed byte vs probe 7:
+  - payload byte `181`: `02 -> 00`
+- Confirms `MovementArmy = 0` in this action family.
+
+Evidence artifacts:
+
+- `Notes/reports/invasion_action_probe_1.txt`
+- `Notes/reports/invasion_action_shift0_index_table.txt`
+- `Notes/reports/invasion_action_probe_2.txt`
+- `Notes/reports/invasion_action_probe1_vs_probe2_diff.txt`
+- `Notes/reports/invasion_action_probe_3.txt`
+- `Notes/reports/invasion_action_probe2_vs_probe3_diff.txt`
+- `Notes/reports/invasion_action_probe_4.txt`
+- `Notes/reports/invasion_action_probe3_vs_probe4_diff.txt`
+- `Notes/reports/invasion_action_probe_5.txt`
+- `Notes/reports/invasion_action_probe4_vs_probe5_diff.txt`
+- `Notes/reports/invasion_action_probe_6.txt`
+- `Notes/reports/invasion_action_probe5_vs_probe6_diff.txt`
+- `Notes/reports/invasion_action_tail_bytes_probe2to6.txt`
+- `Notes/reports/invasion_action_probe_7.txt`
+- `Notes/reports/invasion_action_probe6_vs_probe7_diff.txt`
+- `Notes/reports/invasion_action_probe_8.txt`
+- `Notes/reports/invasion_action_probe7_vs_probe8_diff.txt`
+
+### `BearAttackAction` decoding notes (finalized)
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edits:
+
+- `name=BearAttackAction`, `tag=7`, `baseName=ScenarioAction`
+- payload length in current samples: `45` bytes
+
+Final field mapping (high confidence):
+
+- `int32 @ payload +24` (packed) => `TargetFlagColorCode`
+  - observed: `2 = Blue`, `3 = Yellow`
+- `int32 @ payload +28` (packed) => `TargetFlagNumberCode` (zero-based)
+  - observed: `1 => flag #2`, `2 => flag #3`
+- `int32 @ payload +32` (packed) => `BearCount`
+  - observed: `9`
+
+Validation summary from controlled toggles:
+
+- Color-only change (`Blue -> Yellow`) updated only offset `24` (`2 -> 3`).
+- Flag-number-only change (`#2 -> #3`) updated only offset `28` (`1 -> 2`).
+- Bear count remained stable in color/flag-only toggles.
+
+Implementation status:
+
+- Parser now dispatches `BearAttackAction` and populates the three typed fields above.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_bear_run.txt`
+- `Notes/reports/bear_attack_action_probe_1.txt`
+- `Notes/reports/bear_attack_action_probe_2.txt`
+- `Notes/reports/bear_attack_action_probe1_vs_probe2_diff.txt`
+- `Notes/reports/bear_attack_action_probe_3.txt`
+- `Notes/reports/bear_attack_action_probe2_vs_probe3_diff.txt`
+
+### `CreateCriminalsAction` decoding notes (initial)
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=CreateCriminalsAction`, `tag=7`, `baseName=ScenarioAction`
+- payload length in this sample: `37` bytes
+
+Configured editor value for this sample:
+
+- Create criminals percent: `14%`
+
+Observed payload highlights (`Notes/reports/create_criminals_action_probe_1.txt`):
+
+- normalized int at payload offset `24` (int index `6`) is `14`
+  - high confidence candidate for `CreateCriminalsPercent`
+- normalized int at payload offset `20` (int index `5`) is `4`
+  - medium confidence candidate for action mode/family code (currently constant in this sample)
+
+Second toggle test (changed only percent: `14 -> 15`):
+
+- Changed bytes vs probe 1:
+  - payload byte `25`: `0E -> 0F`
+- Changed normalized int slot:
+  - offset `24` (int index `6`): `14 -> 15`
+- All other observed non-zero slots remained unchanged.
+
+Current confidence:
+
+- High confidence: payload offset `24` stores the configured percent value for `CreateCriminalsAction` (confirmed by direct `14 -> 15` toggle).
+- Medium confidence: payload offset `20` is a control/mode field; needs one comparison pair to confirm semantics.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_createcriminals_run.txt`
+- `Notes/reports/create_criminals_action_probe_1.txt`
+- `Notes/reports/create_criminals_action_probe_2.txt`
+- `Notes/reports/create_criminals_action_probe1_vs_probe2_diff.txt`
+
 - Trigger code behavior update (important):
   - the `triggerCode` field is currently behaving like a **scenario-local instance/order id** (tracks record id/order), not a stable global trigger-type enum.
   - evidence: after deselecting/reselecting `AllYourTroopsDead` and `PercentTroopsKilled`, their codes swapped again with ordering:

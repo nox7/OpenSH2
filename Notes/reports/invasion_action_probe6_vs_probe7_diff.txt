@@ -1,0 +1,4 @@
+byteOffset oldHex newHex
+181 01 02
+183 00 01
+187 01 00

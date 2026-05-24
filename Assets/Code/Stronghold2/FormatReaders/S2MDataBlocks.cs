@@ -413,6 +413,132 @@ namespace Assets.Code.Stronghold2.FormatReaders
   {
   }
 
+  public enum S2MStopInvasionsMode
+  {
+    Unknown = 0,
+    StopRepeatingInvasions = 1,
+    StopAllInvasions = 2,
+  }
+
+  public class S2MStopInvasionsAction : S2MScenarioAction
+  {
+    public int TargetLordSelector { get; set; }
+
+    public int ModeCode { get; set; }
+
+    public S2MStopInvasionsMode Mode { get; set; } = S2MStopInvasionsMode.Unknown;
+  }
+
+  public class S2MBearAttackAction : S2MScenarioAction
+  {
+    public int TargetFlagColorCode { get; set; }
+
+    // Stored as zero-based selector in current BearAttackAction samples.
+    public int TargetFlagNumberCode { get; set; }
+
+    public int BearCount { get; set; }
+  }
+
+  public class S2MCreateCriminalsAction : S2MScenarioAction
+  {
+    // Control/mode field observed at payload offset +20 in current samples.
+    public int ModeCode { get; set; }
+
+    // Percent configured in editor (for example, 14, 15) at payload offset +24.
+    public int CreateCriminalsPercent { get; set; }
+  }
+
+  public enum S2MInvasionTroopType
+  {
+    ArmedPeasant = 0,
+    Spearman = 1,
+    Archer = 2,
+    Pikeman = 3,
+    Maceman = 4,
+    Crossbowman = 5,
+    Swordsman = 6,
+    Knight = 7,
+    Monk = 8,
+    WarriorMonk = 9,
+    Ladderman = 10,
+    Engineer = 11,
+    Assassin = 12,
+    Outlaw = 13,
+    HorseArcher = 14,
+    Berserker = 15,
+    BoatWarrior = 16,
+    HorseCavalry = 17,
+    AxeThrower = 18,
+    SmallSiegeTower = 19,
+    LargeSiegeTower = 20,
+    BatteringRam = 21,
+    Cat = 22,
+    Trebuchet = 23,
+    Ballista = 24,
+    Catapult = 25,
+    Manglet = 26,
+    BurningCart = 27,
+  }
+
+  public enum S2MInvasionWarningType
+  {
+    Unknown = -1,
+    NoWarnings = 0,
+    EarlyWarnings = 1,
+    NormalMessages = 2,
+    FullWarnings = 3,
+  }
+
+  public enum S2MInvasionArmyType
+  {
+    Unknown = -1,
+    MovementArmy = 0,
+    SiegeArmy = 1,
+    DefensiveArmy = 2,
+    AttackingArmy = 3,
+  }
+
+  public class S2MInvasionAction : S2MScenarioAction
+  {
+    public int InvasionPointFlagColorCode { get; set; }
+
+    public int InvasionPointFlagNumber { get; set; }
+
+    public bool InvasionPointAnyFlagNumber { get; set; }
+
+    public int DestinationPointTypeCode { get; set; }
+
+    public int DestinationFlagColorCode { get; set; }
+
+    public int AttackTargetLordSelector { get; set; }
+
+    public int OwnerLordSelectorCode { get; set; }
+
+    public int WarningTypeCode { get; set; }
+
+    public S2MInvasionWarningType WarningType { get; set; } = S2MInvasionWarningType.Unknown;
+
+    public int ArmyTypeCode { get; set; }
+
+    public S2MInvasionArmyType ArmyType { get; set; } = S2MInvasionArmyType.Unknown;
+
+    public int RepeatCountCode { get; set; }
+
+    public int IncludeLordInArmyCode { get; set; }
+
+    public int LeaveMapCode { get; set; }
+
+    public int AttackModeCode0 { get; set; }
+
+    public int AttackModeCode1 { get; set; }
+
+    // Keep raw contiguous slot values until all troop-slot identities are fully locked.
+    public List<int> RawTroopSlotCounts { get; } = new List<int>();
+
+    // High-confidence troop mappings from current controlled tests.
+    public Dictionary<S2MInvasionTroopType, int> ConfirmedTroopCounts { get; } = new Dictionary<S2MInvasionTroopType, int>();
+  }
+
   public class S2MWorldPayload
   {
     public int ScanStartOffset { get; set; }

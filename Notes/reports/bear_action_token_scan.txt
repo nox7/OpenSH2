@@ -1,0 +1,2 @@
+start id name tag base
+1537 6 BearAttackAction 7 ScenarioAction

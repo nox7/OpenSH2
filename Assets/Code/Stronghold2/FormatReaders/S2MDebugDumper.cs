@@ -41,7 +41,7 @@ namespace Assets.Code.Stronghold2.FormatReaders
           lines.Add("  Actions:");
           foreach (var action in ev.Actions)
           {
-            lines.Add($"    - {action.GetType().Name} name={action.RecordName} id={action.RecordId} tag={action.Tag}");
+            lines.Add("    - " + FormatActionLine(action));
           }
         }
 
@@ -82,6 +82,51 @@ namespace Assets.Code.Stronghold2.FormatReaders
       }
 
       return string.Join(Environment.NewLine, lines);
+    }
+
+    private static string FormatActionLine(S2MScenarioAction action)
+    {
+      var prefix = $"{action.GetType().Name} name={action.RecordName} id={action.RecordId} tag={action.Tag}";
+
+      if (action is S2MStopInvasionsAction stopInvasions)
+      {
+        return prefix + $" targetLordSelector={stopInvasions.TargetLordSelector} modeCode={stopInvasions.ModeCode} mode={stopInvasions.Mode}";
+      }
+
+      if (action is S2MInvasionAction invasion)
+      {
+        var troopSummary = invasion.ConfirmedTroopCounts.Count == 0
+          ? "(none)"
+          : string.Join(",", invasion.ConfirmedTroopCounts
+            .OrderBy(kvp => kvp.Key)
+            .Select(kvp => $"{kvp.Key}:{kvp.Value}"));
+
+        return prefix
+          + $" invasionPointColor={invasion.InvasionPointFlagColorCode} invasionPointFlagNumber={invasion.InvasionPointFlagNumber} invasionPointAny={invasion.InvasionPointAnyFlagNumber}"
+          + $" destinationTypeCode={invasion.DestinationPointTypeCode} destinationColor={invasion.DestinationFlagColorCode}"
+          + $" attackTargetLordSelector={invasion.AttackTargetLordSelector} ownerLordSelectorCode={invasion.OwnerLordSelectorCode}"
+          + $" warningTypeCode={invasion.WarningTypeCode} warningType={invasion.WarningType} armyTypeCode={invasion.ArmyTypeCode} armyType={invasion.ArmyType}"
+          + $" repeatCountCode={invasion.RepeatCountCode} includeLordCode={invasion.IncludeLordInArmyCode} leaveMapCode={invasion.LeaveMapCode}"
+          + $" attackModeCode0={invasion.AttackModeCode0} attackModeCode1={invasion.AttackModeCode1}"
+          + $" confirmedTroops=[{troopSummary}]";
+      }
+
+      if (action is S2MBearAttackAction bearAttack)
+      {
+        return prefix
+          + $" targetFlagColorCode={bearAttack.TargetFlagColorCode}"
+          + $" targetFlagNumberCode={bearAttack.TargetFlagNumberCode}"
+          + $" bearCount={bearAttack.BearCount}";
+      }
+
+      if (action is S2MCreateCriminalsAction createCriminals)
+      {
+        return prefix
+          + $" modeCode={createCriminals.ModeCode}"
+          + $" createCriminalsPercent={createCriminals.CreateCriminalsPercent}";
+      }
+
+      return prefix;
     }
 
     private static string FormatTriggerLine(S2MScenarioTrigger trigger)
