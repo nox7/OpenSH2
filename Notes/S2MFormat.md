@@ -1056,7 +1056,6 @@ Token identity from latest `BinaryCheck-Triggers.s2m` edit:
 - `name=GongInvasionAction`, `tag=7`, `baseName=ScenarioAction`
 
 Probe result:
-
 - The payload includes three editable fields after a fixed structural word at `+20`.
 - `+24` holds the target flag color selector.
 - `+28` holds the target flag number selector, stored as a zero-based selector in current samples.
@@ -2312,6 +2311,521 @@ Evidence artifacts:
 
 - `Notes/reports/binarycheck_compare_kill_off_all_lords_troops_run.txt`
 - `Notes/reports/kill_all_lords_troops_action_probe_1_barclay.txt`
+
+### `ControlLordsAIAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=ControlLordsAIAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `38`.
+- Sample editor setting used:
+  - Target lord: `Lord Barclay`
+  - AI state: `Enabled`
+- Two-probe field mapping:
+  - `+20`: structural control code (`5` in this sample)
+  - `+24`: target lord selector (`3` in this sample; consistent with `Lord Barclay` in this selector family)
+  - `+29`: enabled/disabled byte (`1` for Enabled, `0` for Disabled in current samples)
+
+Two-probe confidence update (changed only AI state `Enabled -> Disabled`):
+
+- Probe-1 -> Probe-2 diff changed one byte:
+  - `+29: 01 -> 00`
+- Aligned int32 at `+28` changed normalized `2010881 -> 2010880` due to this byte toggle.
+- `+20` and `+24` remained stable (`5` and `3`), confirming target lord/control fields are independent of AI state.
+
+Current interpretation:
+
+- `ControlLordsAIAction` appears to encode a target-lord selector plus one enable/disable byte.
+- Mapping for `EnabledCode` is now two-probe confirmed:
+  - `0 = Disabled`
+  - `1 = Enabled`
+
+Implementation status:
+
+- Parser now recognizes `ControlLordsAIAction` and decodes control/lord selector/enabled fields.
+- Debug output prints all decoded fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_control_lords_ai_run.txt`
+- `Notes/reports/control_lords_ai_action_probe_1_barclay_enabled.txt`
+- `Notes/reports/control_lords_ai_action_probe_2_barclay_disabled.txt`
+- `Notes/reports/control_lords_ai_action_probe1_vs_probe2_enabled_to_disabled_diff.txt`
+
+### `ControlGateHousesAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=ControlGateHousesAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `46`.
+- Sample editor setting used:
+  - Target lord: `The Hawk`
+  - Gatehouse state: `Closed`
+  - Flag: `Blue #2`
+- Two-probe field mapping:
+  - `+20`: structural control code (`13` in this sample)
+  - `+24`: target lord selector (`4` in this sample; consistent with `The Hawk` in this selector family)
+  - `+29`: gatehouse state byte (`0 = Closed`, `1 = Open` in current samples)
+  - `+30`: flag color selector (`2` in this sample; consistent with `Blue`)
+  - `+34`: flag number selector (`1` in this sample; consistent with displayed `#2`, zero-based)
+
+Two-probe confidence update (changed only gatehouse state `Closed -> Open`):
+
+- Probe-1 -> Probe-2 diff changed one byte:
+  - `+29: 00 -> 01`
+- Aligned int32 at `+28` changed normalized `512 -> 513` due to this byte toggle.
+- `+20`, `+24`, `+30`, and `+34` remained stable, confirming state is independent of lord/flag selectors in this sample pair.
+
+Current interpretation:
+
+- `ControlGateHousesAction` appears to encode target-lord selection, gatehouse state, and a flag selector pair.
+- Gatehouse-state mapping is now two-probe confirmed:
+  - `0 = Closed`
+  - `1 = Open`
+
+Implementation status:
+
+- Parser now recognizes `ControlGateHousesAction` and decodes control/lord/state/flag fields.
+- Debug output prints all decoded fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_control_ai_gatehouses_run.txt`
+- `Notes/reports/control_gatehouses_action_probe_1_hawk_closed_blue2.txt`
+- `Notes/reports/control_gatehouses_action_probe_2_hawk_open_blue2.txt`
+- `Notes/reports/control_gatehouses_action_probe1_vs_probe2_closed_to_open_diff.txt`
+
+### `RushTroopsAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=RushTroopsAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor setting used:
+  - Target lord: `Olaf`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: target lord selector (`2` in this sample; consistent with `Olaf` in this selector family)
+
+Current interpretation:
+
+- `RushTroopsAction` appears to encode one target-lord selector plus one structural control field.
+- One lord-toggle confirmation pair is still needed to promote this mapping to two-probe confirmed.
+
+Implementation status:
+
+- Parser now recognizes `RushTroopsAction` and decodes control/lord selector fields.
+- Debug output prints the decoded fields.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_ai_troops_charge_if_aggressive_run.txt`
+- `Notes/reports/rush_troops_action_probe_1_olaf.txt`
+
+### `AITroopRetreatAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=AITroopRetreatAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `54`.
+- Sample editor settings used:
+  - Target lord: `Barclay`
+  - Retreat flag: `Yellow #7`
+  - Leave map: `Don't leave map`
+- Four-probe field mapping:
+  - `+20`: structural control code (`12` in this sample)
+  - `+24`: retreat flag color selector
+  - `+28`: retreat flag number selector (`6` in this sample; consistent with displayed `#7`, zero-based)
+  - `+32`: target lord selector (`3` in current samples; consistent with `Barclay`)
+  - `+45`: leave-map mode byte (`0` in stay sample, `1` in leave sample)
+  - `+40`: additional control code candidate (`1` in this sample)
+
+Probe updates:
+
+- Probe-1 (`Yellow`, stay) -> Probe-2 (`Blue`, leave):
+  - changed `+24: 3 -> 2` and `+45: 0 -> 1`
+- Probe-2 (`Blue`, leave) -> Probe-3 (`Blue`, stay):
+  - changed `+45: 1 -> 0` only
+- Probe-3 (`Blue`, stay) -> Probe-4 (`Red`, stay):
+  - changed `+24: 2 -> 0` only
+
+Current interpretation:
+
+- `AITroopRetreatAction` appears to encode target-lord and retreat-flag selectors.
+- Corrected mapping based on your invariant (lord remained Barclay) plus probe deltas:
+  - `+24` is retreat flag color selector with observed values:
+    - `Yellow = 3`
+    - `Blue = 2`
+    - `Red = 0`
+  - `+28` is retreat flag number selector (`#7 -> 6`, zero-based)
+  - `+32` is target lord selector (`Barclay = 3` in current probes)
+- Leave-map byte at `+45` is now confirmed from a clean one-field toggle pair:
+  - `0 = Don't leave map`
+  - `1 = Leave map`
+
+Three-probe confirmation update (changed only leave-map `Leave -> Don't leave`):
+
+- Probe-2 -> Probe-3 diff changed one byte:
+  - `+45: 01 -> 00`
+- Aligned int32 at `+44` changed normalized `2010881 -> 2010880` due to this byte toggle.
+- Lord and flag selectors remained stable in this pair.
+
+Four-probe confirmation update (changed only color `Blue -> Red`):
+
+- Probe-3 -> Probe-4 diff changed one byte:
+  - `+25: 02 -> 00`
+- Aligned int32 at `+24` changed normalized `2 -> 0`, confirming color selector behavior.
+
+Implementation status:
+
+- Parser now recognizes `AITroopRetreatAction` and decodes current fields (including confirmed leave-map byte).
+- Debug output prints all decoded values for follow-up confirmation.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_ai_troop_retreat_run.txt`
+- `Notes/reports/ai_troop_retreat_action_probe_1_barclay_yellow7_stay.txt`
+- `Notes/reports/ai_troop_retreat_action_probe_2_barclay_blue7_leave.txt`
+- `Notes/reports/ai_troop_retreat_action_probe1_vs_probe2_stayyellow_to_leaveblue_diff.txt`
+- `Notes/reports/ai_troop_retreat_action_probe_3_barclay_blue7_stay.txt`
+- `Notes/reports/ai_troop_retreat_action_probe2_vs_probe3_leave_to_stay_diff.txt`
+- `Notes/reports/ai_troop_retreat_action_probe_4_barclay_red7_stay.txt`
+- `Notes/reports/ai_troop_retreat_action_probe3_vs_probe4_blue_to_red_diff.txt`
+
+### `PauseSiegesAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=PauseSiegesAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `46`.
+- Sample editor settings used:
+  - Target lord: `Olaf`
+  - Siege flag: `Yellow #2`
+  - Siege state: `Pause`
+- Two-probe field mapping:
+  - `+20`: structural control code (`13` in this sample)
+  - `+24`: siege flag color selector (`3` in this sample; consistent with `Yellow`)
+  - `+28`: siege flag number selector (`1` in this sample; consistent with displayed `#2`, zero-based)
+  - `+32`: target lord selector (`2` in this sample; consistent with `Olaf`)
+  - `+36`: pause/resume byte (`1 = Pause`, `0 = Resume` in current samples)
+
+Two-probe confidence update (changed only `Pause -> Resume`):
+
+- Probe-1 -> Probe-2 diff changed one byte:
+  - `+37: 01 -> 00`
+- Aligned int32 at `+36` changed normalized `2010881 -> 2010880` due to this byte toggle.
+- Lord and flag selector fields remained stable in this pair.
+
+Current interpretation:
+
+- `PauseSiegesAction` appears to encode one target-lord selector, one flag selector pair, and one pause/resume byte.
+- Lord and flag selectors are high confidence for this sample.
+- Pause/resume mapping is now two-probe confirmed:
+  - `1 = Pause`
+  - `0 = Resume`
+
+Implementation status:
+
+- Parser now recognizes `PauseSiegesAction` and decodes current fields (including confirmed pause/resume mapping).
+- Debug output prints all decoded values.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_pause_sieges_run.txt`
+- `Notes/reports/pause_sieges_action_probe_1_olaf_yellow2_pause.txt`
+- `Notes/reports/pause_sieges_action_probe_2_olaf_yellow2_resume.txt`
+- `Notes/reports/pause_sieges_action_probe1_vs_probe2_pause_to_resume_diff.txt`
+
+### `SuperAggressiveTroopsAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SuperAggressiveTroopsAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `45`.
+- Sample editor settings used:
+  - Target lord: `Olaf`
+  - Aggression flag: `Yellow #3`
+- Two-probe field mapping:
+  - `+20`: structural control code (`12` in this sample)
+  - `+24`: aggression flag color selector (`3` in this sample; consistent with `Yellow`)
+  - `+28`: aggression flag number selector (`2` in this sample; consistent with displayed `#3`, zero-based)
+  - `+32`: target lord selector (`2` for `Olaf`, `4` for `The Hawk` in current samples)
+
+Two-probe confidence update (changed only target lord `Olaf -> The Hawk`):
+
+- Probe-1 -> Probe-2 diff changed one byte:
+  - `+33: 02 -> 04`
+- Aligned int32 at `+32` changed normalized `2 -> 4`.
+- Flag selector fields at `+24/+28` remained stable in this pair.
+
+Current interpretation:
+
+- `SuperAggressiveTroopsAction` appears to encode one target-lord selector and one flag selector pair.
+- This mapping now has two-probe confirmation for target-lord selector behavior.
+- A color or flag-number one-field toggle is still recommended to confirm selector semantics for additional values.
+
+Implementation status:
+
+- Parser now recognizes `SuperAggressiveTroopsAction` and decodes current fields.
+- Debug output prints all decoded values.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_make_troops_super_aggressive_run.txt`
+- `Notes/reports/super_aggressive_troops_action_probe_1_olaf_yellow3.txt`
+- `Notes/reports/super_aggressive_troops_action_probe_2_hawk_yellow3.txt`
+- `Notes/reports/super_aggressive_troops_action_probe1_vs_probe2_olaf_to_hawk_diff.txt`
+
+### `SetRankAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SetRankAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor settings used:
+  - Rank: `Royal Champion`
+  - Rank: `Duke`
+- Two-probe field mapping:
+  - `+20`: structural control code (`4` in both samples)
+  - `+24`: rank selector code (`6` for `Royal Champion`, `9` for `Duke`)
+
+Two-probe confidence update (changed only rank `Royal Champion -> Duke`):
+
+- Probe-1 -> Probe-2 diff changed one byte:
+  - `+25: 06 -> 09`
+- Aligned int32 at `+24` changed normalized `6 -> 9`.
+- Control field at `+20` remained stable in this pair.
+
+Current interpretation:
+
+- `SetRankAction` appears to encode one rank selector value.
+- Based on editor ordering, selector codes are currently interpreted as:
+  - `0=Freeman`
+  - `1=Yeoman`
+  - `2=Squire`
+  - `3=Knight`
+  - `4=Knight Bachelor`
+  - `5=Knight Erran`
+  - `6=Royal Champion`
+  - `7=Baron`
+  - `8=Earl`
+  - `9=Duke`
+- Selector mapping for `Royal Champion` and `Duke` is now two-probe confirmed.
+
+Implementation status:
+
+- Parser now recognizes `SetRankAction` and decodes control/rank fields.
+- Debug output prints the rank selector code and mapped rank enum.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_set_rank_run.txt`
+- `Notes/reports/set_rank_action_probe_1_royal_champion.txt`
+- `Notes/reports/set_rank_action_probe_2_duke.txt`
+- `Notes/reports/set_rank_action_probe1_vs_probe2_royal_champion_to_duke_diff.txt`
+
+### `SetHonourAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=SetHonourAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor setting used:
+  - Honour: `60`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: honour value (`60` in this sample)
+
+Current interpretation:
+
+- `SetHonourAction` appears to encode one honour value field.
+- One additional probe with a different honour value is recommended to confirm linear selector/value behavior.
+
+Implementation status:
+
+- Parser now recognizes `SetHonourAction` and decodes control/honour fields.
+- Debug output prints the decoded honour value.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_set_honor_run.txt`
+- `Notes/reports/set_honour_action_probe_1_60.txt`
+
+### `GiveHonourAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=GiveHonourAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor setting used:
+  - Honour: `40`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: honour amount (`40` in this sample)
+
+Current interpretation:
+
+- `GiveHonourAction` appears to encode one honour amount field.
+- One additional probe with a different honour value is recommended to confirm linear selector/value behavior.
+
+Implementation status:
+
+- Parser now recognizes `GiveHonourAction` and decodes control/honour fields.
+- Debug output prints the decoded honour amount.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_give_honor_run.txt`
+- `Notes/reports/give_honour_action_probe_1_40.txt`
+
+### `GiveGoldAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=GiveGoldAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `37`.
+- Sample editor setting used:
+  - Gold: `140`
+- Current single-sample field mapping:
+  - `+20`: structural control code (`4` in this sample)
+  - `+24`: gold amount (`140` in this sample)
+
+Current interpretation:
+
+- `GiveGoldAction` appears to encode one gold amount field.
+- One additional probe with a different gold value is recommended to confirm linear selector/value behavior.
+
+Implementation status:
+
+- Parser now recognizes `GiveGoldAction` and decodes control/gold fields.
+- Debug output prints the decoded gold amount.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_give_gold_run.txt`
+- `Notes/reports/give_gold_action_probe_1_140.txt`
+
+### `MoveShipAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=MoveShipAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `95`.
+- Sample editor settings used (in UI order):
+  - Waypoint 1: `Red #4`, value `2`
+  - Waypoint 2: `Off #1`, value `0`
+  - Waypoint 3: `Blue #2`, value `5`
+  - Waypoint 4: `Off #1`, value `1`
+  - Destination flag: `Green #1`
+  - Ship type: `Trade Ship` (probe-1) -> `Viking Ship` (probe-2)
+  - Exit mode: `Leave Map` (probe-1/2) -> `Turn to wreck` (probe-3)
+- Current three-probe field mapping (ship/exit confirmed):
+  - `+20`: structural control code (`62` in this sample)
+  - `+24/+28/+32`: waypoint 1 color / number / value (`0`, `3`, `2`)
+  - `+36/+40/+44`: waypoint 2 color / number / value (`-1`, `0`, `0`)
+  - `+48/+52/+56`: waypoint 3 color / number / value (`2`, `1`, `5`)
+  - `+60/+64/+68`: waypoint 4 color / number / value (`-1`, `0`, `1`)
+  - `+72/+76`: destination color / number (`1`, `0`)
+  - `+85`: ship-type selector (`1 = Trade Ship`, `0 = Viking Ship` in current samples)
+  - `+86`: exit-mode selector (`0 = Leave Map`, `1 = Turn to wreck` in current samples)
+  - `+84`: additional trailing option/control byte (`0` in current probes)
+
+Two-probe confidence update (changed only `Trade Ship -> Viking Ship`):
+
+- Probe-1 -> Probe-2 diff changed one byte:
+  - `+85: 01 -> 00`
+- No waypoint or destination fields changed in this pair.
+
+Three-probe confidence update (changed only `Leave Map -> Turn to wreck`):
+
+- Probe-2 -> Probe-3 diff changed one byte:
+  - `+86: 00 -> 01`
+- No waypoint, destination, or ship-type fields changed in this pair.
+
+Current interpretation:
+
+- `MoveShipAction` appears to encode four waypoint triplets (color, number, value), one destination flag pair, then ship/leave options.
+- This action uses mixed packed selector forms in the current sample:
+  - standard packed values (`N * 256`)
+  - zero sometimes encoded as `0x000000FF`
+  - `Off` color observed as `-256` (`0xFFFFFF00`), normalized to `-1`
+- `Off` handling is now explicitly decoded for this action.
+- Ship type offset/mapping is now two-probe confirmed.
+- Exit mode offset/mapping is now confirmed from the leave/turn-to-wreck toggle probe.
+
+Implementation status:
+
+- Parser now recognizes `MoveShipAction` and decodes all current candidate fields (with confirmed ship-type and exit-mode decoding).
+- Debug output prints all decoded waypoint, destination, ship-type, and trailing option values.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_move_ship_run.txt`
+- `Notes/reports/move_ship_action_probe_1_complex_profile.txt`
+- `Notes/reports/move_ship_action_probe_2_viking_ship.txt`
+- `Notes/reports/move_ship_action_probe1_vs_probe2_trade_to_viking_diff.txt`
+- `Notes/reports/move_ship_action_probe_3_viking_turn_to_wreck.txt`
+- `Notes/reports/move_ship_action_probe2_vs_probe3_leave_to_wreck_diff.txt`
+
+### `TimeUntilFinalInvasionAction` decoding notes
+
+Token identity from latest `BinaryCheck-Triggers.s2m` edit:
+
+- `name=TimeUntilFinalInvasionAction`, `tag=7`, `baseName=ScenarioAction`
+
+Probe result:
+
+- Payload length is `25`.
+- No editable body fields were observed for this action in the current probe.
+- Payload bytes contain only the standard structural/header words and trailer values seen in other existence-only actions.
+
+Current interpretation:
+
+- `TimeUntilFinalInvasionAction` is currently modeled as an existence-only action token.
+- The parser preserves raw payload words, but no typed action fields are decoded yet.
+
+Implementation status:
+
+- Parser now recognizes `TimeUntilFinalInvasionAction`.
+- Debug output includes this action token as an existence-only action.
+
+Evidence artifacts:
+
+- `Notes/reports/binarycheck_compare_time_until_final_invasion_run.txt`
+- `Notes/reports/time_until_final_invasion_action_probe_1.txt`
 
 - Trigger code behavior update (important):
   - the `triggerCode` field is currently behaving like a **scenario-local instance/order id** (tracks record id/order), not a stable global trigger-type enum.

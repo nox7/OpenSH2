@@ -386,6 +386,124 @@ namespace Assets.Code.Stronghold2.FormatReaders
           + $" targetLordSelector={killAllLordsTroops.TargetLordSelector}";
       }
 
+      if (action is S2MControlLordsAIAction controlLordsAi)
+      {
+        return prefix
+          + $" controlCode={controlLordsAi.ControlCode}"
+          + $" targetLordSelector={controlLordsAi.TargetLordSelector}"
+          + $" enabledCode={controlLordsAi.EnabledCode}"
+          + $" isEnabled={controlLordsAi.IsEnabled}";
+      }
+
+      if (action is S2MControlGateHousesAction controlGateHouses)
+      {
+        return prefix
+          + $" controlCode={controlGateHouses.ControlCode}"
+          + $" targetLordSelector={controlGateHouses.TargetLordSelector}"
+          + $" gateHouseStateCode={controlGateHouses.GateHouseStateCode}"
+          + $" gateHouseState={controlGateHouses.GateHouseState}"
+          + $" flagColorCode={controlGateHouses.FlagColorCode}"
+          + $" flagNumberCode={controlGateHouses.FlagNumberCode}";
+      }
+
+      if (action is S2MRushTroopsAction rushTroops)
+      {
+        return prefix
+          + $" controlCode={rushTroops.ControlCode}"
+          + $" targetLordSelector={rushTroops.TargetLordSelector}";
+      }
+
+      if (action is S2MAITroopRetreatAction aiTroopRetreat)
+      {
+        return prefix
+          + $" controlCode={aiTroopRetreat.ControlCode}"
+          + $" targetLordSelector={aiTroopRetreat.TargetLordSelector}"
+          + $" retreatFlagNumberCode={aiTroopRetreat.RetreatFlagNumberCode}"
+          + $" retreatFlagColorCode={aiTroopRetreat.RetreatFlagColorCode}"
+          + $" leaveMapCode={aiTroopRetreat.LeaveMapCode}"
+          + $" retreatControlCode={aiTroopRetreat.RetreatControlCode}";
+      }
+
+      if (action is S2MPauseSiegesAction pauseSieges)
+      {
+        return prefix
+          + $" controlCode={pauseSieges.ControlCode}"
+          + $" siegeFlagColorCode={pauseSieges.SiegeFlagColorCode}"
+          + $" siegeFlagNumberCode={pauseSieges.SiegeFlagNumberCode}"
+          + $" targetLordSelector={pauseSieges.TargetLordSelector}"
+          + $" pauseStateCode={pauseSieges.PauseStateCode}"
+          + $" pauseState={pauseSieges.PauseState}";
+      }
+
+      if (action is S2MSuperAggressiveTroopsAction superAggressiveTroops)
+      {
+        return prefix
+          + $" controlCode={superAggressiveTroops.ControlCode}"
+          + $" aggressionFlagColorCode={superAggressiveTroops.AggressionFlagColorCode}"
+          + $" aggressionFlagNumberCode={superAggressiveTroops.AggressionFlagNumberCode}"
+          + $" targetLordSelector={superAggressiveTroops.TargetLordSelector}";
+      }
+
+      if (action is S2MSetRankAction setRank)
+      {
+        return prefix
+          + $" controlCode={setRank.ControlCode}"
+          + $" rankCode={setRank.RankCode}"
+          + $" rank={setRank.Rank}";
+      }
+
+      if (action is S2MSetHonourAction setHonour)
+      {
+        return prefix
+          + $" controlCode={setHonour.ControlCode}"
+          + $" honour={setHonour.Honour}";
+      }
+
+      if (action is S2MGiveHonourAction giveHonour)
+      {
+        return prefix
+          + $" controlCode={giveHonour.ControlCode}"
+          + $" honourAmount={giveHonour.HonourAmount}";
+      }
+
+      if (action is S2MGiveGoldAction giveGold)
+      {
+        return prefix
+          + $" controlCode={giveGold.ControlCode}"
+          + $" goldAmount={giveGold.GoldAmount}";
+      }
+
+      if (action is S2MMoveShipAction moveShip)
+      {
+        return prefix
+          + $" controlCode={moveShip.ControlCode}"
+          + $" wp1Color={moveShip.Waypoint1FlagColorCode}"
+          + $" wp1Number={moveShip.Waypoint1FlagNumberCode}"
+          + $" wp1Value={moveShip.Waypoint1Value}"
+          + $" wp2Color={moveShip.Waypoint2FlagColorCode}"
+          + $" wp2Number={moveShip.Waypoint2FlagNumberCode}"
+          + $" wp2Value={moveShip.Waypoint2Value}"
+          + $" wp3Color={moveShip.Waypoint3FlagColorCode}"
+          + $" wp3Number={moveShip.Waypoint3FlagNumberCode}"
+          + $" wp3Value={moveShip.Waypoint3Value}"
+          + $" wp4Color={moveShip.Waypoint4FlagColorCode}"
+          + $" wp4Number={moveShip.Waypoint4FlagNumberCode}"
+          + $" wp4Value={moveShip.Waypoint4Value}"
+          + $" destColor={moveShip.DestinationFlagColorCode}"
+          + $" destNumber={moveShip.DestinationFlagNumberCode}"
+          + $" shipTypeCode={moveShip.ShipTypeCode}"
+          + $" shipType={moveShip.ShipType}"
+            + $" exitModeCode={moveShip.ExitModeCode}"
+            + $" exitMode={moveShip.ExitMode}"
+          + $" optionByte84={moveShip.OptionControlByte0}"
+            ;
+      }
+
+      if (action is S2MTimeUntilFinalInvasionAction)
+      {
+        return prefix;
+      }
+
       if (action is S2MRedirectVillageOutputAction redirectVillageOutput)
       {
         return prefix

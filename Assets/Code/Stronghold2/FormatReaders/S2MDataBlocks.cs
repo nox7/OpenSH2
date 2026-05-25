@@ -958,8 +958,228 @@ namespace Assets.Code.Stronghold2.FormatReaders
     // Structural control/mode family code observed at payload offset +20.
     public int ControlCode { get; set; }
 
+    // Lord selector observed at payload offset +32 in current probes.
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MControlLordsAIAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
     // Lord selector observed at payload offset +24.
     public int TargetLordSelector { get; set; }
+
+    // Enable/disable byte observed at payload offset +29 in current sample.
+    public int EnabledCode { get; set; }
+
+    public bool? IsEnabled { get; set; }
+  }
+
+  public enum S2MGateHouseState
+  {
+    Closed = 0,
+    Open = 1,
+  }
+
+  public class S2MControlGateHousesAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Lord selector observed at payload offset +24.
+    public int TargetLordSelector { get; set; }
+
+    // Gatehouse state byte observed at payload offset +29 in current samples.
+    public int GateHouseStateCode { get; set; }
+
+    public S2MGateHouseState? GateHouseState { get; set; }
+
+    // Flag color selector observed at payload offset +30 in current samples.
+    public int FlagColorCode { get; set; }
+
+    // Flag number selector observed at payload offset +34 in current samples.
+    public int FlagNumberCode { get; set; }
+  }
+
+  public class S2MRushTroopsAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Lord selector observed at payload offset +24.
+    public int TargetLordSelector { get; set; }
+  }
+
+  public class S2MAITroopRetreatAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Lord selector observed at payload offset +24.
+    public int TargetLordSelector { get; set; }
+
+    // Flag number selector observed at payload offset +28 (zero-based in current sample).
+    public int RetreatFlagNumberCode { get; set; }
+
+    // Flag color selector observed at payload offset +24 in current probes.
+    public int RetreatFlagColorCode { get; set; }
+
+    // Leave-map mode byte observed at payload offset +45 in current samples.
+    public int LeaveMapCode { get; set; }
+
+    // Additional control byte observed at payload offset +40 in current sample.
+    public int RetreatControlCode { get; set; }
+  }
+
+  public enum S2MSiegePauseState
+  {
+    Resume = 0,
+    Pause = 1,
+  }
+
+  public class S2MPauseSiegesAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Retreat flag color selector observed at payload offset +24.
+    public int SiegeFlagColorCode { get; set; }
+
+    // Retreat flag number selector observed at payload offset +28 (zero-based in current sample).
+    public int SiegeFlagNumberCode { get; set; }
+
+    // Lord selector observed at payload offset +32.
+    public int TargetLordSelector { get; set; }
+
+    // Pause/resume byte candidate observed at payload offset +36 in current sample.
+    public int PauseStateCode { get; set; }
+
+    public S2MSiegePauseState? PauseState { get; set; }
+  }
+
+  public class S2MSuperAggressiveTroopsAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Flag color selector observed at payload offset +24.
+    public int AggressionFlagColorCode { get; set; }
+
+    // Flag number selector observed at payload offset +28 (zero-based in current sample).
+    public int AggressionFlagNumberCode { get; set; }
+
+    // Lord selector observed at payload offset +32.
+    public int TargetLordSelector { get; set; }
+  }
+
+  public enum S2MRank
+  {
+    Freeman = 0,
+    Yeoman = 1,
+    Squire = 2,
+    Knight = 3,
+    KnightBachelor = 4,
+    KnightErran = 5,
+    RoyalChampion = 6,
+    Baron = 7,
+    Earl = 8,
+    Duke = 9,
+  }
+
+  public class S2MSetRankAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Rank selector code observed at payload offset +24.
+    public int RankCode { get; set; }
+
+    public S2MRank? Rank { get; set; }
+  }
+
+  public class S2MSetHonourAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Honour value observed at payload offset +24.
+    public int Honour { get; set; }
+  }
+
+  public class S2MGiveHonourAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Honour amount observed at payload offset +24.
+    public int HonourAmount { get; set; }
+  }
+
+  public class S2MGiveGoldAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Gold amount observed at payload offset +24.
+    public int GoldAmount { get; set; }
+  }
+
+  public enum S2MMoveShipType
+  {
+    VikingShip = 0,
+    TradeShip = 1,
+  }
+
+  public enum S2MMoveShipExitMode
+  {
+    LeaveMap = 0,
+    TurnToWreck = 1,
+  }
+
+  public class S2MMoveShipAction : S2MScenarioAction
+  {
+    // Structural control/mode family code observed at payload offset +20.
+    public int ControlCode { get; set; }
+
+    // Waypoint 1: flag color selector, flag number selector (zero-based), and value.
+    public int Waypoint1FlagColorCode { get; set; }
+    public int Waypoint1FlagNumberCode { get; set; }
+    public int Waypoint1Value { get; set; }
+
+    // Waypoint 2: flag color selector, flag number selector (zero-based), and value.
+    public int Waypoint2FlagColorCode { get; set; }
+    public int Waypoint2FlagNumberCode { get; set; }
+    public int Waypoint2Value { get; set; }
+
+    // Waypoint 3: flag color selector, flag number selector (zero-based), and value.
+    public int Waypoint3FlagColorCode { get; set; }
+    public int Waypoint3FlagNumberCode { get; set; }
+    public int Waypoint3Value { get; set; }
+
+    // Waypoint 4: flag color selector, flag number selector (zero-based), and value.
+    public int Waypoint4FlagColorCode { get; set; }
+    public int Waypoint4FlagNumberCode { get; set; }
+    public int Waypoint4Value { get; set; }
+
+    // Destination flag selector pair (no extra value field in editor).
+    public int DestinationFlagColorCode { get; set; }
+    public int DestinationFlagNumberCode { get; set; }
+
+    // Ship type selector observed at payload offset +85.
+    public int ShipTypeCode { get; set; }
+    public S2MMoveShipType? ShipType { get; set; }
+
+    // Exit mode selector observed at payload offset +86.
+    public int ExitModeCode { get; set; }
+    public S2MMoveShipExitMode? ExitMode { get; set; }
+
+    // Additional trailing option/control byte observed near the payload trailer (+84).
+    public int OptionControlByte0 { get; set; }
+  }
+
+  public class S2MTimeUntilFinalInvasionAction : S2MScenarioAction
+  {
   }
 
   public class S2MBadWeatherAction : S2MScenarioAction

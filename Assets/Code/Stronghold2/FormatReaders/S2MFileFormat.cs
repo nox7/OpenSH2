@@ -692,6 +692,66 @@ namespace Assets.Code.Stronghold2.FormatReaders
         return ParseKillAllLordsTroopsAction(record);
       }
 
+      if (record.Name == "ControlLordsAIAction")
+      {
+        return ParseControlLordsAIAction(record);
+      }
+
+      if (record.Name == "ControlGateHousesAction")
+      {
+        return ParseControlGateHousesAction(record);
+      }
+
+      if (record.Name == "RushTroopsAction")
+      {
+        return ParseRushTroopsAction(record);
+      }
+
+      if (record.Name == "AITroopRetreatAction")
+      {
+        return ParseAITroopRetreatAction(record);
+      }
+
+      if (record.Name == "PauseSiegesAction")
+      {
+        return ParsePauseSiegesAction(record);
+      }
+
+      if (record.Name == "SuperAggressiveTroopsAction")
+      {
+        return ParseSuperAggressiveTroopsAction(record);
+      }
+
+      if (record.Name == "SetRankAction")
+      {
+        return ParseSetRankAction(record);
+      }
+
+      if (record.Name == "SetHonourAction")
+      {
+        return ParseSetHonourAction(record);
+      }
+
+      if (record.Name == "GiveHonourAction")
+      {
+        return ParseGiveHonourAction(record);
+      }
+
+      if (record.Name == "GiveGoldAction")
+      {
+        return ParseGiveGoldAction(record);
+      }
+
+      if (record.Name == "MoveShipAction")
+      {
+        return ParseMoveShipAction(record);
+      }
+
+      if (record.Name == "TimeUntilFinalInvasionAction")
+      {
+        return ParseTimeUntilFinalInvasionAction(record);
+      }
+
       if (record.Name == "RedirectVillageOutputAction")
       {
         return ParseRedirectVillageOutputAction(record);
@@ -1913,6 +1973,365 @@ namespace Assets.Code.Stronghold2.FormatReaders
       return action;
     }
 
+    private static S2MControlLordsAIAction ParseControlLordsAIAction(S2MTokenRecord record)
+    {
+      var action = new S2MControlLordsAIAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for ControlLordsAIAction:
+      // - +20: structural control code
+      // - +24: target lord selector
+      // - +29: enabled/disabled byte
+      // Sample used: target lord = Lord Barclay, enabled = true
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.EnabledCode = ReadByteAt(record.PayloadBytes, 29);
+
+      if (action.EnabledCode == 0)
+      {
+        action.IsEnabled = false;
+      }
+      else if (action.EnabledCode == 1)
+      {
+        action.IsEnabled = true;
+      }
+
+      return action;
+    }
+
+    private static S2MControlGateHousesAction ParseControlGateHousesAction(S2MTokenRecord record)
+    {
+      var action = new S2MControlGateHousesAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for ControlGateHousesAction:
+      // - +20: structural control code
+      // - +24: target lord selector
+      // - +29: gatehouse state byte
+      // - +30: flag color selector
+      // - +34: flag number selector (zero-based in current samples)
+      // Samples used: target lord = The Hawk, state Closed/Open, flag = Blue #2
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.GateHouseStateCode = ReadByteAt(record.PayloadBytes, 29);
+      action.FlagColorCode = ReadByteAt(record.PayloadBytes, 30);
+      action.FlagNumberCode = ReadByteAt(record.PayloadBytes, 34);
+
+      if (action.GateHouseStateCode == 0)
+      {
+        action.GateHouseState = S2MGateHouseState.Closed;
+      }
+      else if (action.GateHouseStateCode == 1)
+      {
+        action.GateHouseState = S2MGateHouseState.Open;
+      }
+
+      return action;
+    }
+
+    private static S2MRushTroopsAction ParseRushTroopsAction(S2MTokenRecord record)
+    {
+      var action = new S2MRushTroopsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for RushTroopsAction:
+      // - +20: structural control code
+      // - +24: target lord selector
+      // Sample used: target lord = Olaf
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MAITroopRetreatAction ParseAITroopRetreatAction(S2MTokenRecord record)
+    {
+      var action = new S2MAITroopRetreatAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for AITroopRetreatAction:
+      // - +20: structural control code
+      // - +24: retreat flag color selector
+      // - +28: retreat flag number selector (zero-based)
+      // - +32: target lord selector
+      // - +45: leave-map mode byte
+      // - +40: additional control code candidate
+      // Samples used: Barclay/(Yellow|Blue|Red)#7/(stay|leave)
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.RetreatFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.RetreatFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.LeaveMapCode = ReadByteAt(record.PayloadBytes, 45);
+      action.RetreatControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 40));
+
+      return action;
+    }
+
+    private static S2MPauseSiegesAction ParsePauseSiegesAction(S2MTokenRecord record)
+    {
+      var action = new S2MPauseSiegesAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for PauseSiegesAction:
+      // - +20: structural control code
+      // - +24: siege flag color selector
+      // - +28: siege flag number selector (zero-based)
+      // - +32: target lord selector
+      // - +36: pause/resume byte candidate
+      // Sample used: Olaf, Yellow #2, Pause
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.SiegeFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.SiegeFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+      action.PauseStateCode = ReadByteAt(record.PayloadBytes, 36);
+
+      if (action.PauseStateCode == 0)
+      {
+        action.PauseState = S2MSiegePauseState.Resume;
+      }
+      else if (action.PauseStateCode == 1)
+      {
+        action.PauseState = S2MSiegePauseState.Pause;
+      }
+
+      return action;
+    }
+
+    private static S2MSuperAggressiveTroopsAction ParseSuperAggressiveTroopsAction(S2MTokenRecord record)
+    {
+      var action = new S2MSuperAggressiveTroopsAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for SuperAggressiveTroopsAction:
+      // - +20: structural control code
+      // - +24: aggression flag color selector
+      // - +28: aggression flag number selector (zero-based)
+      // - +32: target lord selector
+      // Samples used: Olaf/Yellow#3 and The Hawk/Yellow#3
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.AggressionFlagColorCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+      action.AggressionFlagNumberCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 28));
+      action.TargetLordSelector = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+
+      return action;
+    }
+
+    private static S2MSetRankAction ParseSetRankAction(S2MTokenRecord record)
+    {
+      var action = new S2MSetRankAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current two-probe mapping for SetRankAction:
+      // - +20: structural control code
+      // - +24: rank selector code
+      // Samples used: Royal Champion and Duke
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.RankCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      if (action.RankCode >= (int)S2MRank.Freeman && action.RankCode <= (int)S2MRank.Duke)
+      {
+        action.Rank = (S2MRank)action.RankCode;
+      }
+
+      return action;
+    }
+
+    private static S2MSetHonourAction ParseSetHonourAction(S2MTokenRecord record)
+    {
+      var action = new S2MSetHonourAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for SetHonourAction:
+      // - +20: structural control code
+      // - +24: honour value
+      // Sample used: honour=60
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.Honour = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MGiveHonourAction ParseGiveHonourAction(S2MTokenRecord record)
+    {
+      var action = new S2MGiveHonourAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for GiveHonourAction:
+      // - +20: structural control code
+      // - +24: honour amount
+      // Sample used: honour=40
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.HonourAmount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MGiveGoldAction ParseGiveGoldAction(S2MTokenRecord record)
+    {
+      var action = new S2MGiveGoldAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current single-sample mapping for GiveGoldAction:
+      // - +20: structural control code
+      // - +24: gold amount
+      // Sample used: gold=140
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+      action.GoldAmount = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 24));
+
+      return action;
+    }
+
+    private static S2MMoveShipAction ParseMoveShipAction(S2MTokenRecord record)
+    {
+      var action = new S2MMoveShipAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+
+      // Current three-probe mapping for MoveShipAction (ship/exit confirmed):
+      // - +20: structural control code
+      // - +24/+28/+32: waypoint 1 flag color / flag number / value
+      // - +36/+40/+44: waypoint 2 flag color / flag number / value
+      // - +48/+52/+56: waypoint 3 flag color / flag number / value
+      // - +60/+64/+68: waypoint 4 flag color / flag number / value
+      // - +72/+76: destination flag color / flag number
+      // - +85: ship type selector (1=Trade Ship, 0=Viking Ship in current samples)
+      // - +86: exit mode selector (0=Leave Map, 1=Turn to wreck in current samples)
+      // - +84: additional trailing option/control byte observed in current probes.
+      // Samples used: complex profile, ship-type toggle, and leave/turn-to-wreck toggle.
+      action.ControlCode = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 20));
+
+      action.Waypoint1FlagColorCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 24));
+      action.Waypoint1FlagNumberCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 28));
+      action.Waypoint1Value = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 32));
+
+      action.Waypoint2FlagColorCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 36));
+      action.Waypoint2FlagNumberCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 40));
+      action.Waypoint2Value = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 44));
+
+      action.Waypoint3FlagColorCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 48));
+      action.Waypoint3FlagNumberCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 52));
+      action.Waypoint3Value = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 56));
+
+      action.Waypoint4FlagColorCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 60));
+      action.Waypoint4FlagNumberCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 64));
+      action.Waypoint4Value = NormalizePackedValue(ReadInt32At(record.PayloadBytes, 68));
+
+      action.DestinationFlagColorCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 72));
+      action.DestinationFlagNumberCode = DecodeMoveShipSelector(ReadInt32At(record.PayloadBytes, 76));
+
+      action.OptionControlByte0 = ReadByteAt(record.PayloadBytes, 84);
+      action.ShipTypeCode = ReadByteAt(record.PayloadBytes, 85);
+      if (action.ShipTypeCode == 1)
+      {
+        action.ShipType = S2MMoveShipType.TradeShip;
+      }
+      else if (action.ShipTypeCode == 0)
+      {
+        action.ShipType = S2MMoveShipType.VikingShip;
+      }
+
+      action.ExitModeCode = ReadByteAt(record.PayloadBytes, 86);
+      if (action.ExitModeCode == 0)
+      {
+        action.ExitMode = S2MMoveShipExitMode.LeaveMap;
+      }
+      else if (action.ExitModeCode == 1)
+      {
+        action.ExitMode = S2MMoveShipExitMode.TurnToWreck;
+      }
+
+      return action;
+    }
+
+    private static S2MTimeUntilFinalInvasionAction ParseTimeUntilFinalInvasionAction(S2MTokenRecord record)
+    {
+      return new S2MTimeUntilFinalInvasionAction
+      {
+        RecordId = record.Id,
+        RecordStart = record.RecordStart,
+        RecordName = record.Name,
+        Tag = record.Tag,
+        BaseName = record.BaseName,
+        RawPayloadInt32 = new List<int>(record.PayloadInt32),
+      };
+    }
+
     private static S2MRedirectVillageOutputAction ParseRedirectVillageOutputAction(S2MTokenRecord record)
     {
       var action = new S2MRedirectVillageOutputAction
@@ -3001,6 +3420,25 @@ namespace Assets.Code.Stronghold2.FormatReaders
     private static int NormalizePackedValue(int value)
     {
       if (value > 255 && value % 256 == 0)
+      {
+        return value / 256;
+      }
+
+      return value;
+    }
+
+    private static int DecodeMoveShipSelector(int value)
+    {
+      // MoveShipAction selector fields currently appear with mixed packing forms:
+      // - N values commonly as N*256
+      // - zero sometimes as 0x000000FF
+      // - Off sometimes as -256 (0xFFFFFF00)
+      if (value == 255)
+      {
+        return 0;
+      }
+
+      if (value % 256 == 0)
       {
         return value / 256;
       }
