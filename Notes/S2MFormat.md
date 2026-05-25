@@ -3,6 +3,8 @@
 Last updated: 2026-05-24
 Sample used: `maps/war_chapter1.s2m` (size: 673,069 bytes)
 
+**Note**: This is an investigative note file for AIs and not meant to be read by humans. Use the notes in FileFormats/S2M.
+
 ## Current working spec (2026-05-19)
 
 ### Certainty levels
