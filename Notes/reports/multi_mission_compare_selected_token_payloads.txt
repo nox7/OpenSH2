@@ -1,0 +1,16 @@
+MAP=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-Mission.s2m
+  Mission[0] start=864 id=4 tag=4 base= metaEnd=887 payloadLen=1150 payloadSha256=5a784c8aab1801146d6d9b6beb03e5959a2523dac5ceeae4e16730cc8f7656cf
+  ScenarioEvent[0] start=2037 id=5 tag=5 base= metaEnd=2066 payloadLen=120 payloadSha256=c197af89e59cb89528262e87c32e604903e00a2ee9287021d16b5cfba6e6e780
+  WinAction[0] start=2186 id=6 tag=7 base=ScenarioAction metaEnd=2225 payloadLen=0 payloadSha256=EMPTY
+  LoseAction[0] start=2337 id=10 tag=7 base= metaEnd=2363 payloadLen=74 payloadSha256=2969d790b555775c8dd8ad8b4914a5b04b30c12b83496175135adc4bbf21a898
+  GoldAcquiredTrigger[0] start=2250 id=8 tag=9 base=Trigger metaEnd=2292 payloadLen=0 payloadSha256=EMPTY
+  Trigger[0] start=2277 id=9 tag=0 base= metaEnd=2300 payloadLen=37 payloadSha256=3ad13674e9fc21ceeb47b076c0e9f76128742ba409a38492b125a72d687ea841
+
+MAP=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-Mission-Variant.s2m
+  Mission[0] start=880 id=4 tag=4 base= metaEnd=903 payloadLen=1150 payloadSha256=5a784c8aab1801146d6d9b6beb03e5959a2523dac5ceeae4e16730cc8f7656cf
+  ScenarioEvent[0] start=2053 id=5 tag=5 base= metaEnd=2082 payloadLen=120 payloadSha256=e9c7581394158853232d9ead3e645e20f00bf4e411ff90852e942e29111fcd5c
+  WinAction[0] start=2354 id=10 tag=7 base= metaEnd=2379 payloadLen=74 payloadSha256=4e35740eeee0c6f7dfda5fd2e81eaf6519737f472eaec61b61172e205eef132a
+  LoseAction[0] start=2202 id=6 tag=7 base=ScenarioAction metaEnd=2242 payloadLen=0 payloadSha256=EMPTY
+  GoldAcquiredTrigger[0] start=2267 id=8 tag=9 base=Trigger metaEnd=2309 payloadLen=0 payloadSha256=EMPTY
+  Trigger[0] start=2294 id=9 tag=0 base= metaEnd=2317 payloadLen=37 payloadSha256=a51c52a3702a2f14a49ca39f4bcbced6ff9d9ef73724b89e8c390fa590fb734d
+

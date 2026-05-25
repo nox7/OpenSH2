@@ -1,0 +1,4 @@
+byteOffset oldHex newHex
+378 00 05
+--int32-shift0--
+idx=94 off=376 oldRaw=0 oldNorm=0 newRaw=327680 newNorm=1280

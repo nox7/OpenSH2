@@ -18,3 +18,6 @@ The game flow starts with a UnityGame object just named "Main" in a default scen
 The main menu is a UI that has videos looping in the background. There are two video player UIs going on here. The most background element is a video playing the "MainMenuBackground" video (in a loop). Layered on top of it will be another video player that players "MainMenuCurtainOpen". Once that "MainMenuCurtainOpen" is _finished_ then "MainMenuCurtainIdle" plays in its plays in loop.
 
 Layered on top of both of these videos will be the actual interactable UI layer done later.
+
+## S2M Binary File Format
+The format is currently being documented and notes on how .s2m files are structured is in the `Notes/FileFormats/S2M` directory.

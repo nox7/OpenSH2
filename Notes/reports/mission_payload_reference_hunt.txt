@@ -1,0 +1,44 @@
+MAP=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-Mission.s2m
+MissionStart=864 MissionMetaEnd=887 MissionPayloadLen=1150
+FirstScenarioEventStart=2037 gapFromMissionMetaEnd=1150
+InterestingTokens:
+  id=5 name=ScenarioEvent start=2037 metaEnd=2066 payloadLen=120
+  id=6 name=WinAction start=2186 metaEnd=2225 payloadLen=0
+  id=8 name=GoldAcquiredTrigger start=2250 metaEnd=2292 payloadLen=0
+  id=9 name=Trigger start=2277 metaEnd=2300 payloadLen=37
+  id=10 name=LoseAction start=2337 metaEnd=2363 payloadLen=74
+ID hits in Mission payload:
+  ScenarioEvent id=5 idHits=346,927 id*256Hits=345,926 startHits=
+  WinAction id=6 idHits=538,1119 id*256Hits=537,1118 startHits=
+  GoldAcquiredTrigger id=8 idHits=0,581 id*256Hits=580 startHits=
+  Trigger id=9 idHits= id*256Hits= startHits=
+  LoseAction id=10 idHits=446,450,454,458,1027,1031,1035,1039 id*256Hits=445,449,453,457,1026,1030,1034,1038 startHits=
+Token-name ASCII hits in Mission payload:
+  ScenarioEvent: 
+  WinAction: 
+  LoseAction: 
+  GoldAcquiredTrigger: 
+  Trigger: 
+
+MAP=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-Mission-Variant.s2m
+MissionStart=880 MissionMetaEnd=903 MissionPayloadLen=1150
+FirstScenarioEventStart=2053 gapFromMissionMetaEnd=1150
+InterestingTokens:
+  id=5 name=ScenarioEvent start=2053 metaEnd=2082 payloadLen=120
+  id=6 name=LoseAction start=2202 metaEnd=2242 payloadLen=0
+  id=8 name=GoldAcquiredTrigger start=2267 metaEnd=2309 payloadLen=0
+  id=9 name=Trigger start=2294 metaEnd=2317 payloadLen=37
+  id=10 name=WinAction start=2354 metaEnd=2379 payloadLen=74
+ID hits in Mission payload:
+  ScenarioEvent id=5 idHits=346,927 id*256Hits=345,926 startHits=
+  LoseAction id=6 idHits=538,1119 id*256Hits=537,1118 startHits=
+  GoldAcquiredTrigger id=8 idHits=0,581 id*256Hits=580 startHits=
+  Trigger id=9 idHits= id*256Hits= startHits=
+  WinAction id=10 idHits=446,450,454,458,1027,1031,1035,1039 id*256Hits=445,449,453,457,1026,1030,1034,1038 startHits=
+Token-name ASCII hits in Mission payload:
+  ScenarioEvent: 
+  WinAction: 
+  LoseAction: 
+  GoldAcquiredTrigger: 
+  Trigger: 
+

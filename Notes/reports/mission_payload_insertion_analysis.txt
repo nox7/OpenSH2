@@ -1,0 +1,101 @@
+=== 1150_to_1154 ===
+lenA=1150 lenB=1154 delta=4
+firstMismatch=0
+bestShiftPoint=0 shift=4 alignedTailMatches=1139
+insertedBytesAtBestShift=0C 00 00 00
+ctxA@0=08 00 00 00 01 00 00 00 D8 6F 0A 40 01 00 00 00 CC 00 00 00 C8
+ctxB@0=0C 00 00 00 02 00 00 00 88 85 0A 40 08 89 0A 40 01 00 00 00 CC 00 00 00 C8
+first12_dwords_A:
+  d0 off=0 val=8
+  d1 off=4 val=1
+  d2 off=8 val=1074425816
+  d3 off=12 val=1
+  d4 off=16 val=204
+  d5 off=20 val=200
+  d6 off=24 val=16843009
+  d7 off=28 val=16843009
+  d8 off=32 val=16843009
+  d9 off=36 val=16843009
+  d10 off=40 val=16843009
+  d11 off=44 val=16843009
+first12_dwords_B:
+  d0 off=0 val=12
+  d1 off=4 val=2
+  d2 off=8 val=1074431368
+  d3 off=12 val=1074432264
+  d4 off=16 val=1
+  d5 off=20 val=204
+  d6 off=24 val=200
+  d7 off=28 val=16843009
+  d8 off=32 val=16843009
+  d9 off=36 val=16843009
+  d10 off=40 val=16843009
+  d11 off=44 val=16843009
+
+=== 1154_to_1158 ===
+lenA=1154 lenB=1158 delta=4
+firstMismatch=0
+bestShiftPoint=0 shift=4 alignedTailMatches=1145
+insertedBytesAtBestShift=10 00 00 00
+ctxA@0=0C 00 00 00 02 00 00 00 88 85 0A 40 08 89 0A 40 01 00 00 00 CC
+ctxB@0=10 00 00 00 03 00 00 00 88 85 0A 40 08 89 0A 40 40 7F 0A 40 01 00 00 00 CC
+first12_dwords_A:
+  d0 off=0 val=12
+  d1 off=4 val=2
+  d2 off=8 val=1074431368
+  d3 off=12 val=1074432264
+  d4 off=16 val=1
+  d5 off=20 val=204
+  d6 off=24 val=200
+  d7 off=28 val=16843009
+  d8 off=32 val=16843009
+  d9 off=36 val=16843009
+  d10 off=40 val=16843009
+  d11 off=44 val=16843009
+first12_dwords_B:
+  d0 off=0 val=16
+  d1 off=4 val=3
+  d2 off=8 val=1074431368
+  d3 off=12 val=1074432264
+  d4 off=16 val=1074429760
+  d5 off=20 val=1
+  d6 off=24 val=204
+  d7 off=28 val=200
+  d8 off=32 val=16843009
+  d9 off=36 val=16843009
+  d10 off=40 val=16843009
+  d11 off=44 val=16843009
+
+=== 1150_to_1158 ===
+lenA=1150 lenB=1158 delta=8
+firstMismatch=0
+bestShiftPoint=0 shift=8 alignedTailMatches=1136
+insertedBytesAtBestShift=10 00 00 00 03 00 00 00
+ctxA@0=08 00 00 00 01 00 00 00 D8 6F 0A 40 01 00 00 00 CC 00 00 00 C8
+ctxB@0=10 00 00 00 03 00 00 00 88 85 0A 40 08 89 0A 40 40 7F 0A 40 01 00 00 00 CC 00 00 00 C8
+first12_dwords_A:
+  d0 off=0 val=8
+  d1 off=4 val=1
+  d2 off=8 val=1074425816
+  d3 off=12 val=1
+  d4 off=16 val=204
+  d5 off=20 val=200
+  d6 off=24 val=16843009
+  d7 off=28 val=16843009
+  d8 off=32 val=16843009
+  d9 off=36 val=16843009
+  d10 off=40 val=16843009
+  d11 off=44 val=16843009
+first12_dwords_B:
+  d0 off=0 val=16
+  d1 off=4 val=3
+  d2 off=8 val=1074431368
+  d3 off=12 val=1074432264
+  d4 off=16 val=1074429760
+  d5 off=20 val=1
+  d6 off=24 val=204
+  d7 off=28 val=200
+  d8 off=32 val=16843009
+  d9 off=36 val=16843009
+  d10 off=40 val=16843009
+  d11 off=44 val=16843009

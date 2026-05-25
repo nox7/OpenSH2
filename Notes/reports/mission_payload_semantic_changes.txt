@@ -1,0 +1,29 @@
+=== 1150_to_1154 ===
+delta=4 bestShiftPoint=0 tailMatches=1139
+insertedAtShift=0C 00 00 00
+semantic_mismatches_after_shift (max 40):
+offOld=0 offNew=4 old=08 new=02
+offOld=4 offNew=8 old=01 new=88
+offOld=5 offNew=9 old=00 new=85
+offOld=6 offNew=10 old=00 new=0A
+offOld=7 offNew=11 old=00 new=40
+offOld=8 offNew=12 old=D8 new=08
+offOld=9 offNew=13 old=6F new=89
+offOld=589 offNew=593 old=88 new=C0
+offOld=590 offNew=594 old=6E new=85
+offOld=1146 offNew=1150 old=D8 new=88
+offOld=1147 offNew=1151 old=6F new=85
+
+=== 1154_to_1158 ===
+delta=4 bestShiftPoint=0 tailMatches=1145
+insertedAtShift=10 00 00 00
+semantic_mismatches_after_shift (max 40):
+offOld=0 offNew=4 old=0C new=03
+offOld=4 offNew=8 old=02 new=88
+offOld=5 offNew=9 old=00 new=85
+offOld=6 offNew=10 old=00 new=0A
+offOld=7 offNew=11 old=00 new=40
+offOld=8 offNew=12 old=88 new=08
+offOld=9 offNew=13 old=85 new=89
+offOld=12 offNew=16 old=08 new=40
+offOld=13 offNew=17 old=89 new=7F

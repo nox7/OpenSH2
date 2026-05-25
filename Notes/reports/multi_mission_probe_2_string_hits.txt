@@ -1,0 +1,8 @@
+segmentADecompressedLength=2623
+Mission: count=1 hits=874
+ScenarioEvent: count=1 hits=2047
+WinAction: count=1 hits=2196
+LoseAction: count=1 hits=2524
+GoodsAcquiredTrigger: count=1 hits=2260
+LordDiesTrigger: count=1 hits=2571
+Trigger: count=3 hits=2273,2288,2579

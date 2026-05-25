@@ -1,0 +1,21 @@
+Mission 1 candidate defaults
+M1 Gold       off=342 val=500
+M1 Popularity off=350 val=80
+M1 Wood       off=370 val=72
+M1 Stone      off=374 val=40
+M1 Apples     off=454 val=10
+M1 Bread      off=458 val=10
+M1 Cheese     off=462 val=10
+M1 Meat       off=466 val=10
+
+Mission 2 candidate defaults (+581 stride)
+M2 Gold       off=923 val=500
+M2 Popularity off=931 val=80
+M2 Wood       off=951 val=72
+M2 Stone      off=955 val=40
+M2 Apples     off=1035 val=10
+M2 Bread      off=1039 val=10
+M2 Cheese     off=1043 val=10
+M2 Meat       off=1047 val=10
+
+Context marker near block (M1): off=334 val=4, off=338 val=12, off=354 val=5

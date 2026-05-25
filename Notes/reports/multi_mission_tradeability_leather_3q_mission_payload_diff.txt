@@ -1,0 +1,5 @@
+byteOffset oldHex newHex
+318 00 04
+319 00 04
+--int32-shift0--
+idx=79 off=316 oldRaw=771 oldNorm=771 newRaw=67371779 newNorm=67371779

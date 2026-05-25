@@ -1,0 +1,14 @@
+headerEnd=122 segmentADecompressedLength=2623 tokenCount=10
+missionCount=1 scenarioEventCount=1
+MISSIONS
+start=866 id=4 tag=4 base= payloadLen=1150
+SCENARIO_EVENTS
+start=2039 id=5 tag=5 base= payloadLen=120
+INTERESTING_RECORD_ORDER
+start=866 id=4 name=Mission tag=4 base= payloadLen=1150
+start=2039 id=5 name=ScenarioEvent tag=5 base= payloadLen=120
+start=2188 id=6 name=WinAction tag=7 base=ScenarioAction payloadLen=25
+start=2252 id=8 name=GoodsAcquiredTrigger tag=9 base=Trigger payloadLen=0
+start=2280 id=9 name=Trigger tag=0 base= payloadLen=213
+start=2516 id=10 name=LoseAction tag=7 base= payloadLen=21
+start=2563 id=11 name=LordDiesTrigger tag=9 base= payloadLen=29
