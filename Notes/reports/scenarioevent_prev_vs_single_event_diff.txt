@@ -1,0 +1,19 @@
+byteOffset oldHex newHex
+34 0C 08
+38 02 01
+42 B8 90
+43 46 4D
+46 90 AF
+47 4D 1E
+48 FD FF
+49 3F FF
+50 AF A0
+51 1E E0
+52 FF FD
+53 FF 3F
+--int32-shift0--
+idx=8 off=32 oldRaw=786432 oldNorm=3072 newRaw=524288 newNorm=2048
+idx=9 off=36 oldRaw=131072 oldNorm=512 newRaw=65536 newNorm=256
+idx=10 off=40 oldRaw=1186463744 oldNorm=4634624 newRaw=1301282816 newNorm=5083136
+idx=11 off=44 oldRaw=1301299197 oldNorm=1301299197 newRaw=514801661 newNorm=514801661
+idx=12 off=48 oldRaw=514801661 oldNorm=514801661 newRaw=-526319617 newNorm=-526319617

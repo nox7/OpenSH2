@@ -1,0 +1,147 @@
+byteOffset oldHex newHex
+34 08 0C
+38 01 02
+46 AF 90
+47 1E 4D
+48 FF FD
+49 FF 3F
+50 98 AF
+51 ED 1E
+52 11 FF
+53 40 FF
+54 05 98
+55 00 ED
+56 00 11
+57 00 40
+62 00 05
+66 1A 00
+70 00 1A
+83 B0 00
+84 DE 00
+85 FD 00
+86 3F 00
+87 00 B0
+88 00 DE
+89 00 FD
+90 00 3F
+96 01 00
+100 08 01
+104 01 08
+108 B0 01
+109 45 00
+110 FD 00
+111 3F 00
+112 AF B0
+113 1E 45
+114 FF FD
+115 FF 3F
+116 08 AF
+117 EE 1E
+118 11 FF
+119 40 FF
+120 05 08
+121 00 EE
+122 00 11
+123 00 40
+128 00 05
+132 1A 00
+136 00 1A
+149 F0 00
+150 EB 00
+151 04 00
+152 40 00
+153 00 F0
+154 00 EB
+155 00 04
+156 00 40
+162 01 00
+166 08 01
+170 01 08
+174 D0 01
+175 46 00
+176 FD 00
+177 3F 00
+178 AF D0
+179 1E 46
+180 FF FD
+181 FF 3F
+182 90 AF
+183 EF 1E
+184 11 FF
+185 40 FF
+186 05 90
+187 00 EF
+188 00 11
+189 00 40
+194 00 05
+198 1A 00
+202 00 1A
+215 30 00
+216 E0 00
+217 FD 00
+218 3F 00
+219 00 30
+220 00 E0
+221 00 FD
+222 00 3F
+228 01 00
+232 08 01
+236 01 08
+240 60 01
+241 47 00
+242 FD 00
+243 3F 00
+244 AF 60
+245 1E 47
+246 FF FD
+247 FF 3F
+248 A0 AF
+249 E0 1E
+250 FD FF
+251 3F FF
+--int32-shift0--
+idx=8 off=32 oldRaw=524288 oldNorm=2048 newRaw=786432 newNorm=3072
+idx=9 off=36 oldRaw=65536 oldNorm=256 newRaw=131072 newNorm=512
+idx=11 off=44 oldRaw=514801661 oldNorm=514801661 newRaw=1301299197 newNorm=1301299197
+idx=12 off=48 oldRaw=-308740097 oldNorm=-308740097 newRaw=514801661 newNorm=514801661
+idx=13 off=52 oldRaw=344081 oldNorm=344081 newRaw=-308740097 newNorm=-308740097
+idx=14 off=56 oldRaw=327680 oldNorm=1280 newRaw=344081 newNorm=344081
+idx=15 off=60 oldRaw=0 oldNorm=0 newRaw=327680 newNorm=1280
+idx=16 off=64 oldRaw=1703936 oldNorm=6656 newRaw=0 newNorm=0
+idx=17 off=68 oldRaw=0 oldNorm=0 newRaw=1703936 newNorm=6656
+idx=20 off=80 oldRaw=-1342177280 oldNorm=-1342177280 newRaw=0 newNorm=0
+idx=21 off=84 oldRaw=4193758 oldNorm=4193758 newRaw=-1342177280 newNorm=-1342177280
+idx=22 off=88 oldRaw=0 oldNorm=0 newRaw=4193758 newNorm=4193758
+idx=24 off=96 oldRaw=1 oldNorm=1 newRaw=0 newNorm=0
+idx=25 off=100 oldRaw=8 oldNorm=8 newRaw=1 newNorm=1
+idx=26 off=104 oldRaw=1 oldNorm=1 newRaw=8 newNorm=8
+idx=27 off=108 oldRaw=1073563056 oldNorm=1073563056 newRaw=1 newNorm=1
+idx=28 off=112 oldRaw=-57681 oldNorm=-57681 newRaw=1073563056 newNorm=1073563056
+idx=29 off=116 oldRaw=1074916872 oldNorm=1074916872 newRaw=-57681 newNorm=-57681
+idx=30 off=120 oldRaw=5 oldNorm=5 newRaw=1074916872 newNorm=1074916872
+idx=32 off=128 oldRaw=0 oldNorm=0 newRaw=5 newNorm=5
+idx=33 off=132 oldRaw=26 oldNorm=26 newRaw=0 newNorm=0
+idx=34 off=136 oldRaw=0 oldNorm=0 newRaw=26 newNorm=26
+idx=37 off=148 oldRaw=82571264 oldNorm=322544 newRaw=0 newNorm=0
+idx=38 off=152 oldRaw=64 oldNorm=64 newRaw=82571264 newNorm=322544
+idx=39 off=156 oldRaw=0 oldNorm=0 newRaw=64 newNorm=64
+idx=40 off=160 oldRaw=65536 oldNorm=256 newRaw=0 newNorm=0
+idx=41 off=164 oldRaw=524288 oldNorm=2048 newRaw=65536 newNorm=256
+idx=42 off=168 oldRaw=65536 oldNorm=256 newRaw=524288 newNorm=2048
+idx=43 off=172 oldRaw=1188036608 oldNorm=4640768 newRaw=65536 newNorm=256
+idx=44 off=176 oldRaw=514801661 oldNorm=514801661 newRaw=1188036608 newNorm=4640768
+idx=45 off=180 oldRaw=-275709953 oldNorm=-275709953 newRaw=514801661 newNorm=514801661
+idx=46 off=184 oldRaw=344081 oldNorm=344081 newRaw=-275709953 newNorm=-275709953
+idx=47 off=188 oldRaw=327680 oldNorm=1280 newRaw=344081 newNorm=344081
+idx=48 off=192 oldRaw=0 oldNorm=0 newRaw=327680 newNorm=1280
+idx=49 off=196 oldRaw=1703936 oldNorm=6656 newRaw=0 newNorm=0
+idx=50 off=200 oldRaw=0 oldNorm=0 newRaw=1703936 newNorm=6656
+idx=53 off=212 oldRaw=805306368 oldNorm=3145728 newRaw=0 newNorm=0
+idx=54 off=216 oldRaw=4193760 oldNorm=4193760 newRaw=805306368 newNorm=3145728
+idx=55 off=220 oldRaw=0 oldNorm=0 newRaw=4193760 newNorm=4193760
+idx=57 off=228 oldRaw=1 oldNorm=1 newRaw=0 newNorm=0
+idx=58 off=232 oldRaw=8 oldNorm=8 newRaw=1 newNorm=1
+idx=59 off=236 oldRaw=1 oldNorm=1 newRaw=8 newNorm=8
+idx=60 off=240 oldRaw=1073563488 oldNorm=1073563488 newRaw=1 newNorm=1
+idx=61 off=244 oldRaw=-57681 oldNorm=-57681 newRaw=1073563488 newNorm=1073563488
+idx=62 off=248 oldRaw=1073602720 oldNorm=1073602720 newRaw=-57681 newNorm=-57681

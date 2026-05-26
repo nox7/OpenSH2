@@ -1,0 +1,27 @@
+missionPayloadLen=1158
+rowCount=3 entrySize=16
+mission2Start=581
+mission1TailRange=536..580
+
+key1 off=8 hex=A8 F0 11 40
+  allHits=8,1154
+  tailHits=none
+key2 off=12 hex=98 ED 11 40
+  allHits=12
+  tailHits=none
+key3 off=16 hex=08 EE 11 40
+  allHits=16
+  tailHits=none
+
+mission1_tail_dwords:
+  536: 00 00 00 00 (u32=0)
+  540: 00 00 00 00 (u32=0)
+  544: 00 00 06 00 (u32=393216)
+  548: 00 00 0F 00 (u32=983040)
+  552: 00 00 00 00 (u32=0)
+  556: 00 00 00 00 (u32=0)
+  560: 00 00 00 00 (u32=0)
+  564: 00 00 00 00 (u32=0)
+  568: 00 AF 1E FF (u32=4280200960)
+  572: FF 70 FF 01 (u32=33517823)
+  576: 40 04 00 00 (u32=1088)

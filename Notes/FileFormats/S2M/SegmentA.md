@@ -1,6 +1,6 @@
 # Stronghold 2 S2M Segment A
 
-Last updated: 2026-05-24
+Last updated: 2026-05-25
 
 ## Scope
 
@@ -84,6 +84,82 @@ Current known fields used by parser:
 	- `+8` int32: repeat count candidate
 	- `+12` int32: repeat time candidate
 
+### ScenarioEvent Event-Chain Fields (Confirmed)
+
+Using controlled edits on `BinaryCheck-Mission.s2m`:
+
+- one event (`Win` + 1 trigger)
+- one event (`Win` + 2 triggers)
+- two events (both `Win` + same 2 triggers)
+
+Confirmed per-event structure in `ScenarioEvent` payload:
+
+```text
+event +34 : int32 trigger_value_bytes
+event +38 : int32 trigger_count
+event +42 : trigger value dword list (4 bytes each in tested Win/GoldAcquired cases)
+...       : AF 1E FF FF marker dword
+...       : link dword (next event id OR terminal sentinel)
+```
+
+Confirmed behavior:
+
+- Adding one trigger (same event):
+	- `+34` changed `08 00 00 00 -> 0C 00 00 00`
+	- `+38` changed `01 00 00 00 -> 02 00 00 00`
+	- one 4-byte trigger value inserted before `AF 1E FF FF`
+- Adding a second event (same action + same triggers):
+	- first event tail changed from terminal sentinel to next-event link:
+		- `AF 1E FF FF A0 E0 FD 3F` -> `AF 1E FF FF 08 E0 01 40`
+	- second event record appended and ends with terminal sentinel:
+		- `... AF 1E FF FF A0 E0 FD 3F`
+
+Three-event mixed-trigger validation:
+
+- Third event added with one trigger (`Win` + 1 trigger) while first two events remained 2-trigger.
+- Mission leading event-id list became:
+	- `A8 F0 11 40`, `08 E0 01 40`, `F0 17 06 40`
+- ScenarioEvent chain matched Mission ids:
+	- event1 marker tail link -> `08 E0 01 40`
+	- event2 marker tail link -> `F0 17 06 40`
+	- event3 marker tail link -> terminal `A0 E0 FD 3F`
+- Per-event trigger fields remained local to each event:
+	- 2-trigger events used `+34=0C 00 00 00`, `+38=02 00 00 00`
+	- 1-trigger event used `+34=08 00 00 00`, `+38=01 00 00 00`
+
+Action-type change probe (single test):
+
+- Edit: in 3-event map, event 2 action changed `Win -> Lose` with triggers unchanged.
+- Mission payload: no byte changes (event-id list/order unchanged).
+- ScenarioEvent payload: only two bytes changed, at absolute offsets `87` and `88`.
+- Changed scalar in event 2 header region:
+	- `A0 DD FD 3F` -> `00 DF FD 3F`
+	- this mutation was local to event 2 and did not alter:
+		- chain links (`... AF 1E FF FF <nextId|terminal>`)
+		- trigger-count/size fields (`+34`, `+38`)
+
+Action-type follow-up (event 1 switched to Lose):
+
+- Edit: event 1 changed `Win -> Lose` (event 2 already Lose; event 3 unchanged).
+- Mission payload: no byte changes; leading ids remained:
+	- `A8 F0 11 40`, `08 E0 01 40`, `F0 17 06 40`
+- ScenarioEvent changed bytes at absolute offsets `17`, `18`, `190`, `191`.
+- Observed dword mutations:
+	- event 1 early scalar: `A0 E0 FD 3F` -> `10 DE FD 3F`
+	- final event tail scalar after marker: `A0 E0 FD 3F` -> `10 DE FD 3F`
+
+Current caution:
+
+- `A0 E0 FD 3F` is no longer treated as a universal immutable terminal constant.
+- The dword after the last event marker is still terminal-positioned, but its exact semantics remain unresolved.
+
+Current interpretation:
+
+- `AF 1E FF FF` is an event-record tail marker in these samples.
+- The dword after this marker is a chain link:
+	- non-last event: next event id
+	- last event: terminal-position scalar (observed `A0 E0 FD 3F` and `10 DE FD 3F` across current action-type probes)
+
 ## Action and Trigger Dispatch
 
 - Trigger candidates:
@@ -117,6 +193,59 @@ This section is the parser-oriented summary of the `Mission` token payload only.
 	- Mission 1 = payload `0..588`
 	- Mission 2 = payload `589..1157`
 
+### Map Type Baseline (Single-Entry Defaults)
+
+Using blank/default maps:
+
+- `BinaryCheck-Kingmaker.s2m`
+- `BinaryCheck-WarCustom.s2m`
+- `BinaryCheck-PeaceCustom.s2m`
+- `BinaryCheck-FreeBuild.s2m`
+
+`Mission` payload observations for all four:
+
+- payload length: `569`
+- payload bytes: identical
+- payload SHA-256: `32df84aeb18707f6a551bf85f9fee825c2ebafd9c0e5cefa2cf050ec8f17da95`
+
+Implication:
+
+- all four map types serialize the same single mission-entry baseline payload in tested defaults.
+- the map-type split (Kingmaker / War / Peace / FreeBuild) is not encoded by unique Mission payload bytes in this baseline set.
+
+Non-implication:
+
+- this does not prove map-type-specific behavior is absent; it only shows the tested blank/default samples converge to the same Mission payload blob.
+
+### FreeBuild Start-Value Edit Validation
+
+Modified map:
+
+- `BinaryCheck-FreeBuild.s2m`
+- changes made in editor:
+	- start Wood: `72 -> 77`
+	- start Gold: `500 -> 510`
+
+Mission payload delta versus FreeBuild baseline:
+
+- payload length unchanged: `569`
+- changed start-value fields:
+	- `334`: `F4 -> FE` (Gold int32 field `500 -> 510`)
+	- `362`: `48 -> 4D` (Wood int32 field `72 -> 77`)
+
+Additional mirrored field change in same edit:
+
+- header float-like dword:
+	- `8..11`: `68 14 02 40 -> 08 1A EF 3F`
+- tail mirrored float-like dword:
+	- `565..568`: `68 14 02 40 -> 08 1A EF 3F`
+
+Interpretation:
+
+- FreeBuild still uses the same single mission-entry payload structure as other baseline map types.
+- Start-goods and start-gold edits write into the same known start-values region used by other tested mission-entry payloads.
+- At least one additional mirrored mission-entry scalar (float-like) also updates when start values are edited.
+
 ### Split Rule (Observed)
 
 - The payload contains two mission-entry records concatenated back-to-back.
@@ -134,7 +263,10 @@ Known fields at mission-entry start:
 ```text
 offset +0  : int32  entry_size_or_weight     ; increases by +4 per added row
 offset +4  : int32  row_count                ; observed 1, 2, 3
-offset +8+ : dword list / header words       ; grows as rows are added
+offset +8  : dword  event_id[0]
+offset +12 : dword  event_id[1] (present when row_count >= 2)
+offset +16 : dword  event_id[2] (present when row_count >= 3)
+offset +8+4*row_count : first non-id header dword (currently `01 00 00 00` in tested maps)
 ```
 
 Observed Mission 1 leading words across row-count growth:
@@ -145,11 +277,27 @@ rows=2: +0=0C 00 00 00  +4=02 00 00 00
 rows=3: +0=10 00 00 00  +4=03 00 00 00
 ```
 
+Observed event-id list examples:
+
+```text
+rows=1 (one event):
++8  = A8 F0 11 40
+
+rows=2 (two events):
++8  = A8 F0 11 40
++12 = 08 E0 01 40
+
+rows=3 (three events):
++8  = A8 F0 11 40
++12 = 08 E0 01 40
++16 = F0 17 06 40
+```
+
 Interpretation:
 
 - `+0` is a size-like field
 - `+4` is a row-count field
-- the remainder of the leading header is still not semantically decoded
+- `+8..` stores `row_count` event ids (4-byte each), then regular mission header fields follow
 
 ### Mission 1 Linear Map (Current 1158-byte Payload)
 
