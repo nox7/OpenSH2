@@ -73,92 +73,29 @@ Assignment rule:
 - A record belongs to the event whose span contains `record.RecordStart`.
 - `ScenarioEvent` records themselves are not nested as children.
 
-## ScenarioEvent Known Field Offsets
-
-Current known fields used by parser:
-
-- Absolute to event record start:
-	- `+99` byte: month candidate
-	- `+117` byte: delay candidate
-- Relative to event payload bytes:
-	- `+8` int32: repeat count candidate
-	- `+12` int32: repeat time candidate
-
-### ScenarioEvent Event-Chain Fields (Confirmed)
-
-Using controlled edits on `BinaryCheck-Mission.s2m`:
-
-- one event (`Win` + 1 trigger)
-- one event (`Win` + 2 triggers)
-- two events (both `Win` + same 2 triggers)
+## ScenarioEvent Confirmed Format
 
 Confirmed per-event structure in `ScenarioEvent` payload:
 
 ```text
 event +34 : int32 trigger_value_bytes
 event +38 : int32 trigger_count
-event +42 : trigger value dword list (4 bytes each in tested Win/GoldAcquired cases)
+event +42 : trigger value dword list
 ...       : AF 1E FF FF marker dword
-...       : link dword (next event id OR terminal sentinel)
+...       : post-marker dword
 ```
 
-Confirmed behavior:
+Confirmed rules:
 
-- Adding one trigger (same event):
-	- `+34` changed `08 00 00 00 -> 0C 00 00 00`
-	- `+38` changed `01 00 00 00 -> 02 00 00 00`
-	- one 4-byte trigger value inserted before `AF 1E FF FF`
-- Adding a second event (same action + same triggers):
-	- first event tail changed from terminal sentinel to next-event link:
-		- `AF 1E FF FF A0 E0 FD 3F` -> `AF 1E FF FF 08 E0 01 40`
-	- second event record appended and ends with terminal sentinel:
-		- `... AF 1E FF FF A0 E0 FD 3F`
+- `trigger_count = 1` uses `+34 = 08 00 00 00` and `+38 = 01 00 00 00`.
+- `trigger_count = 2` uses `+34 = 0C 00 00 00` and `+38 = 02 00 00 00`.
+- The dword immediately after `AF 1E FF FF` is the event-chain field:
+	- non-last event: equals the next mission event id
+	- last event: terminal-position scalar (observed values include `A0 E0 FD 3F` and `10 DE FD 3F`)
+- Mission event-id order and ScenarioEvent chain order match.
+- Action-type edits (`Win`/`Lose`) do not change Mission event ids or chain links.
 
-Three-event mixed-trigger validation:
-
-- Third event added with one trigger (`Win` + 1 trigger) while first two events remained 2-trigger.
-- Mission leading event-id list became:
-	- `A8 F0 11 40`, `08 E0 01 40`, `F0 17 06 40`
-- ScenarioEvent chain matched Mission ids:
-	- event1 marker tail link -> `08 E0 01 40`
-	- event2 marker tail link -> `F0 17 06 40`
-	- event3 marker tail link -> terminal `A0 E0 FD 3F`
-- Per-event trigger fields remained local to each event:
-	- 2-trigger events used `+34=0C 00 00 00`, `+38=02 00 00 00`
-	- 1-trigger event used `+34=08 00 00 00`, `+38=01 00 00 00`
-
-Action-type change probe (single test):
-
-- Edit: in 3-event map, event 2 action changed `Win -> Lose` with triggers unchanged.
-- Mission payload: no byte changes (event-id list/order unchanged).
-- ScenarioEvent payload: only two bytes changed, at absolute offsets `87` and `88`.
-- Changed scalar in event 2 header region:
-	- `A0 DD FD 3F` -> `00 DF FD 3F`
-	- this mutation was local to event 2 and did not alter:
-		- chain links (`... AF 1E FF FF <nextId|terminal>`)
-		- trigger-count/size fields (`+34`, `+38`)
-
-Action-type follow-up (event 1 switched to Lose):
-
-- Edit: event 1 changed `Win -> Lose` (event 2 already Lose; event 3 unchanged).
-- Mission payload: no byte changes; leading ids remained:
-	- `A8 F0 11 40`, `08 E0 01 40`, `F0 17 06 40`
-- ScenarioEvent changed bytes at absolute offsets `17`, `18`, `190`, `191`.
-- Observed dword mutations:
-	- event 1 early scalar: `A0 E0 FD 3F` -> `10 DE FD 3F`
-	- final event tail scalar after marker: `A0 E0 FD 3F` -> `10 DE FD 3F`
-
-Current caution:
-
-- `A0 E0 FD 3F` is no longer treated as a universal immutable terminal constant.
-- The dword after the last event marker is still terminal-positioned, but its exact semantics remain unresolved.
-
-Current interpretation:
-
-- `AF 1E FF FF` is an event-record tail marker in these samples.
-- The dword after this marker is a chain link:
-	- non-last event: next event id
-	- last event: terminal-position scalar (observed `A0 E0 FD 3F` and `10 DE FD 3F` across current action-type probes)
+Detailed probe logs and unresolved hypotheses are in `SegmentA-RnD.md`.
 
 ## Action and Trigger Dispatch
 
@@ -180,316 +117,67 @@ A typical Segment A record order includes:
 6. One or more `*Action` / `*Trigger` records
 7. `Trigger` container token
 
-## Mission Payload Layout (Current Known Format)
+## Mission Payload Confirmed Format
 
-This section is the parser-oriented summary of the `Mission` token payload only.
+Mission payload scope:
 
-### Payload Scope
+- payload start = `Mission.metadataEnd`
+- payload end = first `ScenarioEvent.recordStart`
+- current two-entry sample length = `1158`
 
-- Mission payload start = `Mission.metadataEnd`
-- Mission payload end = first `ScenarioEvent.recordStart`
-- Current 2-mission sample payload length = `1158`
-- Current mission-entry split:
-	- Mission 1 = payload `0..588`
-	- Mission 2 = payload `589..1157`
+Mission entry boundaries in current two-entry sample:
 
-### Map Type Baseline (Single-Entry Defaults)
+- entry 1 = `0..588`
+- entry 2 = `589..1157`
 
-Using blank/default maps:
-
-- `BinaryCheck-Kingmaker.s2m`
-- `BinaryCheck-WarCustom.s2m`
-- `BinaryCheck-PeaceCustom.s2m`
-- `BinaryCheck-FreeBuild.s2m`
-
-`Mission` payload observations for all four:
-
-- payload length: `569`
-- payload bytes: identical
-- payload SHA-256: `32df84aeb18707f6a551bf85f9fee825c2ebafd9c0e5cefa2cf050ec8f17da95`
-
-Implication:
-
-- all four map types serialize the same single mission-entry baseline payload in tested defaults.
-- the map-type split (Kingmaker / War / Peace / FreeBuild) is not encoded by unique Mission payload bytes in this baseline set.
-
-Non-implication:
-
-- this does not prove map-type-specific behavior is absent; it only shows the tested blank/default samples converge to the same Mission payload blob.
-
-### FreeBuild Start-Value Edit Validation
-
-Modified map:
-
-- `BinaryCheck-FreeBuild.s2m`
-- changes made in editor:
-	- start Wood: `72 -> 77`
-	- start Gold: `500 -> 510`
-
-Mission payload delta versus FreeBuild baseline:
-
-- payload length unchanged: `569`
-- changed start-value fields:
-	- `334`: `F4 -> FE` (Gold int32 field `500 -> 510`)
-	- `362`: `48 -> 4D` (Wood int32 field `72 -> 77`)
-
-Additional mirrored field change in same edit:
-
-- header float-like dword:
-	- `8..11`: `68 14 02 40 -> 08 1A EF 3F`
-- tail mirrored float-like dword:
-	- `565..568`: `68 14 02 40 -> 08 1A EF 3F`
-
-Interpretation:
-
-- FreeBuild still uses the same single mission-entry payload structure as other baseline map types.
-- Start-goods and start-gold edits write into the same known start-values region used by other tested mission-entry payloads.
-- At least one additional mirrored mission-entry scalar (float-like) also updates when start values are edited.
-
-### Split Rule (Observed)
-
-- The payload contains two mission-entry records concatenated back-to-back.
-- Mission 2 start is not fixed across edits.
-- Observed Mission 2 starts:
-	- `581` when Mission 1 had 1 row
-	- `585` when Mission 1 had 2 rows
-	- `589` when Mission 1 had 3 rows
-- Mission 1 grows by `+4` bytes per added row.
-
-### Mission Entry Leading Header
-
-Known fields at mission-entry start:
+Mission entry leading header:
 
 ```text
-offset +0  : int32  entry_size_or_weight     ; increases by +4 per added row
-offset +4  : int32  row_count                ; observed 1, 2, 3
-offset +8  : dword  event_id[0]
-offset +12 : dword  event_id[1] (present when row_count >= 2)
-offset +16 : dword  event_id[2] (present when row_count >= 3)
-offset +8+4*row_count : first non-id header dword (currently `01 00 00 00` in tested maps)
+offset +0  : int32 entry_header_size  ; 08, 0C, 10 for row_count 1,2,3
+offset +4  : int32 row_count          ; equals event-id count
+offset +8  : dword event_id[0]
+offset +12 : dword event_id[1]        ; present when row_count >= 2
+offset +16 : dword event_id[2]        ; present when row_count >= 3
 ```
 
-Observed Mission 1 leading words across row-count growth:
+Event-id list and ScenarioEvent chain are aligned in order.
 
-```text
-rows=1: +0=08 00 00 00  +4=01 00 00 00
-rows=2: +0=0C 00 00 00  +4=02 00 00 00
-rows=3: +0=10 00 00 00  +4=03 00 00 00
-```
+Building availability table:
 
-Observed event-id list examples:
+- entry 1 base = `33`
+- entry 2 base = `613`
+- encoding: `00=No`, `01=Yes`, `02=1Q`, `03=2Q`, `04=3Q`
 
-```text
-rows=1 (one event):
-+8  = A8 F0 11 40
+Tradeability table:
 
-rows=2 (two events):
-+8  = A8 F0 11 40
-+12 = 08 E0 01 40
+- marker bytes: `02 00 00 00 5E 00 00 00 2D 00 00 00`
+- entry 1 marker at `232`, table window `244..331`
+- entry 2 marker at `813`, table window `825..912`
+- encoding: `00 00=OFF`, `01 01=ON`, `02 02=1Q`, `03 03=2Q`, `04 04=3Q`
 
-rows=3 (three events):
-+8  = A8 F0 11 40
-+12 = 08 E0 01 40
-+16 = F0 17 06 40
-```
+Start-values block (confirmed writable fields):
 
-Interpretation:
+- entry 1:
+	- `342` Gold
+	- `350` Popularity
+	- `370` Wood
+	- `374` Stone
+	- `378` Iron
+	- `454` Apples
+	- `458` Bread
+	- `462` Cheese
+	- `466` Meat
+- entry 2:
+	- `923` Gold
+	- `931` Popularity
+	- `951` Wood
+	- `955` Stone
+	- `1035` Apples
+	- `1039` Bread
+	- `1043` Cheese
+	- `1047` Meat
 
-- `+0` is a size-like field
-- `+4` is a row-count field
-- `+8..` stores `row_count` event ids (4-byte each), then regular mission header fields follow
-
-### Mission 1 Linear Map (Current 1158-byte Payload)
-
-```text
-0..32     dynamic row header / row metadata / row-reference words
-33..138   building availability table
-139..231  unknown / not yet decoded
-232..243  tradeability marker / preamble
-244..331  tradeability table
-332..467  start-values block (gold / popularity / goods / nearby metadata)
-468..543  zero-filled region in current sample
-544..588  mission tail / footer / unknown
-```
-
-### Mission 2 Linear Map (Current 1158-byte Payload)
-
-```text
-589..612    dynamic row header / row metadata / row-reference words
-613..718    building availability table
-719..812    unknown / not yet decoded
-813..824    tradeability marker / preamble
-825..912    tradeability table
-913..1048   start-values block (gold / popularity / goods / nearby metadata)
-1049..1124  zero-filled region in current sample
-1125..1157  mission tail / footer / unknown
-```
-
-### Building Availability Table
-
-Encoding:
-
-```text
-00 = No
-01 = Yes
-02 = 1Q
-03 = 2Q
-04 = 3Q
-```
-
-Current known navigation:
-
-```text
-Mission 1 early table base = 33
-Mission 2 early table base = 613
-```
-
-Confirmed Mission 1 early entries:
-
-```text
-33 = Stockpile
-34 = Saw Pit
-35 = Wheat Farm
-36 = Stone Quarry
-37 = Mill
-```
-
-Later-table rule:
-
-- Later building entries are serialized with one omitted slot before `Market`.
-- Current best mapping treats the early `SallyPort = 33` enum entry as omitted from serialized indexing.
-- The editor-visible Sally Port toggle matched the later duplicate slot (`SallyPort2`).
-
-### Tradeability Marker And Table
-
-Marker bytes:
-
-```text
-02 00 00 00 5E 00 00 00 2D 00 00 00
-```
-
-Current marker offsets:
-
-```text
-Mission 1 marker = 232
-Mission 2 marker = 813
-```
-
-Current table windows:
-
-```text
-Mission 1 tradeability table = 244..331
-Mission 2 tradeability table = 825..912
-```
-
-Encoding:
-
-```text
-00 00 = OFF
-01 01 = ON
-02 02 = 1Q
-03 03 = 2Q
-04 04 = 3Q
-```
-
-Known Mission 1 pair indices:
-
-```text
-pair 1  -> Wood
-pair 4  -> Wheat
-pair 10 -> Candles
-pair 33 -> Mace
-pair 36 -> Metal Armor
-pair 37 -> Leather Armor
-```
-
-### Start-Values Block
-
-Current known Mission 1 fields:
-
-```text
-342 = Gold       (500)
-350 = Popularity (80)
-370 = Wood       (72)
-374 = Stone      (40)
-378 = Iron       (confirmed writable field)
-454 = Apples     (10)
-458 = Bread      (10)
-462 = Cheese     (10)
-466 = Meat       (10)
-```
-
-Current known Mission 2 fields:
-
-```text
-923  = Gold       (500)
-931  = Popularity (80)
-951  = Wood       (72)
-955  = Stone      (40)
-1035 = Apples     (10)
-1039 = Bread      (10)
-1043 = Cheese     (10)
-1047 = Meat       (10)
-```
-
-Current interpretation:
-
-- gold and popularity are explicit mission-local fields
-- goods are stored in mission-local quantity fields
-- at least the early goods region uses 4-byte little-endian integers
-- the full 29-goods ordering is not yet fully pinned
-- nearby words at `334`, `338`, `354` are still unknown
-
-### Zero Region
-
-Current sample contains a long zero-filled span per mission entry:
-
-```text
-Mission 1 = 468..543
-Mission 2 = 1049..1124
-```
-
-Meaning is unknown.
-
-### Mission Tail / Footer
-
-Current sample contains an undecoded tail per mission entry after the zero-filled span.
-
-Known Mission 1 tail words:
-
-```text
-544..547 = 00 00 06 00
-548..551 = 00 00 0F 00
-568..571 = 00 AF 1E FF
-572..575 = FF 08 66 E9
-576..579 = 3F 04 00 00
-580..583 = 00 04 00 00
-584..588 = 00 00 00 00 00
-```
-
-Meaning is unknown.
-
-### What Is Confirmed Versus Unknown
-
-Confirmed:
-
-- the `Mission` token contains two concatenated mission-entry records
-- current mission-entry boundaries are `0..588` and `589..1157`
-- entry size grows with Mission 1 row count by `+4` bytes per added row
-- each mission entry contains:
-	- leading row metadata
-	- building availability
-	- tradeability
-	- start gold / popularity / goods fields
-	- zero-filled span
-	- trailing undecoded footer
-
-Still unknown:
-
-- exact row-record encoding and row-reference fields in the leading header
-- full 29-goods ordering in the start-values block
-- precise meaning of the unknown ranges between known blocks
-- precise meaning of the trailing footer words
+Detailed change logs, probe history, and unresolved hypotheses are in `SegmentA-RnD.md`.
 
 ## Output of Segment A Parse
 
