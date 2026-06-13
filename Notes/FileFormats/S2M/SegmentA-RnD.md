@@ -35,6 +35,22 @@ This file stores experiment history, detailed byte-diff notes, and unresolved hy
 	- ScenarioEvent changed event1-local early scalar `A0 E0 FD 3F -> 10 DE FD 3F`.
 	- The final event post-marker terminal-position scalar also changed to `10 DE FD 3F`.
 
+### Month/Delay Probe (UI edit: months=3, delay=9)
+
+- Control map: `BinaryCheck-Mission-2.s2m` (both values zero).
+- Changed map: `BinaryCheck-Mission.s2m` (set first event to 3 months, 9 delay).
+- ScenarioEvent payload diff changed exactly two bytes:
+	- absolute offset `70`: `00 -> 03`
+	- absolute offset `88`: `00 -> 09`
+- Event-block mapping for this payload (`starts=0,66`):
+	- offset `70` = event index 1, relative `+4`
+	- offset `88` = event index 1, relative `+22`
+
+Interpretation (single-layout test):
+
+- The edited month/delay controls map to event-local bytes in the second ScenarioEvent block in this map layout.
+- Prior candidate offsets (`+99`, `+117` absolute to ScenarioEvent record start) are not stable across this layout and should be treated as unresolved.
+
 ## Mission Probe History
 
 ### Entry Count and Event Id List

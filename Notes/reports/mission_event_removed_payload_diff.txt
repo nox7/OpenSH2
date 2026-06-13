@@ -1,0 +1,141 @@
+byteOffset oldHex newHex
+0 10 0C
+4 03 02
+8 A8 B8
+9 F0 FC
+10 11 04
+12 08 F8
+13 E0 FA
+14 01 04
+16 F0 01
+17 17 00
+18 06 00
+19 40 00
+20 01 CC
+24 CC C8
+28 C8 01
+30 00 03
+32 01 02
+33 00 04
+34 03 01
+35 00 01
+36 02 01
+37 04 01
+92 01 00
+96 00 01
+97 01 02
+101 02 01
+116 01 00
+120 00 01
+228 01 02
+229 01 00
+230 01 00
+231 01 00
+232 02 5E
+236 5E 2D
+240 2D 01
+241 00 01
+246 00 01
+247 00 01
+248 01 02
+249 01 02
+252 02 01
+253 02 01
+260 01 00
+261 01 00
+264 00 01
+265 00 01
+306 01 00
+307 01 00
+310 00 01
+311 00 01
+312 01 03
+313 01 03
+314 01 04
+315 01 04
+316 03 01
+317 03 01
+318 04 01
+319 04 01
+330 01 04
+331 01 00
+332 01 00
+333 01 00
+334 04 0C
+338 0C F4
+339 00 01
+342 F4 00
+343 01 00
+346 00 50
+350 50 05
+354 05 B8
+358 B8 2D
+362 2D 00
+366 00 48
+370 48 28
+374 28 05
+378 05 0A
+382 0A 00
+450 00 0A
+466 0A 00
+542 00 06
+546 06 0F
+550 0F 00
+565 00 AF
+566 00 1E
+567 00 FF
+568 00 FF
+569 AF B8
+570 1E FC
+571 FF 04
+572 FF 40
+--int32-shift0--
+idx=0 off=0 oldRaw=16 oldNorm=16 newRaw=12 newNorm=12
+idx=1 off=4 oldRaw=3 oldNorm=3 newRaw=2 newNorm=2
+idx=2 off=8 oldRaw=1074917544 oldNorm=1074917544 newRaw=1074068664 newNorm=1074068664
+idx=3 off=12 oldRaw=1073864712 oldNorm=1073864712 newRaw=1074068216 newNorm=1074068216
+idx=4 off=16 oldRaw=1074141168 oldNorm=1074141168 newRaw=1 newNorm=1
+idx=5 off=20 oldRaw=1 oldNorm=1 newRaw=204 newNorm=204
+idx=6 off=24 oldRaw=204 oldNorm=204 newRaw=200 newNorm=200
+idx=7 off=28 oldRaw=200 oldNorm=200 newRaw=196609 newNorm=196609
+idx=8 off=32 oldRaw=196609 oldNorm=196609 newRaw=16843778 newNorm=16843778
+idx=9 off=36 oldRaw=16843778 oldNorm=16843778 newRaw=16843009 newNorm=16843009
+idx=23 off=92 oldRaw=16843009 oldNorm=16843009 newRaw=16843008 newNorm=65793
+idx=24 off=96 oldRaw=16843008 oldNorm=65793 newRaw=16843265 newNorm=16843265
+idx=25 off=100 oldRaw=16843265 oldNorm=16843265 newRaw=16843009 newNorm=16843009
+idx=29 off=116 oldRaw=16843009 oldNorm=16843009 newRaw=16843008 newNorm=65793
+idx=30 off=120 oldRaw=16843008 oldNorm=65793 newRaw=16843009 newNorm=16843009
+idx=57 off=228 oldRaw=16843009 oldNorm=16843009 newRaw=2 newNorm=2
+idx=58 off=232 oldRaw=2 oldNorm=2 newRaw=94 newNorm=94
+idx=59 off=236 oldRaw=94 oldNorm=94 newRaw=45 newNorm=45
+idx=60 off=240 oldRaw=45 oldNorm=45 newRaw=257 newNorm=257
+idx=61 off=244 oldRaw=257 oldNorm=257 newRaw=16843009 newNorm=16843009
+idx=62 off=248 oldRaw=16843009 oldNorm=16843009 newRaw=16843266 newNorm=16843266
+idx=63 off=252 oldRaw=16843266 oldNorm=16843266 newRaw=16843009 newNorm=16843009
+idx=65 off=260 oldRaw=16843009 oldNorm=16843009 newRaw=16842752 newNorm=65792
+idx=66 off=264 oldRaw=16842752 oldNorm=65792 newRaw=16843009 newNorm=16843009
+idx=76 off=304 oldRaw=16843009 oldNorm=16843009 newRaw=257 newNorm=257
+idx=77 off=308 oldRaw=257 oldNorm=257 newRaw=16843009 newNorm=16843009
+idx=78 off=312 oldRaw=16843009 oldNorm=16843009 newRaw=67371779 newNorm=67371779
+idx=79 off=316 oldRaw=67371779 oldNorm=67371779 newRaw=16843009 newNorm=16843009
+idx=82 off=328 oldRaw=16843009 oldNorm=16843009 newRaw=262401 newNorm=262401
+idx=83 off=332 oldRaw=262401 oldNorm=262401 newRaw=786432 newNorm=3072
+idx=84 off=336 oldRaw=786432 oldNorm=3072 newRaw=32768000 newNorm=128000
+idx=85 off=340 oldRaw=32768000 oldNorm=128000 newRaw=0 newNorm=0
+idx=86 off=344 oldRaw=0 oldNorm=0 newRaw=5242880 newNorm=20480
+idx=87 off=348 oldRaw=5242880 oldNorm=20480 newRaw=327680 newNorm=1280
+idx=88 off=352 oldRaw=327680 oldNorm=1280 newRaw=12058624 newNorm=47104
+idx=89 off=356 oldRaw=12058624 oldNorm=47104 newRaw=2949120 newNorm=11520
+idx=90 off=360 oldRaw=2949120 oldNorm=11520 newRaw=0 newNorm=0
+idx=91 off=364 oldRaw=0 oldNorm=0 newRaw=4718592 newNorm=18432
+idx=92 off=368 oldRaw=4718592 oldNorm=18432 newRaw=2621440 newNorm=10240
+idx=93 off=372 oldRaw=2621440 oldNorm=10240 newRaw=327680 newNorm=1280
+idx=94 off=376 oldRaw=327680 oldNorm=1280 newRaw=655360 newNorm=2560
+idx=95 off=380 oldRaw=655360 oldNorm=2560 newRaw=0 newNorm=0
+idx=112 off=448 oldRaw=0 oldNorm=0 newRaw=655360 newNorm=2560
+idx=116 off=464 oldRaw=655360 oldNorm=2560 newRaw=0 newNorm=0
+idx=135 off=540 oldRaw=0 oldNorm=0 newRaw=393216 newNorm=1536
+idx=136 off=544 oldRaw=393216 oldNorm=1536 newRaw=983040 newNorm=3840
+idx=137 off=548 oldRaw=983040 oldNorm=3840 newRaw=0 newNorm=0
+idx=141 off=564 oldRaw=0 oldNorm=0 newRaw=-14766336 newNorm=-14766336
+idx=142 off=568 oldRaw=-14766336 oldNorm=-14766336 newRaw=83671295 newNorm=326840

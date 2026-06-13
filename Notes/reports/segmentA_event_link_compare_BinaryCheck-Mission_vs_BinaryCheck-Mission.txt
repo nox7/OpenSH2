@@ -1,0 +1,56 @@
+# SegmentA Event Link Compare
+
+## Old
+MapPath=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-Mission.s2m
+HeaderEnd=122
+SegmentADecompressedLength=2151
+
+Mission:
+  payloadLen=577 headerSize=16 rowCount=3
+  eventId[0] off=8 raw=1074917544 hex=A8 F0 11 40
+  eventId[1] off=12 raw=1073864712 hex=08 E0 01 40
+  eventId[2] off=16 raw=1074141168 hex=F0 17 06 40
+ScenarioEvent:
+  payloadLen=194 payloadHash=7c1884c768eec984f04874a1685358d4e6074cea8699390a220ceafd0bdb4c4b
+  marker[0] off=50 postRaw=1073864712 postHex=08 E0 01 40
+  marker[1] off=120 postRaw=1074141168 postHex=F0 17 06 40
+  marker[2] off=186 postRaw=1073602064 postHex=10 DE FD 3F
+  eventIdHit[0] raw=1074917544 hex=A8 F0 11 40 offs=none
+  eventIdHit[1] raw=1073864712 hex=08 E0 01 40 offs=54
+  eventIdHit[2] raw=1074141168 hex=F0 17 06 40 offs=124
+ActionTriggerTokens:
+  LoseAction#0 start=1683 len=25 hash=148b8a7f4dc335aa24b57bbdb19e49edd566c956fe2914f6f3f5c8dbbe6e26ab hits=
+  Trigger#0 start=1775 len=37 hash=e00a05243ffe27d252280ced434de2b37579a1d48521abfcad67c4e90f1a1e88 hits=
+  HonourAcquiredTrigger#0 start=1835 len=180 hash=a5b90e3acd7ae991a1b1a8e4f531a3aec2842e28fb2c23cd82584f862926ac62 hits=
+  WinAction#0 start=2052 len=74 hash=74a1dc03275935bb8f2dd9e84dfc9fc106bd037a3cb6befb623824b2797f8d99 hits=
+
+## New
+MapPath=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-Mission.s2m
+HeaderEnd=122
+SegmentADecompressedLength=2151
+
+Mission:
+  payloadLen=577 headerSize=16 rowCount=3
+  eventId[0] off=8 raw=1074917544 hex=A8 F0 11 40
+  eventId[1] off=12 raw=1073864712 hex=08 E0 01 40
+  eventId[2] off=16 raw=1074141168 hex=F0 17 06 40
+ScenarioEvent:
+  payloadLen=194 payloadHash=7c1884c768eec984f04874a1685358d4e6074cea8699390a220ceafd0bdb4c4b
+  marker[0] off=50 postRaw=1073864712 postHex=08 E0 01 40
+  marker[1] off=120 postRaw=1074141168 postHex=F0 17 06 40
+  marker[2] off=186 postRaw=1073602064 postHex=10 DE FD 3F
+  eventIdHit[0] raw=1074917544 hex=A8 F0 11 40 offs=none
+  eventIdHit[1] raw=1073864712 hex=08 E0 01 40 offs=54
+  eventIdHit[2] raw=1074141168 hex=F0 17 06 40 offs=124
+ActionTriggerTokens:
+  LoseAction#0 start=1683 len=25 hash=148b8a7f4dc335aa24b57bbdb19e49edd566c956fe2914f6f3f5c8dbbe6e26ab hits=
+  Trigger#0 start=1775 len=37 hash=e00a05243ffe27d252280ced434de2b37579a1d48521abfcad67c4e90f1a1e88 hits=
+  HonourAcquiredTrigger#0 start=1835 len=180 hash=a5b90e3acd7ae991a1b1a8e4f531a3aec2842e28fb2c23cd82584f862926ac62 hits=
+  WinAction#0 start=2052 len=74 hash=74a1dc03275935bb8f2dd9e84dfc9fc106bd037a3cb6befb623824b2797f8d99 hits=
+
+## Diff
+MissionEventIds old=[A8 F0 11 40 | 08 E0 01 40 | F0 17 06 40] new=[A8 F0 11 40 | 08 E0 01 40 | F0 17 06 40]
+ScenarioEventHash old=7c1884c768eec984f04874a1685358d4e6074cea8699390a220ceafd0bdb4c4b new=7c1884c768eec984f04874a1685358d4e6074cea8699390a220ceafd0bdb4c4b
+ScenarioEventPostMarkerDwords old=[08 E0 01 40 | F0 17 06 40 | 10 DE FD 3F] new=[08 E0 01 40 | F0 17 06 40 | 10 DE FD 3F]
+ActionTriggerChanges:
+

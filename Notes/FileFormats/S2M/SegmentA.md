@@ -1,6 +1,6 @@
 # Stronghold 2 S2M Segment A
 
-Last updated: 2026-05-25
+Last updated: 2026-05-29
 
 ## Scope
 
@@ -23,6 +23,25 @@ This document defines how to locate, decompress, and parse Segment A (mission/sc
 	 - `ScenarioEvent` records define event spans.
 	 - Actions/triggers are assigned to the containing event span.
 7. Dispatch token records by name/tag to typed action/trigger decoders.
+
+## Parser-First Read Flow
+
+If starting from decompressed Segment A byte `0`, parse in this order:
+
+1. Scan all token records.
+2. Sort by `RecordStart`.
+3. For each token, compute payload as `[MetadataEnd, NextRecordStart)`.
+4. Read first `Mission` token payload:
+	- parse mission block header at `+0`, `+4`
+	- parse mission event-id list at `+8 + 4*i` for `i in [0..eventCount-1]`
+5. Read first `ScenarioEvent` token payload:
+	- split into event blocks (first starts at `0`; next starts at `previousMarkerOffset + 20` in current samples)
+	- parse each event block fields (`+34`, `+38`, marker, post-marker)
+6. Continue tokens in record order:
+	- action tokens (`tag==7` or name ends with `Action`)
+	- trigger tokens (`tag==9` or name ends with `Trigger`)
+7. For each action/trigger payload, read shift-0 word view and marker/post-marker linkage candidate.
+8. Validate linkage consistency against Mission event-id order and ScenarioEvent chain.
 
 ## Token Record Layout
 
@@ -94,6 +113,7 @@ Confirmed rules:
 	- last event: terminal-position scalar (observed values include `A0 E0 FD 3F` and `10 DE FD 3F`)
 - Mission event-id order and ScenarioEvent chain order match.
 - Action-type edits (`Win`/`Lose`) do not change Mission event ids or chain links.
+- Event deletion can regenerate the remaining Mission event ids; ScenarioEvent post-marker chain values are rewritten to the regenerated ids.
 
 Detailed probe logs and unresolved hypotheses are in `SegmentA-RnD.md`.
 
@@ -104,6 +124,16 @@ Detailed probe logs and unresolved hypotheses are in `SegmentA-RnD.md`.
 - Action candidates:
 	- `tag == 7` OR name ends with `Action`
 - Dispatch is by exact token name to typed parsers.
+
+## Action/Trigger Payload Read Contract
+
+For each action or trigger token payload (in record order):
+
+1. Preserve raw bytes.
+2. Build shift-0 int32 word view (`word0` at payload `+0`).
+3. Search for marker bytes `AF 1E FF FF`.
+4. If marker exists, read dword immediately after marker as linkage candidate.
+5. Compare linkage candidate against ScenarioEvent post-marker chain and Mission event ids.
 
 ## Structural Spine (Common in Current Samples)
 
@@ -141,6 +171,8 @@ offset +16 : dword event_id[2]        ; present when row_count >= 3
 ```
 
 Event-id list and ScenarioEvent chain are aligned in order.
+
+Event ids are not guaranteed stable across mission-event list edits (for example, deleting one event can rewrite the ids of surviving events).
 
 Building availability table:
 

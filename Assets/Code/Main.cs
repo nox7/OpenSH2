@@ -9,6 +9,7 @@ public class Main : MonoBehaviour
   void Start()
   {
     Game.Initialize();
+    RunTests();
   }
 
   // Update is called once per frame
@@ -71,6 +72,22 @@ public class Main : MonoBehaviour
       }
 
       game.mainMenuUI.UpdateLayout();
+    }
+  }
+
+  private void RunTests()
+  {
+    try
+    {
+      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter1-inflated\\00-header.bin";
+      var reader = new Assets.Code.Stronghold2.S2MReader.S2MReader(testFilePath);
+      var mapFile = reader.ReadS2MFile();
+
+      Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}");
+    }
+    catch (System.Exception exception)
+    {
+      Debug.LogException(exception);
     }
   }
 
