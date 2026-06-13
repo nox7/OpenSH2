@@ -1,13 +1,28 @@
+using Assets.Code.Stronghold2.S2MReader.ObjectReaders;
 using Assets.Code.Stronghold2.S2MReader.Resources;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 namespace Assets.Code.Stronghold2.S2MReader
 {
   internal class S2MReader
   {
+    /// <summary>
+    /// Stores the trailer marker which is AF1EFFFF in hex
+    /// </summary>
+    private const int TrailerMarker = -57681; // 0xAF1EFFFF as a signed int
     private string FilePath { get; set; }
     private S2MFile MapFile { get; set; }
+    /// <summary>
+    /// Map the object Id to its S2Object
+    /// </summary>
+    private readonly Dictionary<int, S2Object> Objects = new();
+    /// <summary>
+    /// Map the object type index (not Id) to the type name.
+    /// </summary>
+    private readonly Dictionary<int, string> Types = new();
 
     public S2MReader(string filePath)
     {
@@ -20,7 +35,8 @@ namespace Assets.Code.Stronghold2.S2MReader
       using var stream = File.OpenRead(FilePath);
       using var reader = new BinaryReader(stream);
 
-      ReadHeader(reader);
+      // ReadHeader(reader);
+      ReadMapHeader(reader);
       return MapFile;
     }
 
@@ -29,11 +45,11 @@ namespace Assets.Code.Stronghold2.S2MReader
       // Unknown header marker. war_chapter1 has 2 here.
       reader.ReadInt32();
 
-      ReadFieldName(reader, "author");
-      MapFile.Author = ReadUtf16String(reader);
+      S2MReaderUtils.ReadFieldName(reader, "author");
+      MapFile.Author = S2MReaderUtils.ReadUtf16String(reader);
 
-      ReadFieldName(reader, "type");
-      string mapTypeString = ReadUtf16String(reader);
+      S2MReaderUtils.ReadFieldName(reader, "type");
+      string mapTypeString = S2MReaderUtils.ReadUtf16String(reader);
 
       if (mapTypeString == "warcampaign")
       {
@@ -59,48 +75,132 @@ namespace Assets.Code.Stronghold2.S2MReader
       // Read random "04 00 00 00"
       reader.ReadInt32();
 
-      ReadFieldName(reader, "balanced");
+      S2MReaderUtils.ReadFieldName(reader, "balanced");
       MapFile.Balanced = reader.ReadInt32() == 1;
 
-      ReadFieldName(reader, "lastsave");
+      S2MReaderUtils.ReadFieldName(reader, "lastsave");
       MapFile.LastSave = reader.ReadInt32().ToString();
 
-      ReadFieldName(reader, "maxplayers");
+      S2MReaderUtils.ReadFieldName(reader, "maxplayers");
       MapFile.MaxPlayers = reader.ReadInt32();
 
-      ReadFieldName(reader, "version");
+      S2MReaderUtils.ReadFieldName(reader, "version");
       MapFile.Version = reader.ReadInt32();
     }
 
-    private static void ReadFieldName(BinaryReader reader, string expectedName)
+    /// <summary>
+    /// The first decompressed z-lib segment of a S2M map file.
+    /// This contains the following objects:
+    /// - MapHeader
+    /// - EstateMarkers
+    /// - Scenario
+    /// - Mission
+    /// - ScenarioEvent
+    /// And then many possible actions and triggers.
+    /// </summary>
+    private void ReadMapHeader(BinaryReader reader)
     {
-      int nameLength = reader.ReadInt32();
-      string name = Encoding.ASCII.GetString(ReadExactBytes(reader, nameLength));
+      // It starts with an object Id and a type index, but we've no idea what the first 8 bytes mean. So we skip them
+      reader.ReadInt32();
+      reader.ReadInt32();
 
-      if (name != expectedName)
-      {
-        throw new InvalidDataException($"Expected S2M header field '{expectedName}' but found '{name}' at offset {reader.BaseStream.Position}.");
-      }
+      // Now, we can begin reading the objects. Starts with a MapHeader
+      var obj = ReadObjectHeader(reader);
+      ReadObject(reader, obj);
+
+      // Read EstateMarkers
+      var obj2 = ReadObjectHeader(reader);
+      ReadObject(reader, obj2);
+
+      // Read Scenario
+      var obj3 = ReadObjectHeader(reader);
+      ReadObject(reader, obj3);
+
+      Debug.Log(obj.Type);
     }
 
-    private static string ReadUtf16String(BinaryReader reader)
+    /// <summary>
+    /// Reads the header of an S2Object and returns that object.
+    /// Other functions should read the rest of the object until the object-end trailer marker.
+    /// </summary>
+    /// <returns></returns>
+    private S2Object ReadObjectHeader(BinaryReader reader)
     {
-      int characterCount = reader.ReadInt32();
-      byte[] bytes = ReadExactBytes(reader, characterCount * 2);
+      S2Object obj = new();
 
-      return Encoding.Unicode.GetString(bytes);
-    }
+      // Read the object Id
+      obj.Id = reader.ReadInt32();
 
-    private static byte[] ReadExactBytes(BinaryReader reader, int count)
-    {
-      byte[] bytes = reader.ReadBytes(count);
+      // Read the type index
+      int typeIndex = reader.ReadInt32();
+      obj.TypeIndex = typeIndex;
 
-      if (bytes.Length != count)
+      // Now, check if that type index has been mapped in a dictionary yet
+      Types.TryGetValue(typeIndex, out string typeName);
+      if (typeName == null)
       {
-        throw new EndOfStreamException($"Expected {count} bytes but only read {bytes.Length}.");
+        // If it's null, then the next bytes we will read will be the length of the type name
+        // followed by the type name itself
+        typeName = S2MReaderUtils.ReadASCIIString(reader);
+
+        // Register the typeName
+        Types.Add(typeIndex, typeName);
+
+        // Read the type index again (it will max typeIndex) as it pads the type name
+        reader.ReadInt32();
+
+        // Read the parent type index
+        int parentTypeIndex = reader.ReadInt32();
+
+        // If this is not 0, then we handle it similarly to the typeIndex
+        if (parentTypeIndex != 0)
+        {
+          Types.TryGetValue(parentTypeIndex, out string parentTypeName);
+          if (parentTypeName == null)
+          {
+            parentTypeName = S2MReaderUtils.ReadASCIIString(reader);
+            Types.Add(parentTypeIndex, parentTypeName);
+
+            // To our best knowledge, there will never be a another "grandparent" type index and it will always be 0
+            int grandparentTypeIndex = reader.ReadInt32();
+            if (grandparentTypeIndex != 0)
+            {
+              throw new System.Exception($"Unexpected grandparent type index {grandparentTypeIndex} for object type '{typeName}' with parent type '{parentTypeName}'.");
+            }
+          }
+        }
       }
 
-      return bytes;
+      obj.Type = typeName;
+
+      return obj;
+    }
+
+    /// <summary>
+    /// Takes an object-header-parsed S2Object and, using its Type, determines which reader to use to read the object.
+    /// Once read, adds the object to the Objects dictionary by its Id.
+    /// </summary>
+    /// <param name="reader"></param>
+    /// <param name="obj"></param>
+    private S2Object ReadObject(BinaryReader reader, S2Object obj)
+    {
+      ObjectReader objReader;
+      if (obj.Type == "MapHeader")
+      {
+        objReader = new MapHeaderReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else if (obj.Type == "EstateMarkers")
+      {
+        objReader = new EstateMarkersReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+
+      return null;
     }
   }
 }
