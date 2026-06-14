@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using NUnit.Framework;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Assets.Code.Stronghold2.S2MReader
@@ -45,6 +47,28 @@ namespace Assets.Code.Stronghold2.S2MReader
       byte[] bytes = ReadExactBytes(reader, characterCount * 2);
 
       return Encoding.Unicode.GetString(bytes);
+    }
+
+    /// <summary>
+    /// Reads a size value and then a byte array of that size where each value to read is an int32.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="EndOfStreamException"></exception>
+    public static List<int> ReadListOfInts(BinaryReader reader)
+    {
+      List<int> values = new();
+      int numInList = reader.ReadInt32();
+      for (int i = 0; i < numInList; i++)
+      {
+        values.Add(reader.ReadInt32());
+      }
+
+      // Finally, read the object type index which is after the list
+      // We'll always know what type of object list we're reading because we know the binary spec
+      // so we don't need this value for anything.
+      reader.ReadInt32();
+
+      return values;
     }
 
     public static byte[] ReadExactBytes(BinaryReader reader, int count)
