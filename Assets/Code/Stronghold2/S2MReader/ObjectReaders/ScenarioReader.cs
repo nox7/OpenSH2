@@ -12,7 +12,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
 
     public override S2Object Read(BinaryReader reader)
     {
-      Scenario obj = new Scenario();
+      Scenario obj = new();
 
       // First 4 bytes are unknown. Always seems to be 0C (12)
       reader.ReadInt32();
@@ -120,9 +120,109 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
           obj.EstateProductionTypes[i] = Enums.EstateProductionType.Wood;
           obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Small;
         }
+        else if (productionTypeId == 4)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.Stone;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Small;
+        }
+        else if (productionTypeId == 5)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.Iron;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Small;
+        }
+        else if (productionTypeId == 6)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.Pitch;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Small;
+        }
+        else if (productionTypeId == 7)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.Ale;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Small;
+        }
+        else if (productionTypeId == 8)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.ApplesCheeseBread;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Medium;
+        }
+        else if (productionTypeId == 9)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.WoodIronStone;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Medium;
+        }
+        else if (productionTypeId == 10)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.ApplesCheeseBreadAle;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Medium;
+        }
+        else if (productionTypeId == 11)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.ClothApples;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Medium;
+        }
+        else if (productionTypeId == 12)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.WoodBread;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Medium;
+        }
+        else if (productionTypeId == 13)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.StoneCheese;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Medium;
+        }
+        else if (productionTypeId == 14)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.CandlesCheese;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Medium;
+        }
+        else if (productionTypeId == 15)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.ApplesCheeseBread;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Large;
+        }
+        else if (productionTypeId == 16)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.WoodIronStone;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Large;
+        }
+        else if (productionTypeId == 17)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.ApplesSpears;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Large;
+        }
+        else if (productionTypeId == 18)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.BreadBows;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Large;
+        }
+        else if (productionTypeId == 19)
+        {
+          obj.EstateProductionTypes[i] = Enums.EstateProductionType.LeatherArmorCrossbows;
+          obj.EstatePopulationLevels[i] = Enums.EstatePopulationLevel.Large;
+        }
       }
 
-      return obj;
+      // Read 25 unknown bytes
+      reader.ReadBytes(25);
+
+      // Read 16 estate "AI building placement" values
+      // 0 or 1
+      // 0 = AI places buildings
+      // 1 = Use map buildings
+      for (int i = 0; i < 16; i++)
+      {
+        byte buildingPlacementType = reader.ReadByte();
+        if (buildingPlacementType == 0)
+        {
+          obj.EstateAIBuildingPlacements[i] = Enums.EstateAIBuildingPlacement.AIPlacesBuildings;
+        }
+        else if (buildingPlacementType == 1)
+        {
+          obj.EstateAIBuildingPlacements[i] = Enums.EstateAIBuildingPlacement.UseMapBuildings;
+        }
+      }
+
+        return obj;
     }
   }
 }
