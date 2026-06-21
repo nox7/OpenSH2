@@ -222,7 +222,10 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
         }
       }
 
-        return obj;
+      // Read 4 object-terminator bytes (AF1EFFFF)
+      reader.ReadInt32();
+
+      return obj;
     }
   }
 }

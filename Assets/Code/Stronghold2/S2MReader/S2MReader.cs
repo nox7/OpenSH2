@@ -116,6 +116,10 @@ namespace Assets.Code.Stronghold2.S2MReader
       var obj3 = ReadObjectHeader(reader);
       ReadObject(reader, obj3);
 
+      // Read Mission
+      var obj4 = ReadObjectHeader(reader);
+      ReadObject(reader, obj4);
+
       Debug.Log(obj.Type);
     }
 
@@ -195,6 +199,20 @@ namespace Assets.Code.Stronghold2.S2MReader
       else if (obj.Type == "EstateMarkers")
       {
         objReader = new EstateMarkersReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else if (obj.Type == "Scenario")
+      {
+        objReader = new ScenarioReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else if (obj.Type == "Mission")
+      {
+        objReader = new MissionReader(obj);
         var parsedObject = objReader.Read(reader);
         Objects.Add(obj.Id, parsedObject);
         return parsedObject;
