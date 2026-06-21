@@ -222,6 +222,9 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
         }
       }
 
+      // Read unknown 4 bytes (00 00 00 00)
+      reader.ReadInt32();
+
       // Read 4 object-terminator bytes (AF1EFFFF)
       reader.ReadInt32();
 

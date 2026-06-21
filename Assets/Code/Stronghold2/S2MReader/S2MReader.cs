@@ -120,6 +120,9 @@ namespace Assets.Code.Stronghold2.S2MReader
       var obj4 = ReadObjectHeader(reader);
       ReadObject(reader, obj4);
 
+      var obj5 = ReadObjectHeader(reader);
+      ReadObject(reader, obj5);
+
       Debug.Log(obj.Type);
     }
 

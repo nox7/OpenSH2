@@ -95,5 +95,19 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public MissionFeatureAvailability TunnelEntrance { get; set; } = MissionFeatureAvailability.Enabled;
     public MissionFeatureAvailability Jousting { get; set; } = MissionFeatureAvailability.Enabled;
     public MissionFeatureAvailability TravelingFair { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability TowerAndWallMountedBrazier { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability WallMountedStoneTipper { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability RockBasketsForWalls { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability PlacePitchDitch { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability WallMountedRollingLogs { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability PlaceMoats { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability WoodenWalls { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability SingleThicknessWall { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability DoubleThicknessWall { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability TripleThicknessWall { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability RoundTowerWithHoarding { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability SquareTowerWithHoarding { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability TowerMountedMangonel { get; set; } = MissionFeatureAvailability.Enabled;
+    public MissionFeatureAvailability TowerMountedBallista { get; set; } = MissionFeatureAvailability.Enabled;
   }
 }

@@ -80,7 +80,7 @@ public class Main : MonoBehaviour
     try
     {
       // string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter1-inflated\\00-header.bin";
-      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter1-inflated\\01-segment-a.bin";
+      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\BinaryCheck-Mission-EstateMarkers-inflated\\01-segment-a.bin";
       var reader = new Assets.Code.Stronghold2.S2MReader.S2MReader(testFilePath);
       var mapFile = reader.ReadS2MFile();
 

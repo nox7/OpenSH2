@@ -21,9 +21,6 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       // Read all mission object Ids for this scenario
       obj.ScenarioEventObjectIds = S2MReaderUtils.ReadListOfInts(reader);
 
-      // Read unknown "01"
-      reader.ReadInt32();
-
       // Read unknown "CC"
       reader.ReadInt32();
 
@@ -102,6 +99,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       obj.BuildingAvailability.PitchRig = GetFeatureAvailabilityFromByte(reader);
       obj.BuildingAvailability.EngineersGuild = GetFeatureAvailabilityFromByte(reader);
       obj.BuildingAvailability.GongPit = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.SiegeCamp = GetFeatureAvailabilityFromByte(reader);
       obj.BuildingAvailability.BeeHive = GetFeatureAvailabilityFromByte(reader);
       obj.BuildingAvailability.ChandlersWorkshop = GetFeatureAvailabilityFromByte(reader);
       obj.BuildingAvailability.Statue = GetFeatureAvailabilityFromByte(reader);
@@ -124,8 +122,26 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       obj.BuildingAvailability.Jousting = GetFeatureAvailabilityFromByte(reader);
       obj.BuildingAvailability.TravelingFair = GetFeatureAvailabilityFromByte(reader);
 
-      // Read 122 unknown bytes (seem to be almost all 01s with some variance at the end)
-      reader.ReadBytes(122);
+      // Read 04 unknown bytes (All 01s, probably reserved or now-removed buildings)
+      reader.ReadBytes(94);
+
+      obj.BuildingAvailability.TowerAndWallMountedBrazier = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.WallMountedStoneTipper = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.RockBasketsForWalls = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.PlacePitchDitch = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.WallMountedRollingLogs = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.PlaceMoats = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.WoodenWalls = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.SingleThicknessWall = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.DoubleThicknessWall = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.TripleThicknessWall = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.RoundTowerWithHoarding = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.SquareTowerWithHoarding = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.TowerMountedMangonel = GetFeatureAvailabilityFromByte(reader);
+      obj.BuildingAvailability.TowerMountedBallista = GetFeatureAvailabilityFromByte(reader);
+
+      // Skip 14 unknown bytes
+      reader.ReadBytes(14);
 
       // Read the tradeable resource availability for 29 resources.
       obj.TradeAvailability.Wood = GetFeatureAvailabilityFromByte(reader, true);

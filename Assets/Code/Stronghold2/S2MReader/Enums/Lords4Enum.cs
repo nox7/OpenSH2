@@ -11,7 +11,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Enums
     Olaf = 2,
     LordBarclay = 3,
     TheHawk = 4,
-    TheBull  5,
+    TheBull = 5,
     LadySeren = 6,
     Edwin = 7,
     TheKing = 8,
