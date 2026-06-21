@@ -1,0 +1,44 @@
+(Houses type of estate marker, as in what it produces)
+(Houses owner of an estate, as in what lord owns it)
+- +4 bytes = unknown (0C (12) observed, no idea)
+- +4 bytes = # of Missions in Scenario
+- +4 bytes x # of Missions = List of Mission object Ids
+- +4 bytes = unknown (Object type index of objects in the list)
+- +4 bytes = unknown (16 observed, very possible it is the number of total estate markers possible or total estates owned idk)
+- +4 bytes = unknown (00s)
+- +4 bytes = unknown (00s)
+- +4 bytes = unknown (00s)
+- +2 bytes = unknown
+- +4 bytes = Starting year
+- +4 bytes = Starting calendar month (00 to 0B -> 0 to 11)
+- +4 bytes = unknown
+- +30 bytes = unknown and absolutely no clue
+- +4 bytes x 16 (64 bytes) = Lord Ids who own each territory in order
+	- Use [Lords4Enum](./Enums/Lords4Enum)
+- +28 bytes = unknown
+- +4 bytes x 16 (64 bytes) = Village production type in order (same order as above)
+	- 0 = apples
+	- 1 = cheese
+	- 2 = bread
+	- 3 = wood
+	- 4 = stone
+	- 5 = iron
+	- 6 = pitch
+	- 7 = ale
+	- 8 = apples, cheese, and bread (two hovel)
+	- 9 = wood, iron, and stone (two hovel)
+	- 10 = apple, cheese, bread, and ale (two hovel)
+	- 11 = cloth and apples (two hovel)
+	- 12 = wood and bread (two hovel)
+	- 13 = stone and cheese (two hovel)
+	- 14 = candles and cheese (two hovel)
+	- 15 = apples, cheese, and bread (three hovel)
+	- 16 = wood, iron, and stone (three hovel)
+	- 17 = apple and spears (three hovel)
+	- 18 = bread and bows (three hovel)
+	- 19 = leather armor and crossbows (three hovel)
+- +25 bytes = unknown
+- +16 bytes = Individual bytes for if an estate has AI places buildings or use estate buildings
+	- 0 = AI places buildings
+	- 1 = Use map buildings
+- +4 bytes = unknown

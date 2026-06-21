@@ -1,7 +1,0 @@
-start=1537 id=6 payloadLen=38
-modeByte29=1
-lordRaw24=0
-lordNormalized24=0
-lordRaw12=1791
-lordNormalized12=6
-payloadHex=00 00 00 00 01 00 00 00 00 A5 C1 FF FF 06 00 00 00 00 00 00 00 05 00 00 00 00 00 00 00 01 AF 1E FF FF 18 8C C2 11

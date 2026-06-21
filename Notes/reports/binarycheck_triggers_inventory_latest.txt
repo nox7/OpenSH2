@@ -1,6 +1,0 @@
-ScenarioEventStart=1458 WinActionStart=1807
---- Event records ---
- 1671 id=  6 tag= 7 name=LoseAction payload=0
- 1689 id=  7 tag= 0 name=ScenarioAction payload=16
- 1736 id=  8 tag= 9 name=LordDiesTrigger payload=0
- 1759 id=  9 tag= 0 name=Trigger payload=25

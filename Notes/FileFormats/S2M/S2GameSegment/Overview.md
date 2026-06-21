@@ -1,0 +1,1 @@
+Contains information about the game map. A lot of data is terrain map data.

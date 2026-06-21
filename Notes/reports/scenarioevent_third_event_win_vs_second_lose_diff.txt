@@ -1,6 +1,0 @@
-byteOffset oldHex newHex
-87 A0 00
-88 DD DF
---int32-shift0--
-idx=21 off=84 oldRaw=-1610612736 oldNorm=-1610612736 newRaw=0 newNorm=0
-idx=22 off=88 oldRaw=4193757 oldNorm=4193757 newRaw=4193759 newNorm=4193759

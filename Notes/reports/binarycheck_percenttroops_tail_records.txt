@@ -1,4 +1,0 @@
-Records near tail:
- 3348 id= 26 tag= 9 name=NoEnemyOrInvasionsLeftTrigger namePos=3356 payload=41
- 3434 id= 27 tag= 9 name=PercentTroopsKilledTrigger namePos=3442 payload=49
- 3525 id= 28 tag= 9 name=AllYourTroopsDeadTrigger namePos=3533 payload=29

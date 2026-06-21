@@ -1,6 +1,0 @@
-id=35 start=4136 payloadLen=41
-codeRaw=9215 codeNorm=35
-modeRaw=1024 modeNorm=4
-selectorRaw=512 selectorNorm=2
-firstWords=
-0,1,1,-4086528,9215,0,1024,512,-14766336,578273535

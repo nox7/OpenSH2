@@ -1,0 +1,17 @@
+- Parse [[Trigger]] first
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = Flag color
+	- 0 = Red
+	- 1 = Green
+	- 2 = Blue
+	- 3 = Yellow
+- +4 bytes = Flag number
+	- 0 = #1
+	- 1 = #2
+	- 2 = #3
+	- 4 = #5
+	- 5 = #6
+	- 6 = #7
+	- 7 = #8
+- +4 bytes = End object trailer marker. AF 1E FF FF

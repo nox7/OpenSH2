@@ -1,0 +1,5 @@
+- Parse [[Trigger]] first
+- +4 bytes = unknown (00s)
+- +4 bytes = unknown (04, possibly some size of sorts)
+- +4 bytes = Honor value
+- +4 bytes = End object trailer marker. AF 1E FF FF

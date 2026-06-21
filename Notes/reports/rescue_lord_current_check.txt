@@ -1,6 +1,0 @@
-id=33 start=3962 payloadLen=41
-modeRaw=0
-selectorRaw=512
-selectorNorm=
-firstWords=
-0,1,1,-4086528,8703,0,1024,512,-14766336,-2183681

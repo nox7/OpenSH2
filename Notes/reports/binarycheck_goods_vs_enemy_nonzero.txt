@@ -1,6 +1,0 @@
-[GoodsAcquiredTrigger] len=217
-4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:0B, 21:01, 25:B4, 45:0A, 209:AF, 210:1E, 211:FF, 212:FF, 214:5D, 215:E9, 216:3F
-
-[EnemyGoodsAcquiredTrigger] len=221
-4:01, 8:01, 13:A5, 14:C1, 15:FF, 16:FF, 17:13, 21:01, 25:B8, 125:0A, 209:03, 213:AF, 214:1E, 215:FF, 216:FF, 217:AD, 218:DE, 219:FF, 220:FF
-

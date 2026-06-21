@@ -1,8 +1,0 @@
-Path=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-WoodGathered10.s2m
-Wood|ascii=|utf16=95
-BinaryCheck-WoodGathered10|ascii=|utf16=71
-
-Path=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-StoneGathered10.s2m
-Stone|ascii=|utf16=95
-BinaryCheck-StoneGathered10|ascii=|utf16=71
-

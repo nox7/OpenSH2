@@ -1,0 +1,21 @@
+Location of estate markers.
+- +1 byte = unknown (84 observed)
+- +1 byte = unknown (01 observed)
+- +1 byte = unknown (00 observed)
+- +1 byte = unknown (00 observed)
+- +1 byte = unknown (20 observed)
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +12 bytes x 16 (192 bytes) = estate marker flags
+	- 1 byte = X location
+	- 1 byte = Y location
+	- 1 byte = unknown (00 observed)
+	- 2 byte = X location
+	- 2 byte = Y location
+	- 4 byte = estate type (01 = estate, 02 = castle)
+	- 1 byte = 00 null terminator?
+- +179 bytes = unknown
+- +4 bytes = object end trailer marker

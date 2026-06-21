@@ -1,6 +1,0 @@
-StoneGoodsAcquiredTriggerOffset=1811
-IronGoodsAcquiredTriggerOffset=1809
-=== DIFFERING INT32 SLOTS IN WINDOW ===
-Rel  -12 | Stone    434803784 (0x19EA9448) | Iron    434804784 (0x19EA9830)
-Rel   64 | Stone         2560 (0x00000A00) | Iron            0 (0x00000000)
-Rel   68 | Stone            0 (0x00000000) | Iron         2560 (0x00000A00)

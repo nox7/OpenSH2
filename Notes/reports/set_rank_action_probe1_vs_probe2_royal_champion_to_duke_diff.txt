@@ -1,4 +1,0 @@
-byteOffset oldHex newHex
-25 06 09
---int32-shift0--
-idx=6 off=24 oldRaw=1536 oldNorm=6 newRaw=2304 newNorm=9

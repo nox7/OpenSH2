@@ -1,6 +1,0 @@
-Path=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-Blank.s2m
-Dominant=NONE
-
-Path=C:\Users\garet\Documents\Stronghold 2\Maps\BinaryCheck-WoodGathered10.s2m
-Dominant=NONE
-

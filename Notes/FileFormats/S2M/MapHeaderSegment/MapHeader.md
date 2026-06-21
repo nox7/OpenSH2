@@ -1,0 +1,16 @@
+This object is special. It begins a .s2m file. You will first parse an object without the expectation it will have a record string. (4 bytes of an Id, then 4 bytes of an enum). **Then** begin parsing the file object by object.
+- +4 bytes = unknown (04 shown in current test)
+- +4 bytes = Id of Estate Markers for map
+- +4 bytes = unknown (01 observed, possibly another enum padding?)
+- +4 bytes = unknown (04 observed)
+- +4 bytes = Id of Scenario to start map
+- +4 bytes = Scenario enum (02)
+- +4 bytes = (LengthOfMapName), includes object end marker
+- +4 bytes = Number of characters in map name (includes a preceding backslash for some reason)
+- +(LengthOfMapName) bytes = map name + object end marker bytes
+- +1 byte = Unknown
+- +4 byte = Map type
+	- 00 = kingmaker
+	- 02 = war custom
+	- 03 = peace custom
+	- 04 = free build

@@ -1,5 +1,0 @@
-scenarioPayloadLen=256
-keyHits:
-  98 @ 54
-  08 @ 120
-spanA8_to_next08=not_found

@@ -1,9 +1,0 @@
-    12 id=   1 name=MapHeader tag=1
-   124 id=   2 name=EstateMarkers tag=2
-   553 id=   3 name=Scenario tag=3
-   862 id=   4 name=Mission tag=4
-  1454 id=   5 name=ScenarioEvent tag=5
-  1537 id=   6 name=StopInvasionsAction tag=7
-  1564 id=   7 name=ScenarioAction tag=0
-  1624 id=   8 name=GoodsAcquiredTrigger tag=9
-  1652 id=   9 name=Trigger tag=0

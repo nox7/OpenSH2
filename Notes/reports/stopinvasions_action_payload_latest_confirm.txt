@@ -1,8 +1,0 @@
-targetStart=1537 id=6 base=ScenarioAction payloadLen=38
-modeRaw=1
-lordRaw=1791
-payloadHex=00 00 00 00 01 00 00 00 00 A5 C1 FF FF 06 00 00 00 00 00 00 00 05 00 00 00 03 00 00 00 01 AF 1E FF FF 18 8C C2 11
---nearRecords--
-1537 id=6 name=StopInvasionsAction tag=7 base=ScenarioAction metaEnd=1586
-1624 id=8 name=GoodsAcquiredTrigger tag=9 base=Trigger metaEnd=1667
-1652 id=9 name=Trigger tag=0 base= metaEnd=1675

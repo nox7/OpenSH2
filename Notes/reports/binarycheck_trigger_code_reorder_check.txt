@@ -1,8 +1,0 @@
-Latest code check:
-[PercentTroopsKilledTrigger] id=28 start=3503 payloadLen=49 codeRaw=7423 codeNorm=28 first10=0,1,1,-4086528,7423,0,3072,0,4608,0
-[AllYourTroopsDeadTrigger] id=27 start=3434 payloadLen=29 codeRaw=7167 codeNorm=27 first10=0,1,1,-4086528,7167,-14766336,-107822849
-
-Tail record order:
-3348 id=26 name=NoEnemyOrInvasionsLeftTrigger
-3434 id=27 name=AllYourTroopsDeadTrigger
-3503 id=28 name=PercentTroopsKilledTrigger
