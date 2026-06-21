@@ -152,28 +152,28 @@ namespace Assets.Code.Stronghold2.S2MReader
 
         // Register the typeName
         Types.Add(typeIndex, typeName);
+      }
 
-        // Read the type index again (it will max typeIndex) as it pads the type name
-        reader.ReadInt32();
+      // Read the type index again (it will max typeIndex) as it pads the type name
+      reader.ReadInt32();
 
-        // Read the parent type index
-        int parentTypeIndex = reader.ReadInt32();
+      // Read the parent type index
+      int parentTypeIndex = reader.ReadInt32();
 
-        // If this is not 0, then we handle it similarly to the typeIndex
-        if (parentTypeIndex != 0)
+      // If this is not 0, then we handle it similarly to the typeIndex
+      if (parentTypeIndex != 0)
+      {
+        Types.TryGetValue(parentTypeIndex, out string parentTypeName);
+        if (parentTypeName == null)
         {
-          Types.TryGetValue(parentTypeIndex, out string parentTypeName);
-          if (parentTypeName == null)
-          {
-            parentTypeName = S2MReaderUtils.ReadASCIIString(reader);
-            Types.Add(parentTypeIndex, parentTypeName);
+          parentTypeName = S2MReaderUtils.ReadASCIIString(reader);
+          Types.Add(parentTypeIndex, parentTypeName);
 
-            // To our best knowledge, there will never be a another "grandparent" type index and it will always be 0
-            int grandparentTypeIndex = reader.ReadInt32();
-            if (grandparentTypeIndex != 0)
-            {
-              throw new System.Exception($"Unexpected grandparent type index {grandparentTypeIndex} for object type '{typeName}' with parent type '{parentTypeName}'.");
-            }
+          // To our best knowledge, there will never be a another "grandparent" type index and it will always be 0
+          int grandparentTypeIndex = reader.ReadInt32();
+          if (grandparentTypeIndex != 0)
+          {
+            throw new System.Exception($"Unexpected grandparent type index {grandparentTypeIndex} for object type '{typeName}' with parent type '{parentTypeName}'.");
           }
         }
       }
