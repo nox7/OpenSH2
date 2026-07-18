@@ -1,0 +1,6 @@
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Percentage of player's population to turn into criminals
+	- E.g.: 07 = 7% of population
+- +4 bytes = object end trailer marker AF 1E FF FF

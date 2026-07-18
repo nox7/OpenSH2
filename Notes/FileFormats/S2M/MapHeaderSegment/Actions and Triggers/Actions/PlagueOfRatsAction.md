@@ -1,0 +1,4 @@
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Number of rats to infest player's castle

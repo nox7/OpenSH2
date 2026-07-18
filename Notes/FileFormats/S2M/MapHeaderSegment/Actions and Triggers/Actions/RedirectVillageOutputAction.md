@@ -1,0 +1,17 @@
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Source village flag color
+	- 00 = Red
+	- 01 = Green
+	- 02 = Blue
+	- 03 = Yellow
+- +4 bytes = Source village flag number
+	- 0 based. 0 = 1
+- +4 bytes = Target estate flag color
+	- 00 = Red
+	- 01 = Green
+	- 02 = Blue
+	- 03 = Yellow
+- +4 bytes = Target estate flag number
+	- 0 based. 0 = 1
