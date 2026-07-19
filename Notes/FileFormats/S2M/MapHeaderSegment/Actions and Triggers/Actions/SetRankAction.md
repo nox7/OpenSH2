@@ -1,0 +1,15 @@
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Number of bytes in data
+- +4 bytes = Rank
+	- 0 = Freeman
+	- 1 = Yeoman
+	- 2 = Squire
+	- 3 = Knight
+	- 4 = Knight Bachelor
+	- 5 = Knight errant
+	- 6 = Royal Champion
+	- 7 = Baron
+	- 8 = Earl
+	- 9 = Duke
+- +4 bytes = object trailer marker

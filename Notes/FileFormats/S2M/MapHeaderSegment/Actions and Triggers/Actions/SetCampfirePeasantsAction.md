@@ -1,0 +1,11 @@
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Number of bytes of data
+- +1 byte = Flag color
+	- 0 = red
+	- 1 = green
+	- 2 = blue
+	- 3 = yellow
+- +1 byte = Flag number
+	- 0 based. 0 = 1
+- +4 bytes = object trailer marker

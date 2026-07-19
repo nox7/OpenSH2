@@ -1,0 +1,13 @@
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +4 bytes = Lord
+	- 02 = Olaf
+	- 03 = Lord Barclay
+	- 04 = The Hawk
+	- 05 = The Bull
+	- 06 = Lady Seren
+	- 07 = Edwin
+	- 08 = The King
+	- 09 = Sir William
+	- 10 = Sir Grey
