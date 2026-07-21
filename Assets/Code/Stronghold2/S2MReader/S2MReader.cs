@@ -3,7 +3,6 @@ using Assets.Code.Stronghold2.S2MReader.Resources;
 using Assets.Code.Utilities;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using UnityEngine;
 
 namespace Assets.Code.Stronghold2.S2MReader
@@ -90,6 +89,9 @@ namespace Assets.Code.Stronghold2.S2MReader
 
       S2MReaderUtils.ReadFieldName(reader, "lastsave");
       MapFile.LastSave = reader.ReadInt32().ToString();
+
+      S2MReaderUtils.ReadFieldName(reader, "mapsize");
+      MapFile.MapSize = reader.ReadInt32();
 
       S2MReaderUtils.ReadFieldName(reader, "maxplayers");
       MapFile.MaxPlayers = reader.ReadInt32();

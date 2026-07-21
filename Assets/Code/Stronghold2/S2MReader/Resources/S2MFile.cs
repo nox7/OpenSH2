@@ -12,6 +12,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public MapType MapType { get; set; }
     public bool Balanced { get; set; }
     public string LastSave { get; set; }
+    public int MapSize { get; set; }
     public int MaxPlayers { get; set; }
     public int Version { get; set; }
     /// <summary>Complete zlib payloads in their original S2M file order.</summary>
