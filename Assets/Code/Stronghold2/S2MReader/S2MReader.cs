@@ -41,6 +41,36 @@ namespace Assets.Code.Stronghold2.S2MReader
       // Next, decompress the rest of the file (which has one-to-many zlib compressed segments)
       MapFile.DecompressedSegments = new ZLibDecompressor().DecompressAll(reader);
 
+      Debug.Log("Number of decompressed segments: " + MapFile.DecompressedSegments.Count);
+
+      for (int i = 0; i < MapFile.DecompressedSegments.Count; i++)
+      {
+        using var chunkStream = new MemoryStream(MapFile.DecompressedSegments[i].Bytes, writable: false);
+        using var chunkReader = new BinaryReader(chunkStream);
+        if (i == 0)
+        {
+          // This is the map header chunk
+
+          // Skip unknown first ints
+          chunkReader.ReadInt32();
+          chunkReader.ReadInt32();
+
+          while (true)
+          {
+            var obj = ReadObjectHeader(chunkReader);
+            if (obj == null)
+            {
+              Debug.Log("Hit end of segment.");
+              break;
+            }
+
+            Debug.Log("Reading " + obj.Type + " with Id " + obj.Id);
+
+            ReadObject(chunkReader, obj);
+          }
+        }
+      }
+
       return MapFile;
     }
 
@@ -101,46 +131,10 @@ namespace Assets.Code.Stronghold2.S2MReader
     }
 
     /// <summary>
-    /// The first decompressed z-lib segment of a S2M map file.
-    /// This contains the following objects:
-    /// - MapHeader
-    /// - EstateMarkers
-    /// - Scenario
-    /// - Mission
-    /// - ScenarioEvent
-    /// And then many possible actions and triggers.
-    /// </summary>
-    private void ReadMapHeader(BinaryReader reader)
-    {
-      // It starts with an object Id and a type index, but we've no idea what the first 8 bytes mean. So we skip them
-      reader.ReadInt32();
-      reader.ReadInt32();
-
-      // Now, we can begin reading the objects. Starts with a MapHeader
-      var obj = ReadObjectHeader(reader);
-      ReadObject(reader, obj);
-
-      // Read EstateMarkers
-      var obj2 = ReadObjectHeader(reader);
-      ReadObject(reader, obj2);
-
-      // Read Scenario
-      var obj3 = ReadObjectHeader(reader);
-      ReadObject(reader, obj3);
-
-      // Read Mission
-      var obj4 = ReadObjectHeader(reader);
-      ReadObject(reader, obj4);
-
-      var obj5 = ReadObjectHeader(reader);
-      ReadObject(reader, obj5);
-
-      Debug.Log(obj.Type);
-    }
-
-    /// <summary>
     /// Reads the header of an S2Object and returns that object.
     /// Other functions should read the rest of the object until the object-end trailer marker.
+    /// 
+    /// Returns null if the object header is the end of segment marker AD DE FF FF
     /// </summary>
     /// <returns></returns>
     private S2Object ReadObjectHeader(BinaryReader reader)
@@ -149,6 +143,11 @@ namespace Assets.Code.Stronghold2.S2MReader
 
       // Read the object Id
       obj.Id = reader.ReadInt32();
+
+      if (obj.Id == -8531)
+      {
+        return null;
+      }
 
       // Read the type index
       int typeIndex = reader.ReadInt32();
