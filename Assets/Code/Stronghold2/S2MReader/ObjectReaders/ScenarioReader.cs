@@ -14,11 +14,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
     {
       Scenario obj = new();
 
-      // First 4 bytes are unknown. Always seems to be 0C (12)
-      reader.ReadInt32();
-
       // Read all mission object Ids for this scenario
-      obj.MissionObjectIds = S2MReaderUtils.ReadListOfInts(reader);
+      obj.MissionObjectIds = S2MReaderUtils.ReadListOfInts(reader, false);
 
       // Read unknown "16"
       reader.ReadInt32();

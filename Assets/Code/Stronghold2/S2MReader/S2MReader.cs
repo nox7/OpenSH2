@@ -64,7 +64,7 @@ namespace Assets.Code.Stronghold2.S2MReader
               break;
             }
 
-            Debug.Log("Reading " + obj.Type + " with Id " + obj.Id);
+            Debug.Log("Processing object " + obj.Type + " with Id " + obj.Id);
 
             ReadObject(chunkReader, obj);
           }
@@ -144,6 +144,7 @@ namespace Assets.Code.Stronghold2.S2MReader
       // Read the object Id
       obj.Id = reader.ReadInt32();
 
+      // End of file marker
       if (obj.Id == -8531)
       {
         return null;
@@ -163,31 +164,34 @@ namespace Assets.Code.Stronghold2.S2MReader
 
         // Register the typeName
         Types.Add(typeIndex, typeName);
-      }
 
-      // Read the type index again (it will max typeIndex) as it pads the type name
-      reader.ReadInt32();
+        Debug.Log("Registering unknown type: " + typeName + " with index " + typeIndex);
+      }
 
       // Read the parent type index
       int parentTypeIndex = reader.ReadInt32();
 
-      // If this is not 0, then we handle it similarly to the typeIndex
-      if (parentTypeIndex != 0)
+      if (parentTypeIndex != typeIndex)
       {
-        Types.TryGetValue(parentTypeIndex, out string parentTypeName);
-        if (parentTypeName == null)
-        {
-          parentTypeName = S2MReaderUtils.ReadASCIIString(reader);
-          Types.Add(parentTypeIndex, parentTypeName);
+        // When the parent type index is not equal to the type index, then this object is a child of another object type.
 
-          // To our best knowledge, there will never be a another "grandparent" type index and it will always be 0
-          int grandparentTypeIndex = reader.ReadInt32();
-          if (grandparentTypeIndex != 0)
+        if (parentTypeIndex != 0)
+        {
+          Types.TryGetValue(parentTypeIndex, out string parentTypeName);
+          if (parentTypeName == null)
           {
-            throw new System.Exception($"Unexpected grandparent type index {grandparentTypeIndex} for object type '{typeName}' with parent type '{parentTypeName}'.");
+            parentTypeName = S2MReaderUtils.ReadASCIIString(reader);
+            Debug.Log($"Registering unknown parent type: {parentTypeName} with index {parentTypeIndex} that is parent to {typeName}");
+            Types.Add(parentTypeIndex, parentTypeName);
           }
         }
       }
+      else
+      {
+        // When it's the same, read a ... blank something? I've no idea; but there is always a 00 00 00 00 when the parent type index is the same as the type index.
+        reader.ReadInt32();
+      }
+
 
       obj.Type = typeName;
 
@@ -231,8 +235,24 @@ namespace Assets.Code.Stronghold2.S2MReader
         Objects.Add(obj.Id, parsedObject);
         return parsedObject;
       }
-
-      return null;
+      else if (obj.Type == "ScenarioEvent")
+      {
+        objReader = new ScenarioEventReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else if (obj.Type == "LoseAction")
+      {
+        objReader = new LoseActionReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else
+      {
+        throw new InvalidDataException($"Unknown object type '{obj.Type}' with Id {obj.Id} and type index {obj.TypeIndex}.");
+      }
     }
   }
 }

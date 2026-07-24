@@ -1,5 +1,4 @@
-﻿using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -7,6 +6,9 @@ namespace Assets.Code.Stronghold2.S2MReader
 {
   internal class S2MReaderUtils
   {
+    public const int TrailerMarker = -57681; // AF 1E FF FF
+    public const int DataPayloadMarker = -15963; // A5 C1 FF FF
+
     /// <summary>
     /// Reads a binary field name, which consists of a length-prefixed UTF-16 string. The length is the number of characters, not bytes.
     /// </summary>
@@ -52,21 +54,40 @@ namespace Assets.Code.Stronghold2.S2MReader
     /// <summary>
     /// Reads a size value and then a byte array of that size where each value to read is an int32.
     /// </summary>
+    /// <param name="includesTrailerIdMarker">Some specs have the lengthOfBytesInList include the 4 byte object trailer marker. It's stupid.</param>
     /// <returns></returns>
     /// <exception cref="EndOfStreamException"></exception>
-    public static List<int> ReadListOfInts(BinaryReader reader)
+    public static List<int> ReadListOfInts(
+      BinaryReader reader,
+      bool includesTrailerIdMarker
+      )
     {
       List<int> values = new();
+      int lengthOfBytesInList = reader.ReadInt32();
       int numInList = reader.ReadInt32();
       for (int i = 0; i < numInList; i++)
       {
         values.Add(reader.ReadInt32());
       }
 
-      // Finally, read the object type index which is after the list
-      // We'll always know what type of object list we're reading because we know the binary spec
-      // so we don't need this value for anything.
-      reader.ReadInt32();
+      // If we read fewer bytes than the length of the list, then we need to skip the remaining bytes
+      // Some lists (like in the Scenario object) have an extra 4 bytes at the end that we don't care about, so we just skip them
+      int bytesRead = numInList * 4;
+
+      if (lengthOfBytesInList - bytesRead == 4 && includesTrailerIdMarker)
+      {
+        // Do nothing. 4 bytes remain to be read, but the spec for this read says they're just the object
+        // trailer marker, so we don't need to read them.
+        // The reader that is calling this function will read them.
+      }
+      else
+      {
+        if (bytesRead < lengthOfBytesInList)
+        {
+          int bytesToSkip = lengthOfBytesInList - bytesRead;
+          reader.BaseStream.Seek(bytesToSkip, SeekOrigin.Current);
+        }
+      }
 
       return values;
     }
