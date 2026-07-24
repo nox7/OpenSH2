@@ -249,6 +249,34 @@ namespace Assets.Code.Stronghold2.S2MReader
         Objects.Add(obj.Id, parsedObject);
         return parsedObject;
       }
+      else if (obj.Type == "LordDiesTrigger")
+      {
+        objReader = new LordDiesTriggerReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else if (obj.Type == "SpecificEnemyLordDiesTrigger")
+      {
+        objReader = new SpecificEnemyLordDiesTriggerReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else if (obj.Type == "SetAlliesAction")
+      {
+        objReader = new SetAlliesActionReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
+      else if (obj.Type == "AlwaysTrigger")
+      {
+        objReader = new AlwaysTriggerReader(obj);
+        var parsedObject = objReader.Read(reader);
+        Objects.Add(obj.Id, parsedObject);
+        return parsedObject;
+      }
       else
       {
         throw new InvalidDataException($"Unknown object type '{obj.Type}' with Id {obj.Id} and type index {obj.TypeIndex}.");

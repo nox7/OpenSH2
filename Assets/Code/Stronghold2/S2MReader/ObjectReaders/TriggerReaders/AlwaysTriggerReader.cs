@@ -1,20 +1,22 @@
-﻿using Assets.Code.Stronghold2.S2MReader.Resources;
-using Assets.Code.Stronghold2.S2MReader.Resources.Actions;
+using Assets.Code.Stronghold2.S2MReader.Resources;
+using Assets.Code.Stronghold2.S2MReader.Resources.Triggers;
 using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
 {
-  internal class LoseActionReader : ObjectReader
+  internal class AlwaysTriggerReader : ObjectReader
   {
-    public LoseActionReader(S2Object obj) : base(obj)
+    public AlwaysTriggerReader(S2Object obj) : base(obj)
     {
 
     }
 
     public override S2Object Read(BinaryReader reader)
     {
-      LoseAction obj = new();
+      AlwaysTrigger obj = new();
 
+      reader.ReadInt32();
+      reader.ReadInt32();
       reader.ReadInt32();
       reader.ReadInt32();
       reader.ReadByte();
