@@ -8,6 +8,7 @@ namespace Assets.Code.Stronghold2.S2MReader
   {
     public const int TrailerMarker = -57681; // AF 1E FF FF
     public const int DataPayloadMarker = -15963; // A5 C1 FF FF
+    public const int EndOfDataSegmentMarker = -8531;
 
     /// <summary>
     /// Reads a binary field name, which consists of a length-prefixed UTF-16 string. The length is the number of characters, not bytes.

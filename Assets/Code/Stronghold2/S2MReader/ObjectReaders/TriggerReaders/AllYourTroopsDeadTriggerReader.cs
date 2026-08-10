@@ -4,16 +4,16 @@ using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
 {
-  internal class AlwaysTriggerReader : ObjectReader
+  internal class AllYourTroopsDeadTriggerReader : ObjectReader
   {
-    public AlwaysTriggerReader(S2Object obj) : base(obj)
+    public AllYourTroopsDeadTriggerReader(S2Object obj) : base(obj)
     {
 
     }
 
     public override S2Object Read(BinaryReader reader)
     {
-      AlwaysTrigger obj = new();
+      AllYourTroopsDeadTrigger obj = new();
 
       reader.ReadInt32();
       reader.ReadInt32();

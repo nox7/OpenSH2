@@ -1,4 +1,5 @@
 using Assets.Code.Stronghold2.S2MReader.ObjectReaders;
+using Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders;
 using Assets.Code.Stronghold2.S2MReader.Resources;
 using Assets.Code.Utilities;
 using System.Collections.Generic;
@@ -144,8 +145,8 @@ namespace Assets.Code.Stronghold2.S2MReader
       // Read the object Id
       obj.Id = reader.ReadInt32();
 
-      // End of file marker
-      if (obj.Id == -8531)
+      // End of this segment
+      if (obj.Id == S2MReaderUtils.EndOfDataSegmentMarker)
       {
         return null;
       }
@@ -207,80 +208,55 @@ namespace Assets.Code.Stronghold2.S2MReader
     private S2Object ReadObject(BinaryReader reader, S2Object obj)
     {
       ObjectReader objReader;
+      S2Object parsedObject;
       if (obj.Type == "MapHeader")
       {
         objReader = new MapHeaderReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "EstateMarkers")
       {
         objReader = new EstateMarkersReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "Scenario")
       {
         objReader = new ScenarioReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "Mission")
       {
         objReader = new MissionReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "ScenarioEvent")
       {
         objReader = new ScenarioEventReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "LoseAction")
       {
         objReader = new LoseActionReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "LordDiesTrigger")
       {
         objReader = new LordDiesTriggerReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "SpecificEnemyLordDiesTrigger")
       {
         objReader = new SpecificEnemyLordDiesTriggerReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "SetAlliesAction")
       {
         objReader = new SetAlliesActionReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else if (obj.Type == "AlwaysTrigger")
       {
         objReader = new AlwaysTriggerReader(obj);
-        var parsedObject = objReader.Read(reader);
-        Objects.Add(obj.Id, parsedObject);
-        return parsedObject;
       }
       else
       {
         throw new InvalidDataException($"Unknown object type '{obj.Type}' with Id {obj.Id} and type index {obj.TypeIndex}.");
       }
+
+      parsedObject = objReader.Read(reader);
+      Objects.Add(obj.Id, parsedObject);
+      return parsedObject;
     }
   }
 }

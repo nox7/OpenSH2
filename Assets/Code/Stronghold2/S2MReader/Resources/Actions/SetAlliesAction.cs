@@ -2,7 +2,7 @@
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
-  internal class SetAlliesAction : S2Object
+  internal class SetAlliesAction : Action
   {
     public AllySetting Olaf { get; set; }
     public AllySetting LordBarclay { get; set; }

@@ -2,7 +2,7 @@
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
 {
-  internal class SpecificEnemyLordDiesTrigger : S2Object
+  internal class SpecificEnemyLordDiesTrigger : Trigger
   {
     public Lord Lord { get; set; }
   }

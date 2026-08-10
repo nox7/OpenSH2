@@ -4,7 +4,8 @@ using System.Text;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
 {
-  internal class AlwaysTrigger : Trigger
+  internal class Trigger : S2Object
   {
+
   }
 }
