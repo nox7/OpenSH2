@@ -3,10 +3,11 @@
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
 {
   /// <summary>
-  /// Triggered when the specific lord dies
+  /// When the define lord takes _at least_ the defined damage percentage.
   /// </summary>
-  internal class SpecificEnemyLordDiesTrigger : Trigger
+  internal class LordDamagedTrigger : Trigger
   {
     public Lord Lord { get; set; }
+    public int DamagePercentage { get; set; }
   }
 }

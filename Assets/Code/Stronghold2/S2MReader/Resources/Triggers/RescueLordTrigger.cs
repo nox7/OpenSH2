@@ -3,9 +3,9 @@
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
 {
   /// <summary>
-  /// Triggered when the specific lord dies
+  /// When any of the player's troops reach the defined lord
   /// </summary>
-  internal class SpecificEnemyLordDiesTrigger : Trigger
+  internal class RescueLordTrigger : Trigger
   {
     public Lord Lord { get; set; }
   }
