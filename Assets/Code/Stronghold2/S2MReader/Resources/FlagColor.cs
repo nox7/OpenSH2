@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEditor.ShaderGraph;
-
-namespace Assets.Code.Stronghold2.S2MReader.Resources
+﻿namespace Assets.Code.Stronghold2.S2MReader.Resources
 {
   internal enum FlagColor
   {
@@ -11,5 +6,6 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     Green = 1,
     Blue = 2,
     Yellow = 3,
+    AnyFlagColor = 9999,
   }
 }

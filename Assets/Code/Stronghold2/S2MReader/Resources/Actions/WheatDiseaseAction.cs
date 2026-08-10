@@ -1,9 +1,9 @@
 ﻿namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
   /// <summary>
-  /// Actions are things that happen when a trigger is activated.
+  /// Causes wheat disease (all wheat dies) in player's estate
   /// </summary>
-  internal class Action : S2Object
+  internal class WheatDiseaseAction : Action
   {
   }
 }

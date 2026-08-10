@@ -1,9 +1,9 @@
 ﻿namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
   /// <summary>
-  /// Actions are things that happen when a trigger is activated.
+  /// Causes vine rot (all grape vines die) in player's estate
   /// </summary>
-  internal class Action : S2Object
+  internal class VineRotAction : Action
   {
   }
 }

@@ -1,9 +1,9 @@
 ﻿namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
   /// <summary>
-  /// Actions are things that happen when a trigger is activated.
+  /// Sets all of the player's buildings on fire
   /// </summary>
-  internal class Action : S2Object
+  internal class SetAllBuildingsOnFireAction : Action
   {
   }
 }

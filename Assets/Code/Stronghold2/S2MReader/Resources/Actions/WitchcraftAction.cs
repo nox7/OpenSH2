@@ -1,9 +1,9 @@
 ﻿namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
   /// <summary>
-  /// Actions are things that happen when a trigger is activated.
+  /// Temporary lowers the player's popularity
   /// </summary>
-  internal class Action : S2Object
+  internal class WitchcraftAction : Action
   {
   }
 }

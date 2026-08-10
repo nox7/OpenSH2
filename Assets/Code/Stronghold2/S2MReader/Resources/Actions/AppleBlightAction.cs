@@ -1,9 +1,9 @@
 ﻿namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
   /// <summary>
-  /// Actions are things that happen when a trigger is activated.
+  /// Causes apple blight to affect player's main estate.
   /// </summary>
-  internal class Action : S2Object
+  internal class AppleBlightAction : Action
   {
   }
 }

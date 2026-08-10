@@ -1,9 +1,10 @@
 ﻿namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
   /// <summary>
-  /// Actions are things that happen when a trigger is activated.
+  /// Give player X gold.
   /// </summary>
-  internal class Action : S2Object
+  internal class GiveGoldAction : Action
   {
+    public int Gold { get; set; }
   }
 }
