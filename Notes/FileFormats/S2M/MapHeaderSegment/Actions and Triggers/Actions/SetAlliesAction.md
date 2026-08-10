@@ -3,6 +3,7 @@ For all lord values, 00 = Neutral, 01 = Friend, 02 = Enemy
 - +4 bytes = Unknown
 - +4 bytes = Unknown
 - +4 bytes = Unknown
+- +4 bytes = Unknown
 - +4 bytes = Unknown (Self, player? Seems to always be "Friends")
 - +4 bytes = Olaf
 - +4 bytes = Lord Barclay
