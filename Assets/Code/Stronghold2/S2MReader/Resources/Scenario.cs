@@ -8,7 +8,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public List<int> MissionObjectIds { get; set; } = new();
     public int StartingYear { get; set; }
     public int StartingMonth { get; set; }
-    public Lords4Enum[] EstateOwnership { get; set; } = new Lords4Enum[16];
+    public S2MLords[] EstateOwnership { get; set; } = new S2MLords[16];
     public EstateProductionType[] EstateProductionTypes { get; set; } = new EstateProductionType[16];
     public EstatePopulationLevel[] EstatePopulationLevels { get; set; } = new EstatePopulationLevel[16];
     public EstateAIBuildingPlacement[] EstateAIBuildingPlacements { get; set; } = new EstateAIBuildingPlacement[16];

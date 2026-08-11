@@ -46,47 +46,47 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
         int lordId = reader.ReadInt32();
         if (lordId == 0)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.NoLord;
+          obj.EstateOwnership[i] = Enums.S2MLords.NoLord;
         }
         else if (lordId == 1)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.Player;
+          obj.EstateOwnership[i] = Enums.S2MLords.Player;
         }
         else if (lordId == 2)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.Olaf;
+          obj.EstateOwnership[i] = Enums.S2MLords.Olaf;
         }
         else if (lordId == 3)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.LordBarclay;
+          obj.EstateOwnership[i] = Enums.S2MLords.LordBarclay;
         }
         else if (lordId == 4)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.TheHawk;
+          obj.EstateOwnership[i] = Enums.S2MLords.TheHawk;
         }
         else if (lordId == 5)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.TheBull;
+          obj.EstateOwnership[i] = Enums.S2MLords.TheBull;
         }
         else if (lordId == 6)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.LadySeren;
+          obj.EstateOwnership[i] = Enums.S2MLords.LadySeren;
         }
         else if (lordId == 7)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.Edwin;
+          obj.EstateOwnership[i] = Enums.S2MLords.Edwin;
         }
         else if (lordId == 8)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.TheKing;
+          obj.EstateOwnership[i] = Enums.S2MLords.TheKing;
         }
         else if (lordId == 9)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.SirWilliam;
+          obj.EstateOwnership[i] = Enums.S2MLords.SirWilliam;
         }
         else if (lordId == 10)
         {
-          obj.EstateOwnership[i] = Enums.Lords4Enum.SirGrey;
+          obj.EstateOwnership[i] = Enums.S2MLords.SirGrey;
         }
       }
 

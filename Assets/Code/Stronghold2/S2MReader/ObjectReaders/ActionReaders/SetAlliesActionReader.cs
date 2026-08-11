@@ -3,9 +3,9 @@ using Assets.Code.Stronghold2.S2MReader.Resources;
 using Assets.Code.Stronghold2.S2MReader.Resources.Actions;
 using System.IO;
 
-namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
+namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
 {
-  internal class SetAlliesActionReader : ObjectReader
+  internal class SetAlliesActionReader : ActionReader
   {
     public SetAlliesActionReader(S2Object obj) : base(obj)
     {
@@ -16,18 +16,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
     {
       SetAlliesAction obj = new();
 
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadByte();
+      ReadActionHeader(reader);
 
-      // Data payload marker
-      var payloadMarker = reader.ReadInt32();
-      if (payloadMarker != S2MReaderUtils.DataPayloadMarker)
-      {
-        throw new InvalidDataException($"Expected data payload marker {S2MReaderUtils.DataPayloadMarker}, but got {payloadMarker}");
-      }
-
-      reader.ReadInt32();
       reader.ReadInt32();
       reader.ReadInt32();
       reader.ReadInt32();
@@ -53,12 +43,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       obj.SirWilliam = FromS2MFlag(sirWilliamSetting);
       obj.SirGrey = FromS2MFlag(sirGreySetting);
 
-      // Read 4 object-terminator bytes (AF1EFFFF)
-      var terminator = reader.ReadInt32();
-      if (terminator != S2MReaderUtils.TrailerMarker)
-      {
-        throw new InvalidDataException($"Invalid object terminator. Got {terminator:X8}");
-      }
+      ReadObjectTrailerMarker(reader);
 
       return obj;
     }

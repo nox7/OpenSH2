@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Assets.Code.Stronghold2.S2MReader.Enums
+﻿namespace Assets.Code.Stronghold2.S2MReader.Enums
 {
-  internal enum Lords4Enum
+  internal enum S2MLords
   {
+    AllLords = -1,
     NoLord = 0,
     Player = 1,
     Olaf = 2,
