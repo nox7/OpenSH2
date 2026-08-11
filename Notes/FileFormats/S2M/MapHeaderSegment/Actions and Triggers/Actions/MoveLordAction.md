@@ -21,3 +21,4 @@
 - +1 byte = Leave map setting
 	- 00 = Don't leave map
 	- 01 = Leave map
+- +4 bytes = object trailer action

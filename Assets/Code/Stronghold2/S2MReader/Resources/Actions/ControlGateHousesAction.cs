@@ -1,4 +1,4 @@
-﻿using Assets.Code.Enums;
+﻿using Assets.Code.Stronghold2.S2MReader.Enums;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
@@ -8,12 +8,12 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
   /// </summary>
   internal class ControlGateHousesAction : Action
   {
-    public Lord Lord { get; set; }
+    public S2MLords Lord { get; set; }
     /// <summary>
-    /// 0 = Closed
-    /// 1 = Open
+    /// False = Closed
+    /// True = Open
     /// </summary>
-    public bool GateHouseState { get; set; }
+    public bool GatehouseOpen { get; set; }
     public FlagColor GateHouseLocationFlagColor { get; set; }
     public int GateHouseLocationFlagNumber { get; set; }
   }

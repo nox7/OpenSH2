@@ -1,4 +1,4 @@
-﻿using Assets.Code.Enums;
+﻿using Assets.Code.Stronghold2.S2MReader.Enums;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
@@ -9,14 +9,14 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
     /// <summary>
     /// Lord who owns the army
     /// </summary>
-    public Lord Lord { get; set; }
+    public S2MLords Lord { get; set; }
     public UnitAmountList Troops  { get; set; }
     public FlagColor TargetPointFlagColor { get; set; }
     public int TargetPointFlagNumber { get; set; }
     /// <summary>
     /// If null, then there is no target lord
     /// </summary>
-    public Lord? TargetLord { get; set; } = null;
+    public S2MLords? TargetLord { get; set; } = null;
     /// <summary>
     /// 0 = Movement army
     /// 1 = Siege army
@@ -32,10 +32,10 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
     /// </summary>
     public bool DoesReceiveFullWarnings { get; set; }
     /// <summary>
-    /// 0 = Attack player
-    /// 1 = Reinforce player
+    /// False = Attack target lord
+    /// True = Reinforce target lord
     /// </summary>
-    public int AttackOrReinforcePlayer { get; set; }
+    public bool IsReinforcingTargetLord { get; set; }
     public bool IncludeLordInInvasion { get; set; }
     public bool AreInvasionWarningsEnabled { get; set; }
   }

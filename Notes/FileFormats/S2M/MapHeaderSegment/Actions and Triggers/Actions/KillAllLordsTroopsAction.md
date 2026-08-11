@@ -12,3 +12,4 @@
 	- 8 = The King
 	- 9 = Sir William
 	- 10 = Sir Grey
+- +4 bytes = object trailer marker
