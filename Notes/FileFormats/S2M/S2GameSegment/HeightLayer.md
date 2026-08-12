@@ -1,4 +1,5 @@
 This layer contains information about the terrain elevation of the map. It has 13 planes of data. Plane 0 seems to have the most relevant height map data.
+
 - +4 bytes = unknown
 - +4 bytes = unknown
 - +4 bytes = unknown

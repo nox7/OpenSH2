@@ -39,7 +39,7 @@ namespace Assets.Code.Stronghold2.S2MReader
       // Read the map header, not compressed
       ReadHeader(reader);
 
-      // Next, decompress the rest of the file (which has one-to-many zlib compressed segments)
+      // Next, decompress the rest of the file (which has three zlib compressed segments)
       MapFile.DecompressedSegments = new ZLibDecompressor().DecompressAll(reader);
 
       Debug.Log("Number of decompressed segments: " + MapFile.DecompressedSegments.Count);

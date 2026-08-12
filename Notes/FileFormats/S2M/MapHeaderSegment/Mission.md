@@ -1,5 +1,5 @@
 - +4 bytes = unknown (0C observed)
-- +4 bytes = # of [[ScenarioEvent]] object Ids in upcoming list
+- +4 bytes = # of [ScenarioEvent](./ScenarioEvent.md) object Ids in upcoming list
 - +4 bytes x # of ScenarioEvent object Ids = list of scenario event Ids for this mission
 - +4 bytes = DO NOT CONSUME IN C# (Let a list reader consume this as part of the list above)
 - +4 bytes = unknown (CC observed)
@@ -201,4 +201,4 @@
 	- 4 bytes = Metal armor
 	- 4 bytes = Leather armor
 - +51 bytes = unknown
-- +4 bytes = End of object marker
+- +4 bytes = Object trailer marker

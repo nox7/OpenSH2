@@ -18,4 +18,4 @@ Location of estate markers.
 	- 4 byte = estate type (01 = estate, 02 = castle)
 	- 1 byte = 00 null terminator?
 - +179 bytes = unknown
-- +4 bytes = object end trailer marker
+- +4 bytes = Object trailer marker

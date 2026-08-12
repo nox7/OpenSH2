@@ -9,8 +9,9 @@ This object is special. It begins a .s2m file. You will first parse an object wi
 - +4 bytes = Number of characters in map name (includes a preceding backslash for some reason)
 - +(LengthOfMapName) bytes = map name + object end marker bytes
 - +1 byte = Unknown
-- +4 byte = Map type
+- +4 bytes = Map type
 	- 00 = kingmaker
 	- 02 = war custom
 	- 03 = peace custom
 	- 04 = free build
+- +4 bytes = Object trailer marker
