@@ -46,7 +46,7 @@ Begin resource bits
 - +1 byte = Unknown
 - +1 byte = Pigs
 - +1 byte = Vegetables
-- +1 byte = Grapes
+- +1 byte = Wine
 - +1 byte = Unknown
 - +1 byte = Unknown
 - +1 byte = Apples

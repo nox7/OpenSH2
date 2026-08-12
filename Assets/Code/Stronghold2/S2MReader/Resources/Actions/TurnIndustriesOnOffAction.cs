@@ -1,4 +1,4 @@
-﻿using Assets.Code.Enums;
+﻿using Assets.Code.Stronghold2.S2MReader.Enums;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
@@ -15,7 +15,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
     public int EstateSetting { get; set; }
     public FlagColor FlagColor { get; set; }
     public int FlagNumber { get; set; }
-    public Lord Lord { get; set; }
+    public S2MLords Lord { get; set; }
     public GoodsBooleanList Industries { get; set; }
   }
 }

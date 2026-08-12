@@ -1,4 +1,4 @@
-﻿using Assets.Code.Enums;
+﻿using Assets.Code.Stronghold2.S2MReader.Enums;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
 {
@@ -7,7 +7,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
   /// </summary>
   internal class StopInvasionsAction : Action
   {
-    public Lord Lord { get; set; }
+    public S2MLords Lord { get; set; }
     /// <summary>
     /// 0 = Stop repeating invasions only
     /// 1 = Stop all invasions

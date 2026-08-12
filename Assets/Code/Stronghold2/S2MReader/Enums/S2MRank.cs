@@ -1,6 +1,6 @@
-﻿namespace Assets.Code.Enums
+﻿namespace Assets.Code.Stronghold2.S2MReader.Enums
 {
-  internal enum Rank
+  internal enum S2MRank
   {
     Freeman = 0,
     Yeoman = 1,

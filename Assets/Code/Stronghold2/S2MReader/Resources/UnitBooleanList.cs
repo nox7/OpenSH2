@@ -21,6 +21,7 @@
     public bool PictishBoatWarrior { get; set;  }
     public bool LightCalvary { get; set;  }
     public bool AxeThrower { get; set;  }
+    public bool Thief { get; set; }
     public bool SmallSiegeTower { get; set;  }
     public bool LargeSiegeTower { get; set;  }
     public bool BatteringRam { get; set;  }

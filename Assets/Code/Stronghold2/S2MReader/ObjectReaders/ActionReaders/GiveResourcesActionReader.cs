@@ -89,7 +89,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       reader.ReadInt32();
       obj.Goods.Pigs = reader.ReadInt32();
       obj.Goods.Vegetables = reader.ReadInt32();
-      obj.Goods.Grapes = reader.ReadInt32();
+      obj.Goods.Wine = reader.ReadInt32();
       reader.ReadInt32();
       reader.ReadInt32();
       obj.Goods.Apples = reader.ReadInt32();
