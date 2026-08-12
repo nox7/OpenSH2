@@ -1,5 +1,1 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes in data
 - +4 bytes = Gold
-- +4 bytes = object trailer marker

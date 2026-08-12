@@ -17,10 +17,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       MoveLordAction obj = new();
 
       ReadActionHeader(reader);
-
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadInt32();
+      ReadDataPayloadMarker(reader, false);
 
       obj.TargetFlagColor = (FlagColor)reader.ReadInt32();
       obj.TargetFlagNumber = reader.ReadInt32();

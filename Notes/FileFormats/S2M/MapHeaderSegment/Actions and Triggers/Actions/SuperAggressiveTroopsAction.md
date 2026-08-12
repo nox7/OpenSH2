@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes in data
 - +4 bytes = Flag color (Target estate for this action)
 	- 0 = red
 	- 1 = green
@@ -18,4 +15,3 @@
 	- 8 = The King
 	- 9 = Sir William
 	- 10 = Sir Grey
-+4 bytes = object trailer marker

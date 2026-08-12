@@ -1,5 +1,1 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes in data
 - +4 bytes = Honor
-- +4 bytes = object trailer marker

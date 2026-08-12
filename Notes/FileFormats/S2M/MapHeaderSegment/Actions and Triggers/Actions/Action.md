@@ -1,9 +1,19 @@
-All derivative action payloads will assumedly be parsed after this and after their potential object payload marker (A5 C1 FF FF) if they have one.
+All derivative action payloads will be parsed after this and after their potendataect payload marker (A5 C1 FF FF).
 
-Start parsing actions by parsing this object first, then the potential object payload data for that specific action type.
+- First, parse an [Object](../../../Object.md).
+- +4 bytes = Unknown
+- +4 bytes = Unknown
+- +1 byte = null padding
+- +4 bytes = Data payload marker (A5 C1 FF FF)
+- +4 bytes = Data payload index (can be ignored)
 
-- +4 bytes = unknown (01 00 00 00 observed) 
-- +1 null byte
-- If next 4 bytes is A5 C1 FF FF, then begin parsing object payload as outlined by that specific action type
-	- If the action has no payload data, then read a single 4 byte throwaway data, then read an object trailer marker.
-- Otherwise, next 4 bytes may just be the object-trailer marker AF 1E FF FF and this action is over and has no data.
+At this point, you must know which actions have data payloads, as that determines what you will parse next.
+
+If the action is known to have data:
+- +4 bytes = Unknown
+- +4 bytes = Byte-length of the data payload until the object trailer marker
+- Parse that specific object's byte data (found in the same directory as this file)
+- +4 bytes = Object trailer market (AF1EFFFF)
+
+If the action is known to have **no data**, then you will simply consume the object trailer marker
+- +4 bytes = Object trailer market (AF1EFFFF)

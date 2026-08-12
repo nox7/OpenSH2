@@ -1,9 +1,6 @@
 For resource bits:
 	01 = turns industry on and 00 = turns it off.
 
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Estate setting
 	- 00 = All estates on map
 	- 01 = Marked Estate (by flag color and number)
@@ -72,4 +69,3 @@ Begin resource bits
 - +1 byte = Unknown
 - +1 byte = Unknown
 - +1 byte = Unknown
-- +4 byte = Object trailer marker

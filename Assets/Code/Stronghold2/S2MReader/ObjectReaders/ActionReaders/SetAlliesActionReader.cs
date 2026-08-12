@@ -17,10 +17,9 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       SetAlliesAction obj = new();
 
       ReadActionHeader(reader);
+      ReadDataPayloadMarker(reader, false);
 
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadInt32();
+      // Probably self, player? It's unused
       reader.ReadInt32();
 
       int olafSetting = reader.ReadInt32();

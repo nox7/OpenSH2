@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Estate setting
 	- 00 = All estates on map
 	- 01 = Marked Estate (by flag color and number)
@@ -71,4 +68,3 @@ Begin resource bytes (Number of resources to give)
 - +4 byte = Unknown
 - +4 byte = Gold
 - +4 byte = Duration of something? Months days? No idea how it relates to giving resources
-- +4 byte = Object trailer marker

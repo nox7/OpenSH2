@@ -1,4 +1,4 @@
-Every action/trigger has the following format:
+Read [Triggers](./Triggers/Trigger.md) and [Actions](./Actions/Action.md).
 
 - [[Object]] bytes
 - 4 bytes

@@ -2,6 +2,7 @@
 {
   internal enum FlagColor
   {
+    Off = -1,
     Red = 0,
     Green = 1,
     Blue = 2,

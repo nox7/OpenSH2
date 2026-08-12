@@ -1,8 +1,5 @@
 This action has an absolute ton of useless trash byte data. Any +1 bytes with no data are not unknown but are simply unused.
 
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = List of bytes until object trailer marker (113)
 I use Byte # with some number to help reference which byte offset after the before 4 bytes the unit flag is at because there were so many unused bytes when researching this junk.
 - +1 byte = 
 - +1 byte = 
@@ -117,4 +114,3 @@ I use Byte # with some number to help reference which byte offset after the befo
 - +1 byte = 
 - +1 byte = 
 - +1 byte = 
-- +4 byte = Object trailer marker

@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Estate setting
 	- 00 = All estates on map
 	- 01 = Marked Estate (by flag color and number)
@@ -72,4 +69,3 @@ FF FF FF FF = Off (do not cap)
 - +4 byte = Unknown
 - +4 byte = Gold cap
 - +4 byte = Duration of cap? Some number of months I think. Or days
-- +4 byte = Object trailer marker

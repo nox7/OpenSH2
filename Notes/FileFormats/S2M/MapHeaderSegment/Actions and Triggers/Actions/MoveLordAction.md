@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Flag color
 	- 00 = Red
 	- 01 = Green
@@ -21,4 +18,3 @@
 - +1 byte = Leave map setting
 	- 00 = Don't leave map
 	- 01 = Leave map
-- +4 bytes = object trailer action

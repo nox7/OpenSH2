@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Source village flag color
 	- 00 = Red
 	- 01 = Green

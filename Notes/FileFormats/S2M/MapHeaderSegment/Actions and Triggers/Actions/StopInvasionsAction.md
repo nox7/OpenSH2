@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Lord to stop invasions of
 	- 00 = All lords
 	- 01 = Unused/Unknown idk - never used here
@@ -16,4 +13,3 @@
 - +1 byte = Type of invasions to stop
 	- 00 = Stop repeating invasions
 	- 01 = Stop all invasions
-- +4 bytes = Object trailer marker AF 1E FF FF

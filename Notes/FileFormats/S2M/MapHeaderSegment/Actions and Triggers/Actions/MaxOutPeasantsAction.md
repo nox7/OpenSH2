@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes of data
 - +4 bytes = Lord
 	- 1 = Player
 	- 2 = Olaf
@@ -12,4 +9,3 @@
 	- 8 = The King
 	- 9 = Sir William
 	- 10 = Sir Grey
-- +4bytes = object trailer marker

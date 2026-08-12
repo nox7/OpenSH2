@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes in data
 - +4 bytes = Flag color (Near marker flag)
 	- 0 = red
 	- 1 = green

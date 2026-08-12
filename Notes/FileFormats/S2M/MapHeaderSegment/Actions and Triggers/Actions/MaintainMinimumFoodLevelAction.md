@@ -1,5 +1,1 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Number of food units
-- +4 bytes = Object trailer marker

@@ -1,8 +1,6 @@
 It's important to note that there is no space in this trigger for The Bishop or The Queen.
-- Parse [[Trigger]] first
-- +4 bytes = unknown
-- +4 bytes = Number of bytes left until trailer marker
-- +1 byte = Unknown lord
+
+- +1 byte = Unknown lord, assumedly the player but this is never used or possible to configure in the map editor.
 - +1 byte = Olaf (00 = Ignored, 01 = Track when dead)
 - +1 byte = Lord Barclay (00 = Ignored, 01 = Track when dead)
 - +1 byte = The Hawk (00 = Ignored, 01 = Track when dead)
@@ -12,4 +10,3 @@ It's important to note that there is no space in this trigger for The Bishop or 
 - +1 byte = The King (00 = Ignored, 01 = Track when dead)
 - +1 byte = Sir William (00 = Ignored, 01 = Track when dead)
 - +1 byte = Sir Grey (00 = Ignored, 01 = Track when dead)
-- +4 bytes = End object trailer marker. AF 1E FF FF

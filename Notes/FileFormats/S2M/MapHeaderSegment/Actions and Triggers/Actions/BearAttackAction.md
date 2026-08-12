@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Flag color
 	- 00 = red
 	- 01 = Green
@@ -8,4 +5,3 @@
 	- 03 = Yellow
 - +4 bytes = Flag number
 - +4 bytes = Number of bears
-- +4 bytes = Object trailer marker AF 1E FF FF

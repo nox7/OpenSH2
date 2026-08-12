@@ -17,6 +17,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       TakeEnemyCastleAction obj = new();
 
       ReadActionHeader(reader);
+      ReadDataPayloadMarker(reader, false);
 
       obj.Lord = reader.ReadInt32() switch
       {

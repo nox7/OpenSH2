@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes of data
 - +4 bytes = Frequency setting
 	- 0 = Off
 	- 1 = Very low
@@ -15,4 +12,3 @@
 	- 2 = neighboring estates
 	- 3 = Own and neighboring estates
 	- 4 = Human estate
-- +4 bytes = Object trailer marker

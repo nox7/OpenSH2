@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Invasion point flag color
 	- FF FF FF FF = Any
 	- 00 00 00 00 = Red
@@ -111,4 +108,3 @@
 	- **Note**: If this is 1 but "Invasion warning" is 0 then it is considered "Normal Message" setting in the editor UI
 	- 0 = No warnings
 	- 1 = Warnings are enabled
-- Object trailer marker AF 1E FF FF

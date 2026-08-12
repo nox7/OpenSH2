@@ -9,9 +9,6 @@ And flag numbers are 0-based. So 0 = 1.
 
 Ship delays are in months. The timer starts when the ship reaches the flag, so even if the game is 50% through January and the delay is 1 month, the ship will not move until 50% through February.
 
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes in data
 - +4 bytes = Spawn Flag color
 - +4 bytes = Spawn Flag number
 - +4 bytes = Spawn ship ship delay until moving to next destination
@@ -33,4 +30,3 @@ Ship delays are in months. The timer starts when the ship reaches the flag, so e
 - +1 byte = Leave or turn to wreck
 	- 0 = Leave map
 	- 1 = Turn to wreck
-- +4 bytes = object trailer marker

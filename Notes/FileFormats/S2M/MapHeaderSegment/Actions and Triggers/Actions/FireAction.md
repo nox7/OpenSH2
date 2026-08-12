@@ -1,4 +1,1 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Number of fires to start in player's castle

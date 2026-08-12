@@ -17,10 +17,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       SetAvailableTroopTypesAction obj = new();
 
       ReadActionHeader(reader);
-
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadInt32();
+      ReadDataPayloadMarker(reader, false);
 
       reader.ReadBytes(19);
       obj.Troops.Archer = reader.ReadBoolean();

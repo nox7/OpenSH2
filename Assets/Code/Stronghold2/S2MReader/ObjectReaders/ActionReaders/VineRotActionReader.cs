@@ -16,6 +16,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       VineRotAction obj = new();
 
       ReadActionHeader(reader);
+      ReadDataPayloadMarker(reader, true);
       ReadObjectTrailerMarker(reader);
 
       return obj;

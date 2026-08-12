@@ -1,4 +1,1 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Number of peasants to turn into armed, hostile peasants

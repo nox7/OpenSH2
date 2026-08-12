@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Flag Color
 	- FF FF FF FF = Any flag color
 	- 00 = Red
@@ -9,4 +6,3 @@
 	- 03 = Yellow
 - +4 bytes = Flag Number
 	- FF FF FF FF = Any flag number
-- +4 bytes = Number of gong piles to spawn

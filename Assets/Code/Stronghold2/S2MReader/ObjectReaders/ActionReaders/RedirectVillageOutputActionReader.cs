@@ -16,10 +16,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       RedirectVillageOutputAction obj = new();
 
       ReadActionHeader(reader);
-
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadInt32();
+      ReadDataPayloadMarker(reader, false);
 
       obj.SourceEstateFlagColor = (FlagColor)reader.ReadInt32();
       obj.SourceEstateFlagNumber = reader.ReadInt32();

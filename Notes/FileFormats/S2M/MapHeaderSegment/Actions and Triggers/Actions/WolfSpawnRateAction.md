@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes of data
 - +4 bytes = Frequency setting
 	- 0 = Off
 	- 1 = Very low
@@ -8,4 +5,3 @@
 	- 3 = Normal
 	- 4 = High
 	- 5 = Very high
-- +4 bytes = Object trailer marker

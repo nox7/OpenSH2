@@ -16,10 +16,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       AITroopsRetreatAction obj = new();
 
       ReadActionHeader(reader);
-
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadInt32();
+      ReadDataPayloadMarker(reader, false);
 
       obj.RetreatPointFlagColor = (FlagColor)reader.ReadInt32();
       obj.RetreatPointFlagNumber = reader.ReadInt32();

@@ -17,10 +17,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       SuperAggressiveTroopsAction obj = new();
 
       ReadActionHeader(reader);
-
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadInt32();
+      ReadDataPayloadMarker(reader, false);
 
       obj.ZoneFlagColor = (FlagColor)reader.ReadInt32();
       obj.ZoneFlagNumber = reader.ReadInt32();

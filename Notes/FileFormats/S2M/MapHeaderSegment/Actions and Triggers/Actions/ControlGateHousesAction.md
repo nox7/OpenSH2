@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes of data
 - +4 bytes = Lord
 	- 2 = Olaf
 	- 3 = Lord Barclay
@@ -22,4 +19,3 @@
 	- 3 = Yellow
 - +4 bytes = Flag number
 	- 0 based. 0 = 1
-- +4 bytes = object trailer marker

@@ -1,7 +1,3 @@
-- Parse [[Trigger]] first
-- +4 bytes = unknown (01 observed)
-- +4 bytes = unknown (B4 observed)
 - +4 bytes = unknown (00 observed)
 - +[[GoodsList]] bytes = List of goods
 - +28 bytes = unknown (always 00s)
-- +4 bytes = End object trailer marker. AF 1E FF FF

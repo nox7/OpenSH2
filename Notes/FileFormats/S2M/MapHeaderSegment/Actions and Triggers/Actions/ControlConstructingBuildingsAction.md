@@ -1,8 +1,4 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes of data
 - +4 bytes = Number of building sites
 - +1 byte = Active or inactive
 	- 0 = Inactive
 	- 1 = Active
-- +4 bytes = object trailer marker

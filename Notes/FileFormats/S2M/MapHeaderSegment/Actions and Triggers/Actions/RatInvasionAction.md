@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Unknown
 - +4 bytes = Flag Color
 	- FF FF FF FF = Any flag color
 	- 00 = Red

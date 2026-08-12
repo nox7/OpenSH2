@@ -17,10 +17,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       OutlawProductionAction obj = new();
 
       ReadActionHeader(reader);
-
-      reader.ReadInt32();
-      reader.ReadInt32();
-      reader.ReadInt32();
+      ReadDataPayloadMarker(reader, false);
 
       obj.Level = (IntensityLevel)reader.ReadInt32();
       obj.MaximumOutlaws = reader.ReadInt32();

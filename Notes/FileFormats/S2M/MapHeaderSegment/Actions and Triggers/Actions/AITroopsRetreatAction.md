@@ -1,6 +1,3 @@
-- +4 bytes = Unknown
-- +4 bytes = Unknown
-- +4 bytes = Number of bytes in data
 - +4 bytes = Flag color (Target point to retreat to)
 	- 0 = red
 	- 1 = green
@@ -23,4 +20,3 @@
 - +1 byte = Leave map or not
 	- 0 = Don't leave map
 	- 1 = Leave map
-- +4 bytes = object trailer marker
