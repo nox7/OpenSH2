@@ -208,54 +208,85 @@ namespace Assets.Code.Stronghold2.S2MReader
     /// <param name="obj"></param>
     private S2Object ReadObject(BinaryReader reader, S2Object obj)
     {
-      ObjectReader objReader;
-      S2Object parsedObject;
-      if (obj.Type == "MapHeader")
+      ObjectReader objReader = obj.Type switch
       {
-        objReader = new MapHeaderReader(obj);
-      }
-      else if (obj.Type == "EstateMarkers")
-      {
-        objReader = new EstateMarkersReader(obj);
-      }
-      else if (obj.Type == "Scenario")
-      {
-        objReader = new ScenarioReader(obj);
-      }
-      else if (obj.Type == "Mission")
-      {
-        objReader = new MissionReader(obj);
-      }
-      else if (obj.Type == "ScenarioEvent")
-      {
-        objReader = new ScenarioEventReader(obj);
-      }
-      else if (obj.Type == "LoseAction")
-      {
-        objReader = new LoseActionReader(obj);
-      }
-      else if (obj.Type == "LordDiesTrigger")
-      {
-        objReader = new LordDiesTriggerReader(obj);
-      }
-      else if (obj.Type == "SpecificEnemyLordDiesTrigger")
-      {
-        objReader = new SpecificEnemyLordDiesTriggerReader(obj);
-      }
-      else if (obj.Type == "SetAlliesAction")
-      {
-        objReader = new SetAlliesActionReader(obj);
-      }
-      else if (obj.Type == "AlwaysTrigger")
-      {
-        objReader = new AlwaysTriggerReader(obj);
-      }
-      else
-      {
-        throw new InvalidDataException($"Unknown object type '{obj.Type}' with Id {obj.Id} and type index {obj.TypeIndex}.");
-      }
+        // MapHeader segment
+        "MapHeader" => new MapHeaderReader(obj),
+        "EstateMarkers" => new EstateMarkersReader(obj),
+        "Scenario" => new ScenarioReader(obj),
+        "Mission" => new MissionReader(obj),
+        "ScenarioEvent" => new ScenarioEventReader(obj),
 
-      parsedObject = objReader.Read(reader);
+        // Actions
+        "AITroopsRetreatAction" => new AITroopsRetreatActionReader(obj),
+        "AppleBlightAction" => new AppleBlightActionReader(obj),
+        "BadWeatherAction" => new BadWeatherActionReader(obj),
+        "BearAttackAction" => new BearAttackActionReader(obj),
+        "BumperHarvestAction" => new BumperHarvestActionReader(obj),
+        "CapResourcesAction" => new CapResourcesActionReader(obj),
+        "ControlConstructingBuildingsAction" => new ControlConstructingBuildingsActionReader(obj),
+        "ControlGateHousesAction" => new ControlGateHousesActionReader(obj),
+        "ConvertEstateToVillageAction" => new ConvertEstateToVillageActionReader(obj),
+        "CreateCriminalsAction" => new CreateCriminalsActionReader(obj),
+        "CrimeRateAction" => new CrimeRateActionReader(obj),
+        "DiseaseProductionAction" => new DiseaseProductionActionReader(obj),
+        "EnterBriefingAction" => new EnterBriefingActionReader(obj),
+        "FireAction" => new FireActionReader(obj),
+        "GiveGoldAction" => new GiveGoldActionReader(obj),
+        "GiveHonourAction" => new GiveHonourActionReader(obj),
+        "GiveResourcesAction" => new GiveResourcesActionReader(obj),
+        "GongInfestationAction" => new GongInfestationActionReader(obj),
+        "GongProductionAction" => new GongProductionActionReader(obj),
+        "HopWeevilAction" => new HopWeevilActionReader(obj),
+        "InvasionAction" => new InvasionActionReader(obj),
+        "KillAllLordsTroopsAction" => new KillAllLordsTroopsActionReader(obj),
+        "KillAllWolvesAction" => new KillAllWolvesActionReader(obj),
+        "LimitWeaponProductionAction" => new LimitWeaponProductionActionReader(obj),
+        "LoseAction" => new LoseActionReader(obj),
+        "LostSheepAction" => new LostSheepActionReader(obj),
+        "MadCowDiseaseAction" => new MadCowDiseaseActionReader(obj),
+        "MaintainMinimumFoodLevelAction" => new MaintainMinimumFoodLevelActionReader(obj),
+        "MaxOutPeasantsAction" => new MaxOutPeasantsActionReader(obj),
+        "MoveLordAction" => new MoveLordActionReader(obj),
+        "MoveShipAction" => new MoveShipActionReader(obj),
+        "OutlawProductionAction" => new OutlawProductionActionReader(obj),
+        "PauseSiegesAction" => new PauseSiegesActionReader(obj),
+        "PlagueOfRatsAction" => new PlagueOfRatsActionReader(obj),
+        "ProtestAction" => new ProtestActionReader(obj),
+        "QuestAction" => new QuestActionReader(obj),
+        "QuestFailedAction" => new QuestFailedActionReader(obj),
+        "RatInvasionAction" => new RatInvasionActionReader(obj),
+        "RatProductionAction" => new RatProductionActionReader(obj),
+        "RedirectVillageOutputAction" => new RedirectVillageOutputActionReader(obj),
+        "RushTroopsAction" => new RushTroopsActionReader(obj),
+        "SetAllBuildingsOnFireAction" => new SetAllBuildingsOnFireActionReader(obj),
+        "SetAlliesAction" => new SetAlliesActionReader(obj),
+        "SetAvailableTroopTypesAction" => new SetAvailableTroopTypesActionReader(obj),
+        "SetCampfirePeasantsAction" => new SetCampfirePeasantsActionReader(obj),
+        "SetHonourAction" => new SetHonourActionReader(obj),
+        "SetRankAction" => new SetRankActionReader(obj),
+        "SetWolvesToDefensiveAction" => new SetWolvesToDefensiveActionReader(obj),
+        "StopInvasionsAction" => new StopInvasionsActionReader(obj),
+        "SuperAggressiveTroopsAction" => new SuperAggressiveTroopsActionReader(obj),
+        "SwineFeverAction" => new SwineFeverActionReader(obj),
+        "TakeEnemyCastleAction" => new TakeEnemyCastleActionReader(obj),
+        "TimeUntilFinalInvasionAction" => new TimeUntilFinalInvasionActionReader(obj),
+        "TurnIndustriesOnOffAction" => new TurnIndustriesOnOffActionReader(obj),
+        "VineRotAction" => new VineRotActionReader(obj),
+        "WheatDiseaseAction" => new WheatDiseaseActionReader(obj),
+        "WinAction" => new WinActionReader(obj),
+        "WitchcraftAction" => new WitchcraftActionReader(obj),
+        "WolfInvasionAction" => new WolfInvasionActionReader(obj),
+        "WolfSpawnRateAction" => new WolfSpawnRateActionReader(obj),
+
+        // Triggers
+        "LordDiesTrigger" => new LordDiesTriggerReader(obj),
+        "SpecificEnemyLordDiesTrigger" => new SpecificEnemyLordDiesTriggerReader(obj),
+        "AlwaysTrigger" => new AlwaysTriggerReader(obj),
+        _ => throw new InvalidDataException($"Unknown object type '{obj.Type}' with Id {obj.Id} and type index {obj.TypeIndex}.")
+      };
+
+      S2Object parsedObject = objReader.Read(reader);
       Objects.Add(obj.Id, parsedObject);
       return parsedObject;
     }
