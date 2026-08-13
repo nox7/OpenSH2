@@ -4,19 +4,23 @@ using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
 {
-  internal class LordDiesTriggerReader : TriggerReader
+  internal class NoFoodInGranaryTriggerReader : TriggerReader
   {
-    public LordDiesTriggerReader(S2Object obj) : base(obj)
+    public NoFoodInGranaryTriggerReader(S2Object obj) : base(obj)
     {
 
     }
 
     public override S2Object Read(BinaryReader reader)
     {
-      LordDiesTrigger obj = new();
+      NoFoodInGranaryTrigger obj = new();
 
       ReadTriggerHeader(reader);
-      ReadDataPayloadMarker(reader, true);
+      ReadDataPayloadMarker(reader, false);
+
+      obj.FlagColor = (FlagColor)reader.ReadInt32();
+      obj.FlagNumber= reader.ReadInt32();
+
       ReadObjectTrailerMarker(reader);
 
       return obj;

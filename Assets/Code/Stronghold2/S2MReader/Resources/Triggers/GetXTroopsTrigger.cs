@@ -1,14 +1,10 @@
-﻿using Assets.Code.Enums;
-
-namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
+﻿namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
 {
+  /// <summary>
+  /// Used for archers in the peace SIM mission 4, but it's assumed this is a generic trigger for getting X troops.
+  /// </summary>
   internal class GetXTroopsTrigger : Trigger
   {
-    /// <summary>
-    /// TODO. Find out troop types? 
-    /// Archers = 4
-    /// </summary>
-    public int TroopType { get; set; }
     public int NumberOfTroops { get; set; }
   }
 }

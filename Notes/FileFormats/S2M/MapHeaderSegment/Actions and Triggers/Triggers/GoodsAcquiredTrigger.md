@@ -1,3 +1,9 @@
 - +4 bytes = unknown (00 observed)
 - +[[GoodsList]] bytes = List of goods
-- +28 bytes = unknown (always 00s)
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown
+- +4 bytes = unknown

@@ -1,4 +1,4 @@
-﻿using Assets.Code.Enums;
+﻿using Assets.Code.Stronghold2.S2MReader.Enums;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
 {
@@ -9,6 +9,6 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
     /// 
     /// Assumedly "breach" means when their castle is no longer enclosed.
     /// </summary>
-    public Lord Lord { get; set; }
+    public S2MLords Lord { get; set; }
   }
 }

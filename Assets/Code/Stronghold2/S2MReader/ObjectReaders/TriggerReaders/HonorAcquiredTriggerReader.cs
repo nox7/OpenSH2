@@ -4,19 +4,22 @@ using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
 {
-  internal class LordDiesTriggerReader : TriggerReader
+  internal class HonorAcquiredTriggerReader : TriggerReader
   {
-    public LordDiesTriggerReader(S2Object obj) : base(obj)
+    public HonorAcquiredTriggerReader(S2Object obj) : base(obj)
     {
 
     }
 
     public override S2Object Read(BinaryReader reader)
     {
-      LordDiesTrigger obj = new();
+      HonourAcquiredTrigger obj = new();
 
       ReadTriggerHeader(reader);
-      ReadDataPayloadMarker(reader, true);
+      ReadDataPayloadMarker(reader, false);
+
+      obj.HonorAmount = reader.ReadInt32();
+
       ReadObjectTrailerMarker(reader);
 
       return obj;

@@ -5,16 +5,16 @@ using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
 {
-  internal class SpecificEnemyLordDiesTriggerReader : TriggerReader
+  internal class LordDamagedTriggerReader : TriggerReader
   {
-    public SpecificEnemyLordDiesTriggerReader(S2Object obj) : base(obj)
+    public LordDamagedTriggerReader(S2Object obj) : base(obj)
     {
 
     }
 
     public override S2Object Read(BinaryReader reader)
     {
-      SpecificEnemyLordDiesTrigger obj = new();
+      LordDamagedTrigger obj = new();
 
       ReadTriggerHeader(reader);
       ReadDataPayloadMarker(reader, false);
@@ -35,6 +35,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
         10 => S2MLords.SirGrey,
         _ => S2MLords.Olaf
       };
+      obj.DamagePercentage = reader.ReadInt32();
 
       ReadObjectTrailerMarker(reader);
 

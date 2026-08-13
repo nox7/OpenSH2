@@ -1,4 +1,4 @@
-﻿using Assets.Code.Enums;
+﻿using Assets.Code.Stronghold2.S2MReader.Enums;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
 {
@@ -7,7 +7,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Triggers
   /// </summary>
   internal class LordDamagedTrigger : Trigger
   {
-    public Lord Lord { get; set; }
+    public S2MLords Lord { get; set; }
     public int DamagePercentage { get; set; }
   }
 }

@@ -5,20 +5,21 @@ using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
 {
-  internal class SpecificEnemyLordDiesTriggerReader : TriggerReader
+  internal class EnemyGoldAcquiredTriggerReader : TriggerReader
   {
-    public SpecificEnemyLordDiesTriggerReader(S2Object obj) : base(obj)
+    public EnemyGoldAcquiredTriggerReader(S2Object obj) : base(obj)
     {
 
     }
 
     public override S2Object Read(BinaryReader reader)
     {
-      SpecificEnemyLordDiesTrigger obj = new();
+      EnemyGoldAcquiredTrigger obj = new();
 
       ReadTriggerHeader(reader);
       ReadDataPayloadMarker(reader, false);
 
+      obj.GoldAmount = reader.ReadInt32();
       obj.Lord = reader.ReadInt32() switch
       {
         -1 => S2MLords.AllLords,
