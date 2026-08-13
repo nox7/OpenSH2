@@ -4,9 +4,9 @@ using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
 {
-  internal class HonorAcquiredTriggerReader : TriggerReader
+  internal class HonourAcquiredTriggerReader : TriggerReader
   {
-    public HonorAcquiredTriggerReader(S2Object obj) : base(obj)
+    public HonourAcquiredTriggerReader(S2Object obj) : base(obj)
     {
 
     }
