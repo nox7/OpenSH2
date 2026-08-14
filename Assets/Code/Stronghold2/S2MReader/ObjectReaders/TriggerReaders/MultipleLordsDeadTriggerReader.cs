@@ -28,6 +28,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders
       obj.CheckIfTheKingIsDead = reader.ReadBoolean();
       obj.CheckIfSirWilliamIsDead = reader.ReadBoolean();
       obj.CheckIfSirGreyIsDead = reader.ReadBoolean();
+      reader.ReadByte();
 
       ReadObjectTrailerMarker(reader);
 

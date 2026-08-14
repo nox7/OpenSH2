@@ -1,5 +1,4 @@
-﻿using Assets.Code.Enums;
-using Assets.Code.Stronghold2.S2MReader.Resources;
+﻿using Assets.Code.Stronghold2.S2MReader.Resources;
 using Assets.Code.Stronghold2.S2MReader.Resources.Actions;
 using System.IO;
 
@@ -53,7 +52,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       reader.ReadByte();
       obj.Troops.Monk = reader.ReadBoolean();
       obj.Troops.WarriorMonk = reader.ReadBoolean();
-      reader.ReadBytes(8);
+      reader.ReadBytes(7);
       obj.Troops.Mantlet = reader.ReadBoolean();
       reader.ReadBytes(10);
 

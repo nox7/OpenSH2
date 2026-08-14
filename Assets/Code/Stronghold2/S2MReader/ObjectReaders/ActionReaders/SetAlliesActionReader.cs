@@ -42,6 +42,9 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
       obj.SirWilliam = FromS2MFlag(sirWilliamSetting);
       obj.SirGrey = FromS2MFlag(sirGreySetting);
 
+
+      reader.ReadInt32(); // unknown
+
       ReadObjectTrailerMarker(reader);
 
       return obj;

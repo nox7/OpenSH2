@@ -10,3 +10,4 @@ For all lord values, 00 = Neutral, 01 = Friend, 02 = Enemy
 - +4 bytes = The King
 - +4 bytes = Sir William
 - +4 bytes = Sir Grey
+- +4 bytes = Unknown

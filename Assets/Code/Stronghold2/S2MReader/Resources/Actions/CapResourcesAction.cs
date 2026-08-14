@@ -20,7 +20,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
     /// <summary>
     /// Uses -1 to represent "no cap"
     /// </summary>
-    public GoodsAmountList GoodsCaps { get; set; }
+    public GoodsAmountList GoodsCaps { get; set; } = new();
     public int GoldCap { get; set; }
     public int DurationOfCap { get; set; }
   }

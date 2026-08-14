@@ -5,6 +5,6 @@
   /// </summary>
   internal class SetAvailableTroopTypesAction : Action
   {
-    public UnitBooleanList Troops { get; set; }
+    public UnitBooleanList Troops { get; set; } = new();
   }
 }

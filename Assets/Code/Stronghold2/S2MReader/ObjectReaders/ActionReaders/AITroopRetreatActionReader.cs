@@ -4,16 +4,16 @@ using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders
 {
-  internal class AITroopsRetreatActionReader : ActionReader
+  internal class AITroopRetreatActionReader : ActionReader
   {
-    public AITroopsRetreatActionReader(S2Object obj) : base(obj)
+    public AITroopRetreatActionReader(S2Object obj) : base(obj)
     {
 
     }
 
     public override S2Object Read(BinaryReader reader)
     {
-      AITroopsRetreatAction obj = new();
+      AITroopRetreatAction obj = new();
 
       ReadActionHeader(reader);
       ReadDataPayloadMarker(reader, false);

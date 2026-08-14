@@ -10,7 +10,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
     /// Lord who owns the army
     /// </summary>
     public S2MLords Lord { get; set; }
-    public UnitAmountList Troops  { get; set; }
+    public UnitAmountList Troops { get; set; } = new();
     public FlagColor TargetPointFlagColor { get; set; }
     public int TargetPointFlagNumber { get; set; }
     /// <summary>

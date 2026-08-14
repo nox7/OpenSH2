@@ -16,7 +16,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources.Actions
     public FlagColor EstateFlagColor { get; set; }
     public int EstateFlagNumber { get; set; }
     public S2MLords SpecificLord { get; set; }
-    public GoodsAmountList Goods { get; set; }
+    public GoodsAmountList Goods { get; set; } = new();
     public int Gold { get; set; }
     public int Duration { get; set; }
   }

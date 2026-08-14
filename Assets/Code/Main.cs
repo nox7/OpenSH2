@@ -79,7 +79,7 @@ public class Main : MonoBehaviour
   {
     try
     {
-      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
+      string testFilePath = "C:\\Users\\Cole\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
       var reader = new Assets.Code.Stronghold2.S2MReader.S2MReader(testFilePath);
       var mapFile = reader.ReadS2MFile();
 

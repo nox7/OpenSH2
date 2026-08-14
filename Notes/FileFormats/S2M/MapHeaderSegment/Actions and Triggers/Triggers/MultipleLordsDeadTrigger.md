@@ -10,3 +10,4 @@ It's important to note that there is no space in this trigger for The Bishop or 
 - +1 byte = The King (00 = Ignored, 01 = Track when dead)
 - +1 byte = Sir William (00 = Ignored, 01 = Track when dead)
 - +1 byte = Sir Grey (00 = Ignored, 01 = Track when dead)
+- +1 byte = Unknown
