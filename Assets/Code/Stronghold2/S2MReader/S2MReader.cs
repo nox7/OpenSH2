@@ -3,6 +3,7 @@ using Assets.Code.Stronghold2.S2MReader.ObjectReaders.ActionReaders;
 using Assets.Code.Stronghold2.S2MReader.ObjectReaders.TriggerReaders;
 using Assets.Code.Stronghold2.S2MReader.Resources;
 using Assets.Code.Utilities;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -45,15 +46,20 @@ namespace Assets.Code.Stronghold2.S2MReader
 
       Debug.Log("Number of decompressed segments: " + MapFile.DecompressedSegments.Count);
 
+      if (MapFile.DecompressedSegments.Count != 3)
+      {
+        throw new InvalidDataException($"Expected 3 decompressed segments, but found {MapFile.DecompressedSegments.Count}.");
+      }
+
       for (int i = 0; i < MapFile.DecompressedSegments.Count; i++)
       {
         using var chunkStream = new MemoryStream(MapFile.DecompressedSegments[i].Bytes, writable: false);
         using var chunkReader = new BinaryReader(chunkStream);
         if (i == 0)
         {
-          // This is the map header chunk
+          // This is the MapHeader chunk
 
-          // Skip unknown first ints
+          // Skip chunk Id and index
           chunkReader.ReadInt32();
           chunkReader.ReadInt32();
 
@@ -69,6 +75,40 @@ namespace Assets.Code.Stronghold2.S2MReader
             Debug.Log("Processing object " + obj.Type + " with Id " + obj.Id);
 
             ReadObject(chunkReader, obj);
+          }
+        }
+        else if (i == 1)
+        {
+          // This is the RadarMap chunk segment
+        }
+        else if (i == 2)
+        {
+          // This is the S2Game chunk segment
+
+          // Skip chunk Id and index
+          chunkReader.ReadInt32();
+          chunkReader.ReadInt32();
+
+          while (true)
+          {
+            var obj = ReadObjectHeader(chunkReader);
+            if (obj == null)
+            {
+              Debug.Log("Hit end of segment.");
+              break;
+            }
+
+            Debug.Log("Processing object " + obj.Type + " with Id " + obj.Id);
+
+            if (obj.Type == "HeightLayer")
+            {
+              ReadObject(chunkReader, obj);
+            }
+            else
+            {
+              Debug.Log($"Reading {obj.Type} until trailer marker.");
+              ReadUntilObjectTrailerMarker(chunkReader);
+            }
           }
         }
       }
@@ -198,6 +238,34 @@ namespace Assets.Code.Stronghold2.S2MReader
       obj.Type = typeName;
 
       return obj;
+    }
+
+    /// <summary>
+    /// Reads until the 4-byte buffer is the object trailer marker
+    /// AF 1E FF FF
+    /// </summary>
+    /// <param name="reader"></param>
+    private void ReadUntilObjectTrailerMarker(BinaryReader reader)
+    {
+      List<byte> byteBuffer = new List<byte>();
+
+      while (true)
+      {
+        byte b = reader.ReadByte();
+        byteBuffer.Add(b);
+        if (byteBuffer.Count > 4)
+        {
+          byteBuffer.RemoveAt(0);
+        }
+        if (byteBuffer.Count == 4)
+        {
+          int bufferAsInt = BitConverter.ToInt32(byteBuffer.ToArray(), 0);
+          if (bufferAsInt == TrailerMarker)
+          {
+            break;
+          }
+        }
+      }
     }
 
     /// <summary>
