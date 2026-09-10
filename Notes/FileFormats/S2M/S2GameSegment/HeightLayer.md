@@ -82,7 +82,9 @@ Plane 0 is not merely redundant in complex campaign maps. Most neighboring corne
 
 Planes 1 and 2 remain completely zero in all controlled terrain probes, including the raised, smoothed, plateau, and ramp maps. Therefore they are not smoothing data and are not alternate versions of the terrain brush result.
 
-They are sparse and non-zero in campaign maps. `war_chapter1` has 8,517 non-zero values in plane 1 and 4,085 in plane 2; `war_chapter8` has 8,251 and 1,899 respectively. Their purpose remains unknown. Possible relationships to structures, walkable levels, water, or another simulation surface require controlled probes; they should not be blended into the ground height.
+They are sparse and non-zero in campaign maps. `war_chapter1` has 8,517 non-zero values in plane 1 and 4,085 in plane 2; `war_chapter8` has 8,251 and 1,899 respectively.
+
+The controlled water probes identify one use for plane 1. Painting water on height-zero ground depresses plane 0 to `-640` (with a `-256` sea shoreline), while the matching plane-1 corners remain at `0` above it. The water renderer therefore uses plane 1 for river, sea, and pitch/swamp surfaces. The moat probe does not change heights, so moats instead use ground plane 0. Plane 1 is not exclusively water: maps without decoded water can also contain non-zero values, so it is more generally an alternate or elevated surface used by multiple landscape systems. Plane 2 remains unknown. Neither plane should be blended into the base ground height.
 
 `HeightLayer.CornerHeightPlanes[plane]` preserves the three planes in file order. Use `GetCornerHeight(plane, cellIndex, corner)` for checked access.
 

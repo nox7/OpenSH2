@@ -9,6 +9,8 @@
 
 `S2MMapLoader.LoadedMap` retains the parsed `S2MFile`. Terrain, water, estate, foliage, and placed-object renderers can all consume this same reference without reopening the file.
 
+Water uses this architecture through the separate `S2MWaterRendererComponent`. Assign the same `S2MMapLoader` used by the terrain component. Its generated cell mesh reads `S2MFile.WaterLayer` without performing file I/O. River, sea, and pitch/swamp use `HeightLayer` corner plane 1; ground-hugging moats use plane 0. The four surfaces are separate submeshes with independently assignable materials. Unknown landscape-feature values are skipped rather than guessed to be water.
+
 The component exposes these initial calibration settings:
 
 - `HorizontalCellSize`: horizontal Unity units per serialized S2M cell; default 1.
@@ -45,4 +47,4 @@ Clamping the maximum is not recommended. The six controlled levels show that 10,
 
 The grass-to-rock change seen after raising a tile is not represented by a changed height-layer plane. In the flat-versus-one-raise probe, the only semantic change inside `Landscape` was another copy of the new `1706` height. This suggests that the original material chooses rocky detail procedurally from slope/normal data, although the complete `Landscape` schema is still unknown.
 
-This renderer does not yet apply terrain textures, estate coloring, water, vegetation, rocks, or placed objects. Those features are serialized in separate S2Game objects and should be layered onto the generated terrain as their schemas are decoded.
+The terrain renderer does not yet apply terrain textures, estate coloring, vegetation, rocks, or placed objects. Water-like surfaces are handled by the separate water renderer. The other features are serialized in separate S2Game objects and should be layered onto the generated terrain as their schemas are decoded.

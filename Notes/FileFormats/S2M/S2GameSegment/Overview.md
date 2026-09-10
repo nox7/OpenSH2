@@ -25,4 +25,7 @@ In chapter 1 there are 67 `Archer` objects; chapter 8 has 278. Chapter 8 also ha
 
 The object-stream reader was exercised against all 36 `.s2m` files in the supplied Maps directory. Every file reached the end of all three decompressed segments. Every tested RadarMap segment contained two objects. S2Game object counts ranged from 150 to 3,675. A few backup or partial test maps contain no decodable `HeightLayer`; the reader leaves `HeightLayer` null rather than rejecting the entire map.
 
-The confirmed primary height plane can be converted to a runtime Unity Terrain as described in [Rendering HeightLayer with Unity Terrain](./UnityTerrain.md).
+The confirmed primary height plane can be converted to a runtime Unity Terrain as described in [Rendering HeightLayer with Unity Terrain](./UnityTerrain.md). Controlled water, material, and flow-direction fields are documented in [Landscape water data](./LandscapeWater.md).
+
+Placed landscape records and the demand-loaded GR2 rendering path are documented in
+[Forest vegetation and Unity rendering](./Vegetation.md).

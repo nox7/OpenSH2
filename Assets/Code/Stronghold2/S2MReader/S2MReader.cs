@@ -69,6 +69,8 @@ namespace Assets.Code.Stronghold2.S2MReader
 
           if (parsed is RadarMap radarMap) MapFile.RadarMap = radarMap;
           if (i == 1 && parsed is EstateLayer radarEstateLayer) MapFile.RadarEstateLayer = radarEstateLayer;
+          if (parsed is Landscape landscape) MapFile.Landscape = landscape;
+          if (parsed is Forest forest) MapFile.Forest = forest;
           if (parsed is HeightLayer heightLayer)
           {
             MapFile.HeightLayer = heightLayer;
@@ -203,8 +205,13 @@ namespace Assets.Code.Stronghold2.S2MReader
       }
       else
       {
-        // When it's the same, read a ... blank something? I've no idea; but there is always a 00 00 00 00 when the parent type index is the same as the type index.
-        reader.ReadInt32();
+        // Most self-parented objects contain a zero field here. Empty objects can
+        // omit it and put their trailer here instead (Walls immediately before
+        // Forest does this). Leave a trailer for ReadSerializedPayload to consume.
+        long optionalFieldPosition = reader.BaseStream.Position;
+        int optionalField = reader.ReadInt32();
+        if (optionalField == S2MReaderUtils.TrailerMarker)
+          reader.BaseStream.Position = optionalFieldPosition;
       }
 
 
@@ -241,6 +248,8 @@ namespace Assets.Code.Stronghold2.S2MReader
         "RadarMap" => new RadarMapReader(obj),
         "EstateLayer" => new EstateLayerReader(obj),
         "HeightLayer" => new HeightLayerReader(obj),
+        "Landscape" => new LandscapeReader(obj),
+        "Forest" => new ForestReader(obj),
 
         // Actions
         "AITroopRetreatAction" => new AITroopRetreatActionReader(obj),

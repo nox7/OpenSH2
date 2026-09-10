@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using Assets.Code;
 using Assets.Code.Stronghold2.MapLoading;
+using Assets.Code.Stronghold2.AssetLoading;
+using Assets.Code.Stronghold2.ModelRendering;
 using Assets.Code.Stronghold2.TerrainRendering;
 using Assets.Code.Video;
 using UnityEngine;
@@ -90,7 +92,13 @@ public class Main : MonoBehaviour
         new()
         );
 
-      Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}");
+      GameObject water = S2MWaterRenderer.Render(mapFile, transform);
+      S2MVegetationData vegetationData = new S2MVegetationAssetLoader().Load(
+        mapFile,
+        "C:\\Steam\\steamapps\\common\\Stronghold 2");
+      GameObject vegetation = S2MVegetationRenderer.Render(vegetationData, transform);
+
+      Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; decoded {mapFile.Forest?.Instances.Count ?? 0} Forest records, rendered {vegetationData.SupportedInstanceCount} trees ({vegetationData.UnsupportedInstanceCount} unsupported records).");
     }
     catch (System.Exception exception)
     {
