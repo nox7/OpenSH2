@@ -22,33 +22,37 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
 
       int additionalBlockTag = reader.ReadInt32();
       int additionalBlockLength = reader.ReadInt32();
-      int additionalCellCount = reader.ReadInt32();
-      if (additionalBlockTag != 2 || additionalCellCount != valueCount || additionalBlockLength < sizeof(int))
+      if (additionalBlockTag != 2 || additionalBlockLength <= 0)
         throw new InvalidDataException(
-          $"Invalid HeightLayer additional block (tag {additionalBlockTag}, length {additionalBlockLength}, count {additionalCellCount}).");
+          $"Invalid HeightLayer corner-height block (tag {additionalBlockTag}, length {additionalBlockLength}).");
 
-      // The length includes the 4-byte cell count and an 8-byte footer. The
-      // tested format stores twelve float32 samples per cell between them.
-      const int footerByteCount = 8;
-      int sampleByteCount = additionalBlockLength - sizeof(int) - footerByteCount;
-      int bytesPerCell = sampleByteCount / additionalCellCount;
-      if (sampleByteCount < 0 || sampleByteCount % additionalCellCount != 0 || bytesPerCell % sizeof(float) != 0)
-        throw new InvalidDataException("HeightLayer additional block is not a uniform float32 cell array.");
+      int valuesPerPlane = checked(valueCount * HeightLayer.CornersPerCell);
+      int bytesPerPlane = checked(sizeof(int) + valuesPerPlane * sizeof(float));
+      if (additionalBlockLength % bytesPerPlane != 0)
+        throw new InvalidDataException("HeightLayer corner-height block is not a whole number of counted four-corner planes.");
 
-      int samplesPerCell = bytesPerCell / sizeof(float);
-      var additionalSamples = new float[additionalCellCount * samplesPerCell];
-      for (int i = 0; i < additionalSamples.Length; i++) additionalSamples[i] = reader.ReadSingle();
+      int planeCount = additionalBlockLength / bytesPerPlane;
+      var cornerHeightPlanes = new float[planeCount][];
+      for (int plane = 0; plane < planeCount; plane++)
+      {
+        int cellCount = reader.ReadInt32();
+        if (cellCount != valueCount)
+          throw new InvalidDataException(
+            $"HeightLayer corner-height plane {plane} has {cellCount} cells; expected {valueCount}.");
+
+        var cornerHeights = new float[valuesPerPlane];
+        for (int i = 0; i < cornerHeights.Length; i++) cornerHeights[i] = reader.ReadSingle();
+        cornerHeightPlanes[plane] = cornerHeights;
+      }
 
       int side = (int)Math.Sqrt(valueCount);
-      byte[] remaining = ReadPayloadToTrailer(reader);
+      ReadObjectTrailerMarker(reader);
       return new HeightLayer
       {
         Width = side * side == valueCount ? side : 0,
         Height = side * side == valueCount ? side : 0,
         Heights = heights,
-        AdditionalSamplesPerCell = samplesPerCell,
-        AdditionalHeightSamples = additionalSamples,
-        RemainingPayload = remaining
+        CornerHeightPlanes = cornerHeightPlanes
       };
     }
   }

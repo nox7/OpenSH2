@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Assets.Code;
 using Assets.Code.Stronghold2.MapLoading;
+using Assets.Code.Stronghold2.TerrainRendering;
 using Assets.Code.Video;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ public class Main : MonoBehaviour
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
   {
-    Game.Initialize();
+    // Game.Initialize();
     RunTests();
   }
 
@@ -17,6 +18,7 @@ public class Main : MonoBehaviour
   void Update()
   {
     var game = Game.GetInstance();
+    return;
 
     if (game.State == GameState.NONE)
     {
@@ -80,8 +82,13 @@ public class Main : MonoBehaviour
   {
     try
     {
-      string testFilePath = "C:\\Users\\Cole\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
+      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
       var mapFile = S2MFileLoader.Load(testFilePath);
+      Terrain terrain = S2MTerrainRenderer.Render(
+        mapFile,
+        transform,
+        new()
+        );
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}");
     }

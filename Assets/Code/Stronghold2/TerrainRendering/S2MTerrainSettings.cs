@@ -9,9 +9,9 @@ namespace Assets.Code.Stronghold2.TerrainRendering
     [Min(0.0001f)]
     public float HorizontalCellSize = 1f;
 
-    [Tooltip("Unity vertical units per raw S2M height unit. 1/256 is a useful initial scale because many observed values are multiples of 256.")]
+    [Tooltip("Unity vertical units per raw S2M height unit. Editor probes place the six standard terrain levels between 0 and 10240, making 1/1024 the best current calibration.")]
     [Min(0.000001f)]
-    public float HeightUnitScale = 1f / 256f;
+    public float HeightUnitScale = 1f / 1024f;
 
     [Tooltip("Reverse the serialized X axis when copying it into Unity TerrainData.")]
     public bool FlipX;

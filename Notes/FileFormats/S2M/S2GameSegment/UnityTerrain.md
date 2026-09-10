@@ -12,7 +12,7 @@
 The component exposes these initial calibration settings:
 
 - `HorizontalCellSize`: horizontal Unity units per serialized S2M cell; default 1.
-- `HeightUnitScale`: vertical Unity units per raw S2M height unit; default 1/256.
+- `HeightUnitScale`: vertical Unity units per raw S2M height unit; default 1/1024.
 - `FlipX` and `FlipZ`: reverse either serialized axis after entity coordinates establish the final orientation.
 - `Material`: optional Terrain material override.
 
@@ -35,6 +35,14 @@ Raw heights are normalized to the 0–1 values required by `TerrainData.SetHeigh
 
 ## Current limits
 
-Only the primary height plane is rendered. The twelve additional height-like samples per cell remain available in `HeightLayer.AdditionalHeightSamples`, but their spatial meaning has not been proven. They may encode sub-cell terrain geometry or smoothing information; blending them into the primary plane now would be speculative.
+Only the primary height plane is rendered. `HeightLayer` also exposes three separately counted planes with four corner heights per cell. Plane 0 contains base-terrain cell corners and has occasional per-cell overrides in campaign maps. Planes 1 and 2 are zero in every controlled terrain-brush probe and sparse in campaign maps; they are not smoothing layers.
+
+The controlled specific-height probes reveal six standard levels between 0 and 10,240. This makes 1/1024 the best current vertical calibration: the first level is about 1.67 Unity units and the maximum is 10. The earlier 1/256 default made every feature four times too tall and was the main cause of the exaggerated Unity peaks.
+
+The primary plane can still contain intentional one-cell discontinuities. In `war_chapter1.s2m`, the maximum primary sample is 10,240 and an immediate neighbor is -256. At 1/1024 this is approximately 10.25 vertical units across one horizontal cell. Plane 0's per-cell corner overrides may refine some of this steep terrain, but Unity Terrain cannot retain different heights for coincident cell corners. A later custom, chunked mesh renderer should consume plane 0 directly if those overrides prove visually significant.
+
+Clamping the maximum is not recommended. The six controlled levels show that 10,240 is a legitimate authored height, and clamping would discard map data.
+
+The grass-to-rock change seen after raising a tile is not represented by a changed height-layer plane. In the flat-versus-one-raise probe, the only semantic change inside `Landscape` was another copy of the new `1706` height. This suggests that the original material chooses rocky detail procedurally from slope/normal data, although the complete `Landscape` schema is still unknown.
 
 This renderer does not yet apply terrain textures, estate coloring, water, vegetation, rocks, or placed objects. Those features are serialized in separate S2Game objects and should be layered onto the generated terrain as their schemas are decoded.
