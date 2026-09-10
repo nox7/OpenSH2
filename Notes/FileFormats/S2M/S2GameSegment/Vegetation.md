@@ -7,6 +7,10 @@ reader must preserve rather than consuming its trailer. The initial implementati
 families 0, 1, and 2 as the three controlled tree tools. Other family values are kept in
 memory but deliberately not rendered until controlled probes identify them.
 
+Each controlled tree map was made with three separate clicks using a 1x1 brush and
+contains three 65-byte records. The current evidence therefore indicates one Forest
+placement record per individual tree click.
+
 ## Demand-driven asset loading
 
 Loading every GR2 file at startup is unnecessary and would consume memory for models a

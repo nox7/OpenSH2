@@ -9,7 +9,8 @@ Controlled probes compared the following 256x256 maps against `terrain-flat.s2m`
 - `terrain-pitch-swamp.s2m`: one click with a 3x3 pitch/swamp brush
 - `terrain-moat.s2m`: a moat probe
 - `terrain-pitch-trap.s2m`: a pitch-trap probe
-- `terrain-tree-type-1.s2m`, `terrain-tree-type-2.s2m`, and `terrain-tree-type-3.s2m`: tree probes
+- `terrain-tree-type-1.s2m`, `terrain-tree-type-2.s2m`, and `terrain-tree-type-3.s2m`:
+  three individual clicks with a 1x1 tree brush in each map
 
 The flat, river, sea, moat, swamp, and trap probes retain the same 151-object count;
 these features do not add placed top-level objects. Their state is stored in fixed-size
@@ -84,8 +85,10 @@ states. `WaterLayer.LandscapeFeatureValues` preserves every raw byte, and
 ## Tree records in `Forest`
 
 The `Walls` object immediately before `Forest` is empty in these probes. Each controlled
-tree brush click adds three 65-byte records (195 bytes total) to the array at the start
-of the separate `Forest` payload. In each tree map:
+tree map contains three separately clicked placements. Together they add three 65-byte
+records (195 bytes total) to the array at the start of the separate `Forest` payload.
+This establishes one `Forest` record per placed tree, not a three-record cluster from
+one brush operation. In each tree map:
 
 - the byte-length field at payload offset 0 counts the bytes following that field;
 - the element count at offset 4 is `3`;
