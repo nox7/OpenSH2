@@ -12,10 +12,6 @@ namespace Assets.Code.Stronghold2.S2MReader
 {
   internal class S2MReader
   {
-    /// <summary>
-    /// Stores the trailer marker which is AF1EFFFF in hex
-    /// </summary>
-    private const int TrailerMarker = -57681; // 0xAF1EFFFF as a signed int
     private string FilePath { get; set; }
     private S2MFile MapFile { get; set; }
     /// <summary>
@@ -35,6 +31,7 @@ namespace Assets.Code.Stronghold2.S2MReader
 
     public S2MFile ReadS2MFile()
     {
+      MapFile.SourcePath = Path.GetFullPath(FilePath);
       using var stream = File.OpenRead(FilePath);
       using var reader = new BinaryReader(stream);
 
@@ -53,64 +50,37 @@ namespace Assets.Code.Stronghold2.S2MReader
 
       for (int i = 0; i < MapFile.DecompressedSegments.Count; i++)
       {
+        // Registration indices restart in every compressed segment.
+        Types.Clear();
         using var chunkStream = new MemoryStream(MapFile.DecompressedSegments[i].Bytes, writable: false);
         using var chunkReader = new BinaryReader(chunkStream);
-        if (i == 0)
+        // All three segments use the same 8-byte segment prefix and object stream.
+        chunkReader.ReadInt32();
+        chunkReader.ReadInt32();
+
+        var segmentObjects = new List<S2Object>();
+        while (true)
         {
-          // This is the MapHeader chunk
+          var obj = ReadObjectHeader(chunkReader);
+          if (obj == null) break;
 
-          // Skip chunk Id and index
-          chunkReader.ReadInt32();
-          chunkReader.ReadInt32();
+          S2Object parsed = ReadObject(chunkReader, obj);
+          segmentObjects.Add(parsed);
 
-          while (true)
+          if (parsed is RadarMap radarMap) MapFile.RadarMap = radarMap;
+          if (i == 1 && parsed is EstateLayer radarEstateLayer) MapFile.RadarEstateLayer = radarEstateLayer;
+          if (parsed is HeightLayer heightLayer)
           {
-            var obj = ReadObjectHeader(chunkReader);
-            if (obj == null)
-            {
-              Debug.Log("Hit end of segment.");
-              break;
-            }
-
-            Debug.Log("Processing object " + obj.Type + " with Id " + obj.Id);
-
-            ReadObject(chunkReader, obj);
+            MapFile.HeightLayer = heightLayer;
+            if (MapFile.MapSize == 0) MapFile.MapSize = heightLayer.Width;
           }
         }
-        else if (i == 1)
-        {
-          // This is the RadarMap chunk segment
-        }
-        else if (i == 2)
-        {
-          // This is the S2Game chunk segment
 
-          // Skip chunk Id and index
-          chunkReader.ReadInt32();
-          chunkReader.ReadInt32();
+        if (i == 0) MapFile.MapHeaderObjects = segmentObjects;
+        else if (i == 1) MapFile.RadarMapObjects = segmentObjects;
+        else MapFile.S2GameObjects = segmentObjects;
 
-          while (true)
-          {
-            var obj = ReadObjectHeader(chunkReader);
-            if (obj == null)
-            {
-              Debug.Log("Hit end of segment.");
-              break;
-            }
-
-            Debug.Log("Processing object " + obj.Type + " with Id " + obj.Id);
-
-            if (obj.Type == "HeightLayer")
-            {
-              ReadObject(chunkReader, obj);
-            }
-            else
-            {
-              Debug.Log($"Reading {obj.Type} until trailer marker.");
-              ReadUntilObjectTrailerMarker(chunkReader);
-            }
-          }
-        }
+        Debug.Log($"Read {segmentObjects.Count} objects from S2M segment {i}.");
       }
 
       return MapFile;
@@ -118,19 +88,22 @@ namespace Assets.Code.Stronghold2.S2MReader
 
     private void ReadHeader(BinaryReader reader)
     {
-      // Unknown header marker. war_chapter1 has 2 here.
-      int authorPresenceFlag = reader.ReadInt32();
+      int stringOptionCount = reader.ReadInt32();
+      if (stringOptionCount < 0 || stringOptionCount > 10000)
+        throw new InvalidDataException($"Invalid S2M string option count {stringOptionCount}.");
 
-      // Author data is only stored if the authorPresenceFlag is 2. If it is 1, then this is skipped
-      // (or anything but 2, I guess)
-      if (authorPresenceFlag == 2)
+      var stringOptions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+      for (int i = 0; i < stringOptionCount; i++)
       {
-        S2MReaderUtils.ReadFieldName(reader, "author");
-        MapFile.Author = S2MReaderUtils.ReadUtf16String(reader);
+        string name = S2MReaderUtils.ReadASCIIString(reader);
+        stringOptions[name] = S2MReaderUtils.ReadUtf16String(reader);
       }
+      MapFile.StringOptions = stringOptions;
+      stringOptions.TryGetValue("author", out string author);
+      MapFile.Author = author;
 
-      S2MReaderUtils.ReadFieldName(reader, "type");
-      string mapTypeString = S2MReaderUtils.ReadUtf16String(reader);
+      if (!stringOptions.TryGetValue("type", out string mapTypeString))
+        throw new InvalidDataException("S2M header does not contain a 'type' string option.");
 
       if (mapTypeString == "warcampaign")
       {
@@ -153,23 +126,23 @@ namespace Assets.Code.Stronghold2.S2MReader
         throw new InvalidDataException($"Unknown S2M map type '{mapTypeString}'.");
       }
 
-      // Read random "04 00 00 00"
-      reader.ReadInt32();
+      int integerOptionCount = reader.ReadInt32();
+      if (integerOptionCount < 0 || integerOptionCount > 10000)
+        throw new InvalidDataException($"Invalid S2M integer option count {integerOptionCount}.");
 
-      S2MReaderUtils.ReadFieldName(reader, "balanced");
-      MapFile.Balanced = reader.ReadInt32() == 1;
+      var integerOptions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+      for (int i = 0; i < integerOptionCount; i++)
+      {
+        string name = S2MReaderUtils.ReadASCIIString(reader);
+        integerOptions[name] = reader.ReadInt32();
+      }
+      MapFile.IntegerOptions = integerOptions;
 
-      S2MReaderUtils.ReadFieldName(reader, "lastsave");
-      MapFile.LastSave = reader.ReadInt32().ToString();
-
-      S2MReaderUtils.ReadFieldName(reader, "mapsize");
-      MapFile.MapSize = reader.ReadInt32();
-
-      S2MReaderUtils.ReadFieldName(reader, "maxplayers");
-      MapFile.MaxPlayers = reader.ReadInt32();
-
-      S2MReaderUtils.ReadFieldName(reader, "version");
-      MapFile.Version = reader.ReadInt32();
+      if (integerOptions.TryGetValue("balanced", out int balanced)) MapFile.Balanced = balanced == 1;
+      if (integerOptions.TryGetValue("lastsave", out int lastSave)) MapFile.LastSave = lastSave.ToString();
+      if (integerOptions.TryGetValue("mapsize", out int mapSize)) MapFile.MapSize = mapSize;
+      if (integerOptions.TryGetValue("maxplayers", out int maxPlayers)) MapFile.MaxPlayers = maxPlayers;
+      if (integerOptions.TryGetValue("version", out int version)) MapFile.Version = version;
     }
 
     /// <summary>
@@ -241,34 +214,6 @@ namespace Assets.Code.Stronghold2.S2MReader
     }
 
     /// <summary>
-    /// Reads until the 4-byte buffer is the object trailer marker
-    /// AF 1E FF FF
-    /// </summary>
-    /// <param name="reader"></param>
-    private void ReadUntilObjectTrailerMarker(BinaryReader reader)
-    {
-      List<byte> byteBuffer = new List<byte>();
-
-      while (true)
-      {
-        byte b = reader.ReadByte();
-        byteBuffer.Add(b);
-        if (byteBuffer.Count > 4)
-        {
-          byteBuffer.RemoveAt(0);
-        }
-        if (byteBuffer.Count == 4)
-        {
-          int bufferAsInt = BitConverter.ToInt32(byteBuffer.ToArray(), 0);
-          if (bufferAsInt == TrailerMarker)
-          {
-            break;
-          }
-        }
-      }
-    }
-
-    /// <summary>
     /// Takes an object-header-parsed S2Object and, using its Type, determines which reader to use to read the object.
     /// Once read, adds the object to the Objects dictionary by its Id.
     /// </summary>
@@ -276,6 +221,13 @@ namespace Assets.Code.Stronghold2.S2MReader
     /// <param name="obj"></param>
     private S2Object ReadObject(BinaryReader reader, S2Object obj)
     {
+      // Bound each type-specific reader to exactly one object. Several legacy
+      // readers are still incomplete; a failure must not desynchronise the rest
+      // of the segment.
+      byte[] serializedPayload = ReadSerializedPayload(reader, obj);
+      using var payloadStream = new MemoryStream(serializedPayload, writable: false);
+      using var payloadReader = new BinaryReader(payloadStream);
+
       ObjectReader objReader = obj.Type switch
       {
         // MapHeader segment
@@ -284,6 +236,11 @@ namespace Assets.Code.Stronghold2.S2MReader
         "Scenario" => new ScenarioReader(obj),
         "Mission" => new MissionReader(obj),
         "ScenarioEvent" => new ScenarioEventReader(obj),
+
+        // RadarMap segment and terrain layers
+        "RadarMap" => new RadarMapReader(obj),
+        "EstateLayer" => new EstateLayerReader(obj),
+        "HeightLayer" => new HeightLayerReader(obj),
 
         // Actions
         "AITroopRetreatAction" => new AITroopRetreatActionReader(obj),
@@ -384,12 +341,49 @@ namespace Assets.Code.Stronghold2.S2MReader
         "RescueLordTrigger" => new RescueLordTriggerReader(obj),
         "SpecificEnemyLordDiesTrigger" => new SpecificEnemyLordDiesTriggerReader(obj),
         "SpecificLordKillsLordXTrigger" => new SpecificLordKillsLordXTriggerReader(obj),
-        _ => throw new InvalidDataException($"Unknown object type '{obj.Type}' with Id {obj.Id} and type index {obj.TypeIndex}.")
+        // S2Game has many object types that are not decoded yet. Retaining their
+        // complete payloads lets the map load and supports incremental research.
+        _ => new RawObjectReader(obj)
       };
 
-      S2Object parsedObject = objReader.Read(reader);
-      Objects.Add(obj.Id, parsedObject);
+      S2Object parsedObject;
+      try
+      {
+        parsedObject = objReader.Read(payloadReader);
+      }
+      catch (Exception exception) when (
+        exception is InvalidDataException
+        || exception is EndOfStreamException
+        || exception is NullReferenceException
+        || exception is ArgumentException
+        || exception is IndexOutOfRangeException)
+      {
+        Debug.Log($"Could not decode {obj.Type} ({obj.Id}); preserving its raw payload: {exception.Message}");
+        var rawPayload = new byte[serializedPayload.Length - sizeof(int)];
+        Buffer.BlockCopy(serializedPayload, 0, rawPayload, 0, rawPayload.Length);
+        parsedObject = new RawS2Object { Payload = rawPayload };
+      }
+      parsedObject.Id = obj.Id;
+      parsedObject.TypeIndex = obj.TypeIndex;
+      parsedObject.Type = obj.Type;
+      Objects[obj.Id] = parsedObject;
       return parsedObject;
+    }
+
+    private static byte[] ReadSerializedPayload(BinaryReader reader, S2Object obj)
+    {
+      var bytes = new List<byte>();
+      uint markerWindow = 0;
+
+      while (reader.BaseStream.Position < reader.BaseStream.Length)
+      {
+        byte value = reader.ReadByte();
+        bytes.Add(value);
+        markerWindow = (markerWindow >> 8) | ((uint)value << 24);
+        if (markerWindow == unchecked((uint)S2MReaderUtils.TrailerMarker)) return bytes.ToArray();
+      }
+
+      throw new EndOfStreamException($"Object '{obj.Type}' with Id {obj.Id} has no AF 1E FF FF trailer.");
     }
   }
 }

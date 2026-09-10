@@ -167,7 +167,7 @@ namespace Assets.Code.Utilities
   }
 
   /// <summary>One decompressed zlib payload, retained in its original file order.</summary>
-  internal sealed class ZLibDecompressedSegment
+  public sealed class ZLibDecompressedSegment
   {
     public long CompressedStartOffset { get; }
     public byte[] Bytes { get; }

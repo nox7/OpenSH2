@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Assets.Code.Stronghold2.S2MReader.Enums
 {
-  internal enum MapType
+  public enum MapType
   {
     Kingmaker,
     WarCampaign,

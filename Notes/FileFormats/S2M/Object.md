@@ -1,13 +1,13 @@
-All data payloads are represented by an "Object". All objects have basic metadata that needs parsing before parsing their specific payloads. 
+All data payloads are represented by an "Object". All objects have basic metadata that needs parsing before parsing their specific payloads.
+
+The type registry is **local to one decompressed segment**. Clear it before parsing MapHeader, RadarMap, or S2Game. Registration index 1 means `MapHeader`, `RadarMap`, and `S2Game`, respectively, in the three segments of the tested campaign maps.
 
 As you encounter objects, you should have a dictionary registry prepared to accept entries. After every object id will be a 4 byte number. If that number already exists in your registry then add that object into the registry. If it is a new number, then create a new entry in the registry and the file will tell you what type of object it is after the registration index.
 
 For example:
 ```csharp
-Dictionary<int, SH2Object> SH2Objects = []; // Object index to actual object
-Dictionary<int, string> SH2Types = []; // Object index to type name. E.g. 02 = "EstateMarkers" or 03 = "Scenario"
-
-// Keys in both dictionaries should map to the same object. 02 in SH2Objects should return an object that matches the same string type of 02 in SH2Types. If 02 is an EstateMarkers object then 02 in SH2Types should give "EstateMarkers"
+Dictionary<int, SH2Object> SH2Objects = []; // Serialized object Id to parsed object
+Dictionary<int, string> SH2Types = []; // Segment-local registration index to type name
 ```
 
 Objects are read as
@@ -25,3 +25,5 @@ If the object registration index **does not exist** in your dictionary as a key,
 	- **Note** The parent object id may be "00 00 00 00" which implies no parent object Id.
 
 Now, begin parsing the specific object payload
+
+The payload ends with `AF 1E FF FF`. An undecoded reader can retain every byte before that marker as a raw payload, allowing parsing to continue at the next object. The complete segment ends with `AD DE FF FF` in place of another object Id.

@@ -1,35 +1,26 @@
-- +4 bytes = Author presence flag
-	- If this is 1, then there will be no **author** data in this file. Skip to parsing byte length for 'type'
-	- If this is 2, then continue following this list chronologically and parse author first.
-- (Skip if no author) +4 bytes = Length of 'author' literal
-- (Skip if no author) Read bytes for 'author' string literal
-- (Skip if no author) +4 bytes = Length of UTF-16 author string
-- (Skip if no author) Read UTF-16 string from above (2 bytes per character)
-	- Currently it always seems to be "Firefly"
-- +4 bytes = Byte length of 'type' literal
-- Read bytes for 'type' string literal
-- +4 bytes = Length of UTF-16 map type name literal
-- Read UTF-16 string from above (2 bytes per character)
-	- warcampaign
-	- freebuild
-	- peacecampaign
-	- kingmaker
-- +4 bytes = Unknown
-- +4 bytes = Length of map balance type
-- Read length of map balance type above
-	- Either "balanced" or "unbalanced"
-- +4 bytes = Unknown
-- +4 bytes = Byte length of 'lastsave' literal
-- Read bytes for "lastsave" string literal
-- +4 bytes = Value of lastsave. Unknown what timestamp format this is
-- +4 bytes = Length of 'mapsize' literal
-- Read bytes for 'mapsize' string literal
-- +4 bytes = Size of square map
-	- Either 256 or 512
-- +4 bytes = Length of 'maxplayers' literal
-- Read bytes for 'maxplayers' literal
-- +4 bytes = Maximum number of players
-- +4 bytes = Length of 'version' literal
-- Read bytes for 'version' string literal
-- +4 bytes = Verison
-	- Usually 1? I guess
+# File header
+
+The uncompressed file header is two option tables. Options are not all mandatory; for example, `war_chapter1.s2m` has no `mapsize` entry while `war_chapter8.s2m` does. Readers must use the counts and names rather than assuming a fixed field order.
+
+## String option table
+
+- +4 bytes: number of string options (`int32`)
+- Repeat that many times:
+  - +4 bytes: ASCII key byte length
+  - +length bytes: ASCII key
+  - +4 bytes: UTF-16LE value character count
+  - +(count × 2) bytes: UTF-16LE value
+
+Known keys are `author` and `type`. Known `type` values include `warcampaign`, `peacecampaign`, `kingmaker`, and `freebuild`.
+
+The first value was previously described as an "author presence flag." It is actually the string-option count. A value of 1 happens to omit `author`; a value of 2 commonly includes both `author` and `type`.
+
+## Integer option table
+
+- +4 bytes: number of integer options (`int32`)
+- Repeat that many times:
+  - +4 bytes: ASCII key byte length
+  - +length bytes: ASCII key
+  - +4 bytes: value (`int32`)
+
+Known keys are `balanced`, `lastsave`, `mapsize`, `maxplayers`, and `version`. Treat unknown keys as valid options and preserve them. `mapsize` is optional and can be inferred from a square terrain plane when absent.

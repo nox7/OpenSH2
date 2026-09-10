@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources
 {
-  internal class S2Object
+  public class S2Object
   {
     public int Id { get; set; }
     public int TypeIndex { get; set; }

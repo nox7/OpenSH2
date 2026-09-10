@@ -1,5 +1,6 @@
 ﻿using Assets.Code.Stronghold2.S2MReader.Resources;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
@@ -39,6 +40,35 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       {
         throw new InvalidDataException($"Invalid object terminator. Got {terminator:X8}");
       }
+    }
+
+    protected byte[] ReadPayloadToTrailer(BinaryReader reader)
+    {
+      var payload = new List<byte>();
+      var window = new byte[4];
+      int windowCount = 0;
+
+      while (reader.BaseStream.Position < reader.BaseStream.Length)
+      {
+        byte value = reader.ReadByte();
+        payload.Add(value);
+        if (windowCount < 4) window[windowCount++] = value;
+        else
+        {
+          window[0] = window[1];
+          window[1] = window[2];
+          window[2] = window[3];
+          window[3] = value;
+        }
+
+        if (windowCount == 4 && BitConverter.ToInt32(window, 0) == S2MReaderUtils.TrailerMarker)
+        {
+          payload.RemoveRange(payload.Count - 4, 4);
+          return payload.ToArray();
+        }
+      }
+
+      throw new EndOfStreamException($"Object '{Object.Type}' ended without an AF 1E FF FF trailer.");
     }
 
     public virtual S2Object Read(BinaryReader reader)

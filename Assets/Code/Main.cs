@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Assets.Code;
+using Assets.Code.Stronghold2.MapLoading;
 using Assets.Code.Video;
 using UnityEngine;
 
@@ -80,8 +81,7 @@ public class Main : MonoBehaviour
     try
     {
       string testFilePath = "C:\\Users\\Cole\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
-      var reader = new Assets.Code.Stronghold2.S2MReader.S2MReader(testFilePath);
-      var mapFile = reader.ReadS2MFile();
+      var mapFile = S2MFileLoader.Load(testFilePath);
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}");
     }
