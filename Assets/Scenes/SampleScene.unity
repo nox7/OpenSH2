@@ -412,13 +412,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac1a93cb122118f4eb31118b562bd1d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Main
+  gameScale: 1
   vegetationRenderSettings:
     HorizontalCellSize: 1
     HeightUnitScale: 0.0009765625
     FlipX: 0
     FlipZ: 0
     ApplyAppearanceScale: 1
-    AssetScaleMultiplier: 0.45
+    AssetScaleMultiplier: 1
     Model:
       UnitScale: 0.01
       ConvertZUpToUnityYUp: 1

@@ -587,14 +587,36 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         Vector3 worldC = ToWorldPosition(gridC);
         Vector3 normal = Vector3.Cross(worldB - worldA, worldC - worldA).normalized;
         if (reverseWinding) normal = -normal;
+        bool wallProjected = wall;
+
+        // Project wall faces from the map grid rather than restarting U at zero for
+        // each generated quad. That lets adjacent faces sample one continuous
+        // texture instead of exposing a vertical seam at every subdivision boundary.
+        if (wallProjected)
+        {
+          wallUvA = GetWallProjectedU(gridA, gridB, gridC);
+          wallUvB = GetWallProjectedU(gridB, gridC, gridA);
+          wallUvC = GetWallProjectedU(gridC, gridA, gridB);
+        }
 
         int start = vertices.Count;
-        AddGeneratedVertex(gridA, worldA, normal, materialId, wall, wallUvA);
-        AddGeneratedVertex(gridB, worldB, normal, materialId, wall, wallUvB);
-        AddGeneratedVertex(gridC, worldC, normal, materialId, wall, wallUvC);
+        AddGeneratedVertex(gridA, worldA, normal, materialId, useFlatNormal: wall, wallProjected: wallProjected, wallU: wallUvA);
+        AddGeneratedVertex(gridB, worldB, normal, materialId, useFlatNormal: wall, wallProjected: wallProjected, wallU: wallUvB);
+        AddGeneratedVertex(gridC, worldC, normal, materialId, useFlatNormal: wall, wallProjected: wallProjected, wallU: wallUvC);
         triangles.Add(start);
         triangles.Add(reverseWinding ? start + 2 : start + 1);
         triangles.Add(reverseWinding ? start + 1 : start + 2);
+      }
+
+      private static float GetWallProjectedU(Vector3 point, Vector3 otherA, Vector3 otherB)
+      {
+        float xSpan = Mathf.Max(point.x, otherA.x, otherB.x) - Mathf.Min(point.x, otherA.x, otherB.x);
+        float zSpan = Mathf.Max(point.z, otherA.z, otherB.z) - Mathf.Min(point.z, otherA.z, otherB.z);
+
+        // Cliff walls predominantly follow one S2M grid axis. Choosing that axis makes
+        // their U coordinate stable across the two triangles in a quad and across
+        // neighbouring quads. Diagonal corner transition faces use their dominant axis.
+        return xSpan >= zSpan ? point.x : point.z;
       }
 
       private Vector3 ToWorldPosition(Vector3 gridPoint)
@@ -610,20 +632,22 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         Vector3 worldPoint,
         Vector3 normal,
         byte materialId,
-        bool wall,
+        bool useFlatNormal,
+        bool wallProjected,
         float wallU)
       {
         vertices.Add(worldPoint);
-        normals.Add(wall ? normal : GetInterpolatedSurfaceNormal(gridPoint));
+        normals.Add(useFlatNormal ? normal : GetInterpolatedSurfaceNormal(gridPoint));
         Vector2 cellUv = new Vector2(gridPoint.x - x, gridPoint.z - z);
-        Vector2 textureUv = wall
+        Vector2 textureUv = wallProjected
           ? new Vector2(wallU, worldPoint.y / settings.HorizontalCellSize)
           : new Vector2(gridPoint.x, gridPoint.z);
         textureCoordinates.Add(new Vector4(textureUv.x, textureUv.y, cellUv.x, cellUv.y));
         AddCellSurfaceData(
           cellData, neighbourMaterialIds, neighbourTintWest, neighbourTintEast,
           neighbourTintSouth, neighbourTintNorth, colors, map, surfaceMaterialIds,
-          cellIndex, x, z, materialId, blendNeighbours: true, applyTextureRotation: !wall);
+          cellIndex, x, z, materialId, blendNeighbours: true, applyTextureRotation: !wallProjected,
+          wallProjected: wallProjected);
       }
 
       private Vector3 GetInterpolatedSurfaceNormal(Vector3 gridPoint)
@@ -657,14 +681,15 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       int z,
       byte materialId,
       bool blendNeighbours,
-      bool applyTextureRotation)
+      bool applyTextureRotation,
+      bool wallProjected)
     {
       HeightLayer heightLayer = map.HeightLayer;
       byte featureId = map.WaterLayer?.LandscapeFeatureValues?[cellIndex] ?? 0;
       byte textureRotation = applyTextureRotation
         ? GetTerrainTextureRotation(map.Landscape?.TerrainTextureRotationValues, heightLayer.Width, heightLayer.Height, x, z)
         : (byte)0;
-      cellData.Add(new Vector4(materialId / 255f, featureId / 255f, textureRotation / 3f, 0f));
+      cellData.Add(new Vector4(materialId / 255f, featureId / 255f, textureRotation / 3f, wallProjected ? 1f : 0f));
       neighbourMaterialIds.Add(blendNeighbours
         ? GetNeighbourMaterialIds(
           surfaceMaterialIds,

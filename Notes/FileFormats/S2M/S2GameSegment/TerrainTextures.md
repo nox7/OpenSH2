@@ -206,8 +206,24 @@ The terrain shader blends a cell's texture and RGB tint toward each cardinal nei
 0.2 cell. This removes the artificial hard square borders while retaining each
 serialized material selection and tint. It is an adjacency-based approximation: the
 remaining tag-27 tail must still be decoded before reproducing the original engine's
-exact blend weights and transition shapes. `TextureScale` is exposed on the texture
-renderer settings because the original texture-repeat calibration is not yet established.
+exact blend weights and transition shapes. `TextureScale` controls ground terrain
+only and defaults to 0.25 repeat per cell (one shared repeat across four cells), which
+avoids the artificial per-cell checkerboard. It can be lowered further for broader
+ground textures. Generated cliff-wall calibration is independent of this setting.
+
+Generated cliff walls use a separate face projection: U runs along the wall segment
+and V follows world height. Applying ordinary terrain tiling directly to V made tall
+walls repeat once per Unity unit, much more often than Stronghold 2. The renderer now
+marks those wall/transition faces in UV1 and the shader applies independent
+`CliffWallHorizontalTextureScale` and `CliffWallVerticalTextureScale` multipliers to
+their U and V coordinates. Both current defaults are 0.25, a screenshot-based
+calibration candidate: a generated wall spans roughly a quarter of a texture repeat
+per map-cell width and per four Unity vertical units. Wall U is projected from the
+shared map grid rather than reset for each generated polygon, preventing visible
+vertical texture seams across a contiguous cliff wall. These settings can be tuned
+without changing ground tiling. This is UV scaling rather than height masking.
+Serialized quarter-turn rotation is retained for ground cells but intentionally not
+applied to the wall projection.
 
 ## Other coupled data
 

@@ -2,7 +2,9 @@ Shader "OpenSH2/Stronghold 2 Terrain"
 {
   Properties
   {
-    _TextureScale("Texture Repeats per Cell", Float) = 1
+    _TextureScale("Ground Texture Repeats per Cell", Float) = 0.25
+    _CliffWallVerticalTextureScale("Cliff Wall Vertical Texture Scale", Float) = 0.25
+    _CliffWallHorizontalTextureScale("Cliff Wall Horizontal Texture Scale", Float) = 0.25
     _AdjacentMaterialBlendWidth("Adjacent Material Blend Width", Range(0, 0.5)) = 0.2
     _ApplySerializedTextureRotation("Apply Serialized Texture Rotation", Float) = 1
     _TerrainTextureArray("Terrain Texture Array", 2DArray) = "white" {}
@@ -29,6 +31,8 @@ Shader "OpenSH2/Stronghold 2 Terrain"
 
       CBUFFER_START(UnityPerMaterial)
         float _TextureScale;
+        float _CliffWallVerticalTextureScale;
+        float _CliffWallHorizontalTextureScale;
         float _AdjacentMaterialBlendWidth;
         float _ApplySerializedTextureRotation;
       CBUFFER_END
@@ -130,6 +134,14 @@ Shader "OpenSH2/Stronghold 2 Terrain"
         output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
         output.normalWS = TransformObjectToWorldNormal(input.normalOS);
         output.uv = input.uv.xy * _TextureScale;
+        if (input.cellData.w > 0.5)
+        {
+          // Cliff faces have their own calibrated projection and must not inherit the
+          // broad ground-terrain repeat rate.
+          output.uv = float2(
+            input.uv.x * _CliffWallHorizontalTextureScale,
+            input.uv.y * _CliffWallVerticalTextureScale);
+        }
         output.materialId = round(input.cellData.x * 255.0);
         output.neighbourMaterialIds = round(input.neighbourMaterialIds * 255.0);
         output.cellUv = input.uv.zw;

@@ -133,7 +133,10 @@ angle = direction * 11.25 degrees
 oppositeDirection = (direction + 16) mod 32
 ```
 
-The editor screenshots do not establish a compass orientation. OpenSH2 currently treats code 0 as positive Unity X and exposes `FlowAngleOffsetDegrees` for later calibration. The water mesh writes the decoded flow vector to UV channel 1 (`TEXCOORD1`) for an animated water shader.
+The editor screenshots establish that the visible animated flow is opposite to the raw
+tag-7 compass vector. OpenSH2 therefore calculates code 0 as positive Unity X, applies
+the optional `FlowAngleOffsetDegrees` and axis flips, and then negates the final vector
+before writing it to UV channel 1 (`TEXCOORD1`).
 
 ## Surface material: tag 27
 
@@ -200,4 +203,43 @@ colors encode raw data for diagnostic or shader use:
 | B | Tag-7 flow direction (`0..31`) |
 | A | `255` |
 
-UV0 contains world-aligned texture coordinates. UV1 contains the two-dimensional decoded flow vector.
+UV0 retains local `0..1` coordinates for each duplicated water cell. UV1 contains
+the two-dimensional decoded flow vector. UV2 contains world-aligned coordinates. The
+water shader projects animated video from UV2 at its per-category texture scale and rotates that
+shared projection by each cell's flow vector. Therefore neighbouring cells with the
+same direction form one continuous animated surface, without needing a separate video
+decoder for every cell. Static marsh uses its own independent UV2 texture scale.
+
+### Water visual assets
+
+The installation provides distinct full-surface Bink sources rather than one common
+water DDS: `terrain/river/sea.bik`, `terrain/river/river_full_.bik`, and
+`terrain/river/moat.bik`. The runtime converts these legal local assets to cached MP4
+files and loops them on the sea, river, and moat submesh materials respectively.
+`terrain/marsh.DDS` is the static pitch/swamp surface; it intentionally has no video
+player. `meshes/landscape/wave_1.DDS` is a white alpha particle/overlay asset and is
+not used as the broad water surface.
+
+When `S2MWaterSettings.GameInstallPath` is configured, `S2MWaterRenderer` assigns the
+correct source per water category to the `OpenSH2/Stronghold 2 Water` shader. The water
+mesh still uses HeightLayer plane 1 (plane 0 for moats), so its surface already spans
+the terrain depression represented by the map data; the visual material supplies the
+animated or static detail rather than moving water above the decoded level.
+`S2MWaterSettings` exposes independent river, sea, pitch/swamp, and moat surface
+offsets and texture scales. River, sea, and moat also each have their own playback-speed
+multiplier; pitch/swamp is static by design. This keeps tuning one surface category from
+changing the others.
+
+The runtime water shader does not attempt screen-space terrain or object reflections.
+For animated surfaces, it instead derives a small moving wave normal from local
+luminance differences in the Bink frame and uses the directional main light plus the
+camera vector to render a view-dependent sun glint. `SurfaceBrightness`,
+`SunGlintIntensity`, `SunGlintSharpness`, and `WaveNormalStrength` in
+`S2MWaterSettings` calibrate that lighting model. Static pitch/swamp deliberately
+omits the animated glint. The glint is additionally masked by local luminance detail in
+the current video frame, preventing a smooth mesh-wide white reflection.
+
+Animated water uses continuous freerun decoding with Unity's game-time update mode,
+rather than a per-frame external clock or unscaled wall-clock updates. This prevents
+the MP4 decoder from seeking every frame while also avoiding catch-up after a loading
+stall.

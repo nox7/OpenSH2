@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Assets.Code.Stronghold2.ModelRendering
 {
-  /// <summary>Loads the DXT1, DXT3, and DXT5 DDS textures used by Stronghold 2.</summary>
+  /// <summary>Loads the DXT and 32-bit ARGB DDS textures used by Stronghold 2.</summary>
   internal static class DdsTextureLoader
   {
     /// <param name="keepReadable">Keep CPU pixels when a caller needs to copy this texture into another runtime texture.</param>
@@ -17,6 +17,12 @@ namespace Assets.Code.Stronghold2.ModelRendering
       int height = BitConverter.ToInt32(bytes, 12);
       int width = BitConverter.ToInt32(bytes, 16);
       string fourCc = Encoding.ASCII.GetString(bytes, 84, 4);
+      uint pixelFormatFlags = BitConverter.ToUInt32(bytes, 80);
+      int rgbBitCount = BitConverter.ToInt32(bytes, 88);
+      uint redMask = BitConverter.ToUInt32(bytes, 92);
+      uint greenMask = BitConverter.ToUInt32(bytes, 96);
+      uint blueMask = BitConverter.ToUInt32(bytes, 100);
+      uint alphaMask = BitConverter.ToUInt32(bytes, 104);
       if (width <= 0 || height <= 0 || width > 16384 || height > 16384)
         throw new InvalidDataException($"Invalid DDS dimensions {width}x{height}.");
 
@@ -25,7 +31,11 @@ namespace Assets.Code.Stronghold2.ModelRendering
         "DXT1" => DecodeDxt(bytes, 128, width, height, DxtKind.Dxt1),
         "DXT3" => DecodeDxt(bytes, 128, width, height, DxtKind.Dxt3),
         "DXT5" => DecodeDxt(bytes, 128, width, height, DxtKind.Dxt5),
-        _ => throw new NotSupportedException($"DDS compression {fourCc} is not supported yet.")
+        _ when (pixelFormatFlags & 0x40) != 0 && rgbBitCount == 32
+          && redMask == 0x00FF0000 && greenMask == 0x0000FF00
+          && blueMask == 0x000000FF && alphaMask == 0xFF000000
+          => DecodeBgra32(bytes, 128, width, height),
+        _ => throw new NotSupportedException($"DDS compression/pixel format {fourCc} is not supported yet.")
       };
 
       var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
@@ -37,6 +47,21 @@ namespace Assets.Code.Stronghold2.ModelRendering
       texture.SetPixels32(pixels);
       texture.Apply(updateMipmaps: false, makeNoLongerReadable: !keepReadable);
       return texture;
+    }
+
+    private static Color32[] DecodeBgra32(byte[] data, int offset, int width, int height)
+    {
+      int byteCount = checked(width * height * 4);
+      if (offset + byteCount > data.Length) throw new EndOfStreamException("DDS BGRA pixel data is truncated.");
+
+      var pixels = new Color32[checked(width * height)];
+      for (int i = 0; i < pixels.Length; i++)
+      {
+        int source = offset + i * 4;
+        // These DDS files use Direct3D A8R8G8B8 stored little-endian as BGRA.
+        pixels[i] = new Color32(data[source + 2], data[source + 1], data[source], data[source + 3]);
+      }
+      return pixels;
     }
 
     private static Color32[] DecodeDxt(byte[] data, int offset, int width, int height, DxtKind kind)

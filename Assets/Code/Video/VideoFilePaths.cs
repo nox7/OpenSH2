@@ -14,6 +14,9 @@ namespace Assets.Code.Video
     public static string MainMenuCurtainOpen = Constants.GamePath + "/ui/frontend/curtain_animation.bik";
     public static string MainMenuCurtainIdle = Constants.GamePath + "/ui/frontend/curtain_idle.bik";
     public static string MainMenuBackground = Constants.GamePath + "/ui/frontend/background.bik";
+    public static string SeaWater = Constants.GamePath + "/terrain/river/sea.bik";
+    public static string RiverWater = Constants.GamePath + "/terrain/river/river_full_.bik";
+    public static string MoatWater = Constants.GamePath + "/terrain/river/moat.bik";
 
     public static readonly Dictionary<string, string> CachedVideoOutputFormats = new()
     {
@@ -22,6 +25,9 @@ namespace Assets.Code.Video
       { MainMenuCurtainOpen, Converter.OutputFormatWebM },
       { MainMenuCurtainIdle, Converter.OutputFormatWebM },
       { MainMenuBackground, Converter.OutputFormatMp4 },
+      { SeaWater, Converter.OutputFormatMp4 },
+      { RiverWater, Converter.OutputFormatMp4 },
+      { MoatWater, Converter.OutputFormatMp4 },
     };
 
     public static string GetCachedVideoOutputFormat(string originalBikPath)

@@ -22,6 +22,10 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       settings ??= new S2MTerrainTextureRenderSettings();
       if (settings.TextureScale <= 0f)
         throw new ArgumentOutOfRangeException(nameof(settings.TextureScale), "TextureScale must be positive.");
+      if (settings.CliffWallVerticalTextureScale <= 0f)
+        throw new ArgumentOutOfRangeException(nameof(settings.CliffWallVerticalTextureScale), "CliffWallVerticalTextureScale must be positive.");
+      if (settings.CliffWallHorizontalTextureScale <= 0f)
+        throw new ArgumentOutOfRangeException(nameof(settings.CliffWallHorizontalTextureScale), "CliffWallHorizontalTextureScale must be positive.");
       if (settings.AdjacentMaterialBlendWidth < 0f || settings.AdjacentMaterialBlendWidth > 0.5f)
         throw new ArgumentOutOfRangeException(nameof(settings.AdjacentMaterialBlendWidth), "Adjacent material blend width must be in the range 0 through 0.5.");
 
@@ -38,6 +42,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       if (!material.HasProperty("_TerrainTextureArray"))
         throw new InvalidOperationException("The terrain material does not support the OpenSH2 terrain texture array.");
       if (material.HasProperty("_TextureScale")) material.SetFloat("_TextureScale", settings.TextureScale);
+      if (material.HasProperty("_CliffWallVerticalTextureScale")) material.SetFloat("_CliffWallVerticalTextureScale", settings.CliffWallVerticalTextureScale);
+      if (material.HasProperty("_CliffWallHorizontalTextureScale")) material.SetFloat("_CliffWallHorizontalTextureScale", settings.CliffWallHorizontalTextureScale);
       if (material.HasProperty("_AdjacentMaterialBlendWidth")) material.SetFloat("_AdjacentMaterialBlendWidth", settings.AdjacentMaterialBlendWidth);
       if (material.HasProperty("_ApplySerializedTextureRotation")) material.SetFloat("_ApplySerializedTextureRotation", settings.ApplySerializedTextureRotation ? 1f : 0f);
       Texture2DArray textureArray = CreateTextureArray(terrainTextures.Textures);

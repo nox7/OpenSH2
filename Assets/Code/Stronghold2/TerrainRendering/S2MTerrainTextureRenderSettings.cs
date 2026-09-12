@@ -7,8 +7,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
   public sealed class S2MTerrainTextureRenderSettings
   {
     [Min(0.0001f)]
-    [Tooltip("Texture repeats per S2M map cell. Tune after comparing the original game's terrain tiling.")]
-    public float TextureScale = 1f;
+    [Tooltip("Ground-terrain texture repeats per S2M map cell. The default 0.25 produces one repeat across four cells, reducing the original per-cell checkerboard tiling.")]
+    public float TextureScale = 0.25f;
 
     [Tooltip("Optional material override. It must support the OpenSH2 terrain texture property names.")]
     public Material Material;
@@ -19,6 +19,14 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
     [Tooltip("Apply the candidate per-cell quarter-turn values decoded from Landscape tag 30.")]
     public bool ApplySerializedTextureRotation = true;
+
+    [Min(0.0001f)]
+    [Tooltip("Vertical texture-repeat multiplier for generated cliff walls and transition wedges. This is independent of horizontal terrain-cell tiling.")]
+    public float CliffWallVerticalTextureScale = 0.25f;
+
+    [Min(0.0001f)]
+    [Tooltip("Horizontal texture-repeat multiplier for generated cliff walls and transition wedges. Their U coordinate is shared across adjacent map-space wall faces.")]
+    public float CliffWallHorizontalTextureScale = 0.1f;
 
   }
 }

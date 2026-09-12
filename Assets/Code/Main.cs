@@ -9,6 +9,10 @@ using UnityEngine;
 
 public class Main : MonoBehaviour
 {
+  [Min(0.0001f)]
+  [Tooltip("Uniform scale for all map-rendered objects: terrain, water, and vegetation. Keep all map renderers parented to this root so their coordinates remain aligned.")]
+  [SerializeField] private float gameScale = 1f;
+
   [SerializeField] private S2MVegetationRenderSettings vegetationRenderSettings = new();
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -90,9 +94,13 @@ public class Main : MonoBehaviour
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
       S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(mapFile, gameInstallPath);
+      if (gameScale <= 0f) throw new System.InvalidOperationException("Game scale must be positive.");
+      var mapWorld = new GameObject("S2M Map World");
+      mapWorld.transform.SetParent(transform, worldPositionStays: false);
+      mapWorld.transform.localScale = Vector3.one * gameScale;
       GameObject terrain = S2MTerrainRenderer.Render(
         mapFile,
-        transform,
+        mapWorld.transform,
         new()
         {
           UsePerCellCornerHeights = true,
@@ -102,13 +110,16 @@ public class Main : MonoBehaviour
         AdjacentMaterialBlendWidth = 0.5f
         });
 
-      GameObject water = S2MWaterRenderer.Render(mapFile, transform);
+      GameObject water = S2MWaterRenderer.Render(mapFile, mapWorld.transform, new()
+      {
+        GameInstallPath = gameInstallPath
+      });
       S2MVegetationData vegetationData = new S2MVegetationAssetLoader().Load(
         mapFile,
         gameInstallPath);
       GameObject vegetation = S2MVegetationRenderer.Render(
         vegetationData,
-        transform,
+        mapWorld.transform,
         vegetationRenderSettings);
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; decoded {mapFile.Forest?.Instances.Count ?? 0} Forest records, rendered {vegetationData.SupportedInstanceCount} trees ({vegetationData.UnsupportedInstanceCount} unsupported records).");
