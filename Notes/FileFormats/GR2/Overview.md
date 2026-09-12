@@ -87,13 +87,24 @@ unit scale. Winding is reversed during that axis conversion.
 
 The referenced tree textures use DXT3 DDS compression. Unity has no general runtime DDS
 file importer, so OpenSH2 includes a small DXT1/DXT3/DXT5 top-mip decoder and creates
-runtime RGBA textures. Generated materials enable alpha testing and default to
-double-sided rendering for foliage cards.
+runtime RGBA textures. Generated foliage materials enable alpha testing and
+double-sided rendering; opaque groups retain normal opaque rendering.
+
+Tree material groups must not all use the same treatment. For example, `tree_2.gr2`
+has three alpha-tested leaf groups (`17`, `18`, and `19`) and one 208-triangle
+`bark.bmp` group. Its installed `bark.dds` alpha channel is not an opacity mask, so
+OpenSH2 renders it as opaque. Foliage uses the included `OpenSH2/Stronghold 2 Foliage`
+shader: unlit, double-sided, and alpha-tested at the original engine's `136 / 255`
+reference. This avoids the incorrect lighting difference between the two sides of a
+leaf card caused by using URP/Lit with culling disabled.
 
 ## Current limits
 
 - Static mesh geometry, material groups, and one texture reference per material are
   supported.
+- The converter currently uses the standard PNT332 layout. The original foliage shader
+  also consumes a custom `COLOR0` channel; its exact Granny layout has not yet been
+  identified, so the Unity foliage shader currently supplies neutral white vertex color.
 - Skeletons, skin weights, animations, morph targets, multiple UV channels, and full
   Granny material graphs are not converted yet.
 - The original exporter paths embedded in GR2 files point to Firefly build drives.

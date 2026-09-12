@@ -10,7 +10,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
     [Min(0.000001f)] public float UnitScale = 0.01f;
     public bool ConvertZUpToUnityYUp = true;
     public bool DoubleSided = true;
-    [Range(0f, 1f)] public float AlphaCutoff = 0.5f;
+    [Tooltip("Stronghold 2's tree shader uses an alpha-test reference of 136/255.")]
+    [Range(0f, 1f)] public float AlphaCutoff = 136f / 255f;
     public Material FallbackMaterial;
   }
 }

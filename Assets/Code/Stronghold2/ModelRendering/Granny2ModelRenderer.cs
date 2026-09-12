@@ -73,6 +73,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       var positions = new Vector3[vertexCount];
       var normals = new Vector3[vertexCount];
       var uvs = new Vector2[vertexCount];
+      var colors = new Color[vertexCount];
       for (int i = 0; i < vertexCount; i++)
       {
         int offset = i * 8;
@@ -81,6 +82,10 @@ namespace Assets.Code.Stronghold2.ModelRendering
         positions[i] = ConvertAxis(position, settings.ConvertZUpToUnityYUp) * settings.UnitScale;
         normals[i] = ConvertAxis(normal, settings.ConvertZUpToUnityYUp).normalized;
         uvs[i] = new Vector2(source.VertexData[offset + 6], source.VertexData[offset + 7]);
+        // The original foliage shader multiplies COLOR0 into the texture. The
+        // current PNT converter does not preserve that non-standard channel,
+        // so use neutral white until its exact Granny layout is decoded.
+        colors[i] = Color.white;
       }
 
       var mesh = new Mesh
@@ -91,6 +96,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       mesh.vertices = positions;
       mesh.normals = normals;
       mesh.uv = uvs;
+      mesh.colors = colors;
       mesh.subMeshCount = source.TriangleGroups.Count;
       for (int groupIndex = 0; groupIndex < source.TriangleGroups.Count; groupIndex++)
       {
@@ -146,10 +152,18 @@ namespace Assets.Code.Stronghold2.ModelRendering
       Granny2ModelRenderSettings settings,
       Granny2GeneratedModelResources resources)
     {
+      bool isFoliage = IsFoliageMaterial(data);
       Material material;
       if (settings.FallbackMaterial != null)
       {
         material = new Material(settings.FallbackMaterial);
+      }
+      else if (isFoliage)
+      {
+        Shader shader = Shader.Find("OpenSH2/Stronghold 2 Foliage");
+        if (shader == null)
+          throw new InvalidOperationException("The OpenSH2 foliage shader could not be found.");
+        material = new Material(shader);
       }
       else
       {
@@ -164,17 +178,30 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if (texturePath != null)
       {
         Texture2D texture = DdsTextureLoader.Load(texturePath);
-        material.mainTexture = texture;
+        if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
+        else material.mainTexture = texture;
         resources.Add(texture);
       }
-      ConfigureAlphaTest(material, settings.AlphaCutoff);
-      if (settings.DoubleSided && material.HasProperty("_Cull"))
+      if (isFoliage)
       {
-        material.SetFloat("_Cull", (float)CullMode.Off);
-        material.doubleSidedGI = true;
+        ConfigureAlphaTest(material, settings.AlphaCutoff);
+        if (settings.DoubleSided && material.HasProperty("_Cull"))
+        {
+          material.SetFloat("_Cull", (float)CullMode.Off);
+          material.doubleSidedGI = true;
+        }
       }
+      else ConfigureOpaque(material);
       resources.Add(material);
       return material;
+    }
+
+    private static bool IsFoliageMaterial(Granny2MaterialData data)
+    {
+      string textureName = Path.GetFileNameWithoutExtension(data?.TexturePath ?? string.Empty);
+      // Bark alpha is not an opacity mask. It must remain opaque, while the
+      // remaining landscape-tree texture groups are alpha-tested foliage cards.
+      return !textureName.StartsWith("bark", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string ResolveTexturePath(string gr2Path, string embeddedPath)
@@ -201,6 +228,13 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if (material.HasProperty("_AlphaClip")) material.SetFloat("_AlphaClip", 1f);
       material.EnableKeyword("_ALPHATEST_ON");
       material.renderQueue = (int)RenderQueue.AlphaTest;
+    }
+
+    private static void ConfigureOpaque(Material material)
+    {
+      if (material.HasProperty("_AlphaClip")) material.SetFloat("_AlphaClip", 0f);
+      material.DisableKeyword("_ALPHATEST_ON");
+      material.renderQueue = (int)RenderQueue.Geometry;
     }
 
     private sealed class PreparedMesh
