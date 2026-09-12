@@ -142,6 +142,25 @@ two lower surface triangles. The bisector is duplicated at the high and low edge
 heights, producing the vertical wall without moving the original terrain vertices.
 The horizontal strips use `rock_1.dds`; only the wall uses `cliff_face.dds`.
 
+The observed campaign cliffs do not keep that split perfectly straight. Until tag 5
+is decoded, the runtime moves each shared split edge deterministically from 54% to
+64% of the high-to-low cell span. Because the offset is keyed by the shared endpoint
+pair, adjoining cliff cells choose the same position. High-to-low boundaries first
+check whether the adjacent cliff template produces the same split. Matching splits
+share the boundary directly. Otherwise the renderer compares the stepped boundary
+with the original high-to-low slope and emits only the two missing triangular wedges,
+not a full end-cap quad. This closes the seam without projecting a large arbitrary
+face out of the cliff side.
+
+Generated wall vertices retain their true local cell coordinates. The terrain shader
+therefore applies the same neighboring material and tint weights used by ordinary
+terrain instead of treating each wall as if every vertex were at the cell center.
+For horizontal blending, a neighboring `0x27` cell contributes `rock_1.dds`, because
+that is the material on its generated upper/lower surface; true vertical wall faces
+continue to contribute `cliff_face.dds`. Generated horizontal vertices also use
+interpolated primary-terrain normals so their lighting remains continuous with the
+ordinary terrain at a shared edge.
+
 Cells with one selected high corner use the corresponding triangular version of the
 same subdivision. In `terrain-min-cliff-face.s2m` those diagonal corner cells are not
 selected, so they remain ordinary rock slopes. This matches the visible corner ramps

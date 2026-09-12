@@ -164,7 +164,14 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       cellData.Add(new Vector4(materialId / 255f, featureId / 255f, textureRotation / 3f, 0f));
       // Neighbour IDs belong to the owning cell, not the vertex coordinate. The
       // right/top vertices are one past the last cell index at map boundaries.
-      neighbourMaterialIds.Add(GetNeighbourMaterialIds(surfaceMaterialIds, heightLayer.Width, heightLayer.Height, cellIndex % heightLayer.Width, cellIndex / heightLayer.Width, materialId));
+      neighbourMaterialIds.Add(GetNeighbourMaterialIds(
+        surfaceMaterialIds,
+        heightLayer.Width,
+        heightLayer.Height,
+        cellIndex % heightLayer.Width,
+        cellIndex / heightLayer.Width,
+        materialId,
+        cliffAsRock: materialId != S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId));
       Color32 terrainTint = map.Landscape?.TerrainTintColors?.Length > cellIndex
         ? map.Landscape.TerrainTintColors[cellIndex]
         : Color.white;
@@ -210,7 +217,11 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
     private readonly struct CliffCellBuilder
     {
-      private const float SplitFraction = 0.5f;
+      // Stronghold 2 does not leave long cliff breaks on an exact half-cell line.
+      // Keep every break beyond the bisector and vary shared high/low edges
+      // deterministically so adjacent cliff cells still meet without cracks.
+      private const float MinimumSplitFraction = 0.54f;
+      private const float MaximumSplitFraction = 0.64f;
 
       private readonly List<Vector3> vertices;
       private readonly List<Vector3> normals;
@@ -272,14 +283,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
       public bool Build()
       {
-        HeightLayer heightLayer = map.HeightLayer;
-        var corners = new[]
-        {
-          new Vector3(x, GetBaseCornerHeight(heightLayer, settings, cellIndex, 0, x, z + 1), z + 1),
-          new Vector3(x + 1, GetBaseCornerHeight(heightLayer, settings, cellIndex, 1, x + 1, z + 1), z + 1),
-          new Vector3(x + 1, GetBaseCornerHeight(heightLayer, settings, cellIndex, 3, x + 1, z), z),
-          new Vector3(x, GetBaseCornerHeight(heightLayer, settings, cellIndex, 2, x, z), z)
-        };
+        Vector3[] corners = CreateCorners(cellIndex, x, z);
 
         float minimum = corners[0].y;
         float maximum = corners[0].y;
@@ -330,14 +334,20 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         Vector3 highB = corners[highBIndex];
         Vector3 lowB = corners[lowBIndex];
         Vector3 lowA = corners[lowAIndex];
-        Vector3 upperA = Split(highA, lowA, highA.y);
-        Vector3 upperB = Split(highB, lowB, highB.y);
-        Vector3 lowerA = Split(highA, lowA, lowA.y);
-        Vector3 lowerB = Split(highB, lowB, lowB.y);
+        float splitA = GetSplitFraction(highA, lowA);
+        float splitB = GetSplitFraction(highB, lowB);
+        Vector3 upperA = Split(highA, lowA, highA.y, splitA);
+        Vector3 upperB = Split(highB, lowB, highB.y, splitB);
+        Vector3 lowerA = Split(highA, lowA, lowA.y, splitA);
+        Vector3 lowerB = Split(highB, lowB, lowB.y, splitB);
 
         AddSurfaceQuad(highA, highB, upperB, upperA);
         AddWallQuad(upperA, upperB, lowerB, lowerA);
         AddSurfaceQuad(lowerA, lowerB, lowB, lowA);
+        if (!NeighbourHasMatchingSplit(lowAIndex, highA, lowA))
+          AddFirstBoundaryTransition(highA, upperA, lowerA, lowA);
+        if (!NeighbourHasMatchingSplit(highBIndex, highB, lowB))
+          AddSecondBoundaryTransition(highB, upperB, lowerB, lowB);
         return true;
       }
 
@@ -350,10 +360,12 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         Vector3 next = corners[nextIndex];
         Vector3 opposite = corners[oppositeIndex];
         Vector3 previous = corners[previousIndex];
-        Vector3 upperNext = Split(high, next, high.y);
-        Vector3 upperPrevious = Split(high, previous, high.y);
-        Vector3 lowerNext = Split(high, next, next.y);
-        Vector3 lowerPrevious = Split(high, previous, previous.y);
+        float nextSplit = GetSplitFraction(high, next);
+        float previousSplit = GetSplitFraction(high, previous);
+        Vector3 upperNext = Split(high, next, high.y, nextSplit);
+        Vector3 upperPrevious = Split(high, previous, high.y, previousSplit);
+        Vector3 lowerNext = Split(high, next, next.y, nextSplit);
+        Vector3 lowerPrevious = Split(high, previous, previous.y, previousSplit);
 
         AddSurfaceTriangle(high, upperNext, upperPrevious);
         AddWallTriangle(upperPrevious, upperNext, lowerNext, 0f, 1f, 1f);
@@ -361,6 +373,10 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         AddSurfaceTriangle(lowerNext, next, opposite);
         AddSurfaceTriangle(lowerNext, opposite, previous);
         AddSurfaceTriangle(lowerNext, previous, lowerPrevious);
+        if (!NeighbourHasMatchingSplit(highIndex, high, next))
+          AddSecondBoundaryTransition(high, upperNext, lowerNext, next);
+        if (!NeighbourHasMatchingSplit(previousIndex, high, previous))
+          AddFirstBoundaryTransition(high, upperPrevious, lowerPrevious, previous);
         return true;
       }
 
@@ -373,10 +389,12 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         Vector3 next = corners[nextIndex];
         Vector3 opposite = corners[oppositeIndex];
         Vector3 previous = corners[previousIndex];
-        Vector3 upperNext = Split(low, next, next.y);
-        Vector3 upperPrevious = Split(low, previous, previous.y);
-        Vector3 lowerNext = Split(low, next, low.y);
-        Vector3 lowerPrevious = Split(low, previous, low.y);
+        float nextSplit = 1f - GetSplitFraction(next, low);
+        float previousSplit = 1f - GetSplitFraction(previous, low);
+        Vector3 upperNext = Split(low, next, next.y, nextSplit);
+        Vector3 upperPrevious = Split(low, previous, previous.y, previousSplit);
+        Vector3 lowerNext = Split(low, next, low.y, nextSplit);
+        Vector3 lowerPrevious = Split(low, previous, low.y, previousSplit);
 
         AddSurfaceTriangle(upperNext, next, opposite);
         AddSurfaceTriangle(upperNext, opposite, previous);
@@ -384,14 +402,33 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         AddWallTriangle(upperNext, upperPrevious, lowerPrevious, 0f, 1f, 1f);
         AddWallTriangle(upperNext, lowerPrevious, lowerNext, 0f, 1f, 0f);
         AddSurfaceTriangle(low, lowerNext, lowerPrevious);
+        if (!NeighbourHasMatchingSplit(lowIndex, next, low))
+          AddFirstBoundaryTransition(next, upperNext, lowerNext, low);
+        if (!NeighbourHasMatchingSplit(previousIndex, previous, low))
+          AddSecondBoundaryTransition(previous, upperPrevious, lowerPrevious, low);
         return true;
       }
 
-      private static Vector3 Split(Vector3 high, Vector3 low, float height)
+      private static Vector3 Split(Vector3 start, Vector3 end, float height, float fraction)
       {
-        Vector3 point = Vector3.Lerp(high, low, SplitFraction);
+        Vector3 point = Vector3.Lerp(start, end, fraction);
         point.y = height;
         return point;
+      }
+
+      private static float GetSplitFraction(Vector3 high, Vector3 low)
+      {
+        int highX = Mathf.RoundToInt(high.x);
+        int highZ = Mathf.RoundToInt(high.z);
+        int lowX = Mathf.RoundToInt(low.x);
+        int lowZ = Mathf.RoundToInt(low.z);
+        uint hash = unchecked(
+          (uint)(highX * 73856093)
+          ^ (uint)(highZ * 19349663)
+          ^ (uint)(lowX * 83492791)
+          ^ (uint)(lowZ * 297121507));
+        float variation = (hash & 0xffffu) / 65535f;
+        return Mathf.Lerp(MinimumSplitFraction, MaximumSplitFraction, variation);
       }
 
       private void AddSurfaceQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
@@ -406,6 +443,120 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         AddWallTriangle(upperA, lowerB, lowerA, 0f, 1f, 0f);
       }
 
+      private void AddFirstBoundaryTransition(Vector3 high, Vector3 upper, Vector3 lower, Vector3 low)
+      {
+        Vector3 slope = GetOriginalSlopePoint(high, upper, low);
+        AddTransitionTriangle(high, upper, slope, 0f, 0.5f, 0.5f);
+        AddTransitionTriangle(slope, lower, low, 0.5f, 0.5f, 1f);
+      }
+
+      private void AddSecondBoundaryTransition(Vector3 high, Vector3 upper, Vector3 lower, Vector3 low)
+      {
+        Vector3 slope = GetOriginalSlopePoint(high, upper, low);
+        AddTransitionTriangle(upper, high, slope, 0.5f, 0f, 0.5f);
+        AddTransitionTriangle(slope, low, lower, 0.5f, 1f, 0.5f);
+      }
+
+      private static Vector3 GetOriginalSlopePoint(Vector3 high, Vector3 split, Vector3 low)
+      {
+        Vector2 highPosition = new Vector2(high.x, high.z);
+        Vector2 lowPosition = new Vector2(low.x, low.z);
+        Vector2 splitPosition = new Vector2(split.x, split.z);
+        float length = Vector2.Distance(highPosition, lowPosition);
+        float fraction = length > 0f ? Vector2.Distance(highPosition, splitPosition) / length : 0.5f;
+        Vector3 result = split;
+        result.y = Mathf.Lerp(high.y, low.y, fraction);
+        return result;
+      }
+
+      private bool NeighbourHasMatchingSplit(int edgeIndex, Vector3 high, Vector3 low)
+      {
+        int neighbourX = x;
+        int neighbourZ = z;
+        switch (edgeIndex)
+        {
+          case 0: neighbourZ++; break;
+          case 1: neighbourX++; break;
+          case 2: neighbourZ--; break;
+          case 3: neighbourX--; break;
+          default: return false;
+        }
+
+        HeightLayer heightLayer = map.HeightLayer;
+        if (neighbourX < 0 || neighbourX >= heightLayer.Width
+          || neighbourZ < 0 || neighbourZ >= heightLayer.Height)
+          return false;
+        int neighbourIndex = neighbourZ * heightLayer.Width + neighbourX;
+        if (surfaceMaterialIds[neighbourIndex] != S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId)
+          return false;
+
+        Vector3[] corners = CreateCorners(neighbourIndex, neighbourX, neighbourZ);
+        float minimum = corners[0].y;
+        float maximum = corners[0].y;
+        for (int i = 1; i < corners.Length; i++)
+        {
+          minimum = Math.Min(minimum, corners[i].y);
+          maximum = Math.Max(maximum, corners[i].y);
+        }
+        if (maximum - minimum < S2MTerrainSurfaceMaterialGrid.RockSlopeHeightDifference)
+          return false;
+
+        float middle = (minimum + maximum) * 0.5f;
+        var highCorners = new bool[corners.Length];
+        int highCount = 0;
+        for (int i = 0; i < corners.Length; i++)
+        {
+          highCorners[i] = corners[i].y >= middle;
+          if (highCorners[i]) highCount++;
+        }
+        if (highCount == 2)
+        {
+          bool adjacent = false;
+          for (int i = 0; i < highCorners.Length; i++)
+          {
+            if (highCorners[i] && highCorners[(i + 1) % highCorners.Length])
+            {
+              adjacent = true;
+              break;
+            }
+          }
+          if (!adjacent) return false;
+        }
+        else if (highCount != 1 && highCount != 3)
+        {
+          return false;
+        }
+
+        bool foundHigh = false;
+        bool foundLow = false;
+        for (int i = 0; i < corners.Length; i++)
+        {
+          Vector3 corner = corners[i];
+          if (SameGridPosition(corner, high))
+            foundHigh = corner.y >= middle && Mathf.Abs(corner.y - high.y) < 0.01f;
+          else if (SameGridPosition(corner, low))
+            foundLow = corner.y < middle && Mathf.Abs(corner.y - low.y) < 0.01f;
+        }
+        return foundHigh && foundLow;
+      }
+
+      private Vector3[] CreateCorners(int targetCellIndex, int targetX, int targetZ)
+      {
+        HeightLayer heightLayer = map.HeightLayer;
+        return new[]
+        {
+          new Vector3(targetX, GetBaseCornerHeight(heightLayer, settings, targetCellIndex, 0, targetX, targetZ + 1), targetZ + 1),
+          new Vector3(targetX + 1, GetBaseCornerHeight(heightLayer, settings, targetCellIndex, 1, targetX + 1, targetZ + 1), targetZ + 1),
+          new Vector3(targetX + 1, GetBaseCornerHeight(heightLayer, settings, targetCellIndex, 3, targetX + 1, targetZ), targetZ),
+          new Vector3(targetX, GetBaseCornerHeight(heightLayer, settings, targetCellIndex, 2, targetX, targetZ), targetZ)
+        };
+      }
+
+      private static bool SameGridPosition(Vector3 a, Vector3 b)
+      {
+        return Mathf.Abs(a.x - b.x) < 0.001f && Mathf.Abs(a.z - b.z) < 0.001f;
+      }
+
       private void AddSurfaceTriangle(Vector3 a, Vector3 b, Vector3 c)
       {
         AddTriangle(a, b, c, S2MTerrainSurfaceMaterialGrid.RockSlopeMaterialId, false, 0f, 0f, 0f);
@@ -414,6 +565,11 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       private void AddWallTriangle(Vector3 a, Vector3 b, Vector3 c, float uvA, float uvB, float uvC)
       {
         AddTriangle(a, b, c, S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId, true, uvA, uvB, uvC);
+      }
+
+      private void AddTransitionTriangle(Vector3 a, Vector3 b, Vector3 c, float uvA, float uvB, float uvC)
+      {
+        AddTriangle(a, b, c, S2MTerrainSurfaceMaterialGrid.RockSlopeMaterialId, true, uvA, uvB, uvC);
       }
 
       private void AddTriangle(
@@ -458,8 +614,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         float wallU)
       {
         vertices.Add(worldPoint);
-        normals.Add(normal);
-        Vector2 cellUv = wall ? new Vector2(0.5f, 0.5f) : new Vector2(gridPoint.x - x, gridPoint.z - z);
+        normals.Add(wall ? normal : GetInterpolatedSurfaceNormal(gridPoint));
+        Vector2 cellUv = new Vector2(gridPoint.x - x, gridPoint.z - z);
         Vector2 textureUv = wall
           ? new Vector2(wallU, worldPoint.y / settings.HorizontalCellSize)
           : new Vector2(gridPoint.x, gridPoint.z);
@@ -467,7 +623,22 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         AddCellSurfaceData(
           cellData, neighbourMaterialIds, neighbourTintWest, neighbourTintEast,
           neighbourTintSouth, neighbourTintNorth, colors, map, surfaceMaterialIds,
-          cellIndex, x, z, materialId, blendNeighbours: !wall, applyTextureRotation: !wall);
+          cellIndex, x, z, materialId, blendNeighbours: true, applyTextureRotation: !wall);
+      }
+
+      private Vector3 GetInterpolatedSurfaceNormal(Vector3 gridPoint)
+      {
+        float localX = Mathf.Clamp01(gridPoint.x - x);
+        float localZ = Mathf.Clamp01(gridPoint.z - z);
+        Vector3 south = Vector3.Lerp(
+          GetPrimaryNormal(map.HeightLayer, settings, x, z),
+          GetPrimaryNormal(map.HeightLayer, settings, x + 1, z),
+          localX);
+        Vector3 north = Vector3.Lerp(
+          GetPrimaryNormal(map.HeightLayer, settings, x, z + 1),
+          GetPrimaryNormal(map.HeightLayer, settings, x + 1, z + 1),
+          localX);
+        return Vector3.Lerp(south, north, localZ).normalized;
       }
     }
 
@@ -495,7 +666,14 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         : (byte)0;
       cellData.Add(new Vector4(materialId / 255f, featureId / 255f, textureRotation / 3f, 0f));
       neighbourMaterialIds.Add(blendNeighbours
-        ? GetNeighbourMaterialIds(surfaceMaterialIds, heightLayer.Width, heightLayer.Height, x, z, materialId)
+        ? GetNeighbourMaterialIds(
+          surfaceMaterialIds,
+          heightLayer.Width,
+          heightLayer.Height,
+          x,
+          z,
+          materialId,
+          cliffAsRock: materialId != S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId)
         : new Vector4(materialId, materialId, materialId, materialId) / 255f);
       Color32 terrainTint = map.Landscape?.TerrainTintColors?.Length > cellIndex
         ? map.Landscape.TerrainTintColors[cellIndex]
@@ -545,7 +723,14 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       return (byte)(rotationValues[z * width + x] & 3);
     }
 
-    private static Vector4 GetNeighbourMaterialIds(byte[] materialIds, int width, int height, int x, int z, byte materialId)
+    private static Vector4 GetNeighbourMaterialIds(
+      byte[] materialIds,
+      int width,
+      int height,
+      int x,
+      int z,
+      byte materialId,
+      bool cliffAsRock)
     {
       x = Math.Max(0, Math.Min(x, width - 1));
       z = Math.Max(0, Math.Min(z, height - 1));
@@ -553,7 +738,21 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       byte east = x + 1 < width ? materialIds[z * width + x + 1] : materialId;
       byte south = z > 0 ? materialIds[(z - 1) * width + x] : materialId;
       byte north = z + 1 < height ? materialIds[(z + 1) * width + x] : materialId;
+      if (cliffAsRock)
+      {
+        west = CliffSurfaceMaterial(west);
+        east = CliffSurfaceMaterial(east);
+        south = CliffSurfaceMaterial(south);
+        north = CliffSurfaceMaterial(north);
+      }
       return new Vector4(west, east, south, north) / 255f;
+    }
+
+    private static byte CliffSurfaceMaterial(byte materialId)
+    {
+      return materialId == S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId
+        ? S2MTerrainSurfaceMaterialGrid.RockSlopeMaterialId
+        : materialId;
     }
 
     private static float GetBaseCornerHeight(
