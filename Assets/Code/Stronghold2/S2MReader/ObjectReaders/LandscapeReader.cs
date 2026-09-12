@@ -2,6 +2,7 @@ using Assets.Code.Stronghold2.S2MReader.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
 {
@@ -10,6 +11,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
     private const int HeightBlockTag = 4;
     private const int SurfaceMaterialBlockTag = 27;
     private const int FlowDirectionBlockTag = 7;
+    private const int TerrainTintBlockTag = 22;
+    private const int TerrainTextureRotationBlockTag = 30;
     private const int LandscapeFeatureBlockTag = 19;
 
     public LandscapeReader(S2Object obj) : base(obj) { }
@@ -57,6 +60,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       byte[] surfaceMaterials = GetGrid(blocks, SurfaceMaterialBlockTag, cellCount);
       byte[] flowDirections = GetGrid(blocks, FlowDirectionBlockTag, cellCount);
       byte[] landscapeFeatureValues = GetGrid(blocks, LandscapeFeatureBlockTag, cellCount);
+      Color32[] terrainTintColors = GetColorGrid(blocks, TerrainTintBlockTag, cellCount);
+      byte[] terrainTextureRotationValues = GetGrid(blocks, TerrainTextureRotationBlockTag, cellCount);
 
       return new Landscape
       {
@@ -72,6 +77,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
           FlowDirections = Transpose(flowDirections, side),
           LandscapeFeatureValues = Transpose(landscapeFeatureValues, side)
         },
+        TerrainTintColors = terrainTintColors,
+        TerrainTextureRotationValues = Transpose(terrainTextureRotationValues, side),
         RawPayload = payload
       };
     }
@@ -92,6 +99,24 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       for (int x = 0; x < side; x++)
       {
         for (int z = 0; z < side; z++) result[z * side + x] = source[x * side + z];
+      }
+      return result;
+    }
+
+    private static Color32[] GetColorGrid(Dictionary<int, byte[]> blocks, int tag, int cellCount)
+    {
+      if (!blocks.TryGetValue(tag, out byte[] block) || block.Length < cellCount * 4) return null;
+
+      int side = (int)Math.Sqrt(cellCount);
+      var result = new Color32[cellCount];
+      for (int x = 0; x < side; x++)
+      {
+        for (int z = 0; z < side; z++)
+        {
+          int serializedIndex = x * side + z;
+          int source = serializedIndex * 4;
+          result[z * side + x] = new Color32(block[source], block[source + 1], block[source + 2], block[source + 3]);
+        }
       }
       return result;
     }

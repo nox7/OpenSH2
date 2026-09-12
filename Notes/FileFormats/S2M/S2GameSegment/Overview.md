@@ -27,5 +27,7 @@ The object-stream reader was exercised against all 36 `.s2m` files in the suppli
 
 The confirmed primary height plane can be converted to a runtime Unity Terrain as described in [Rendering HeightLayer with Unity Terrain](./UnityTerrain.md). Controlled water, material, and flow-direction fields are documented in [Landscape water data](./LandscapeWater.md).
 
+The current terrain-texture selector and tint evidence is documented in [Terrain texture selection and tinting](./TerrainTextures.md).
+
 Placed landscape records and the demand-loaded GR2 rendering path are documented in
 [Forest vegetation and Unity rendering](./Vegetation.md).

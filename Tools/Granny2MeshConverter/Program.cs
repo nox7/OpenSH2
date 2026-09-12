@@ -22,7 +22,9 @@ namespace OpenSH2.Granny2MeshConverter
         {
           GrannyModel model = granny.ReadModel(inputPath);
           GrannyMeshCacheWriter.Write(outputPath, inputPath, granny.Version, model);
-          Console.WriteLine($"Converted {model.Meshes.Count} mesh(es) from {Path.GetFileName(inputPath)} using Granny {granny.Version}.");
+          Console.WriteLine(
+            $"Converted {model.Meshes.Count} mesh(es) and found {model.ModelCount} Granny model(s) " +
+            $"in {Path.GetFileName(inputPath)} using Granny {granny.Version}.");
         }
 
         return 0;

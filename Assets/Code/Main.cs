@@ -9,6 +9,8 @@ using UnityEngine;
 
 public class Main : MonoBehaviour
 {
+  [SerializeField] private S2MVegetationRenderSettings vegetationRenderSettings = new();
+
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
   {
@@ -85,18 +87,29 @@ public class Main : MonoBehaviour
     try
     {
       string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
+      string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
-      Terrain terrain = S2MTerrainRenderer.Render(
+      S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(mapFile, gameInstallPath);
+      GameObject terrain = S2MTerrainRenderer.Render(
         mapFile,
         transform,
         new()
+        {
+          UsePerCellCornerHeights = true,
+        }
         );
+      S2MTerrainTextureRenderer.Apply(terrain, terrainTextures, new(){
+        AdjacentMaterialBlendWidth = 0.5f
+        });
 
       GameObject water = S2MWaterRenderer.Render(mapFile, transform);
       S2MVegetationData vegetationData = new S2MVegetationAssetLoader().Load(
         mapFile,
-        "C:\\Steam\\steamapps\\common\\Stronghold 2");
-      GameObject vegetation = S2MVegetationRenderer.Render(vegetationData, transform);
+        gameInstallPath);
+      GameObject vegetation = S2MVegetationRenderer.Render(
+        vegetationData,
+        transform,
+        vegetationRenderSettings);
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; decoded {mapFile.Forest?.Instances.Count ?? 0} Forest records, rendered {vegetationData.SupportedInstanceCount} trees ({vegetationData.UnsupportedInstanceCount} unsupported records).");
     }

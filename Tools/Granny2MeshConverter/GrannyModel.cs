@@ -4,6 +4,7 @@ namespace OpenSH2.Granny2MeshConverter
 {
   internal sealed class GrannyModel
   {
+    public int ModelCount { get; set; }
     public List<GrannyMesh> Meshes { get; } = new List<GrannyMesh>();
   }
 

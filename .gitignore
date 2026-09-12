@@ -45,8 +45,11 @@ ExportedObj/
 .consulo/
 *.csproj
 !/[Tt]ools/**/*.csproj
+!/Notes/[Tt]ools/**/*.csproj
 /[Tt]ools/**/[Bb]in/
 /[Tt]ools/**/[Oo]bj/
+/Notes/[Tt]ools/**/[Bb]in/
+/Notes/[Tt]ools/**/[Oo]bj/
 *.unityproj
 *.sln
 *.slnx

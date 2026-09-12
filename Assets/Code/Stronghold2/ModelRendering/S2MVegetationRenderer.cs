@@ -17,6 +17,12 @@ namespace Assets.Code.Stronghold2.ModelRendering
     {
       if (vegetation == null) throw new ArgumentNullException(nameof(vegetation));
       settings ??= new S2MVegetationRenderSettings();
+      if (settings.AssetScaleMultiplier <= 0f)
+      {
+        throw new ArgumentOutOfRangeException(
+          nameof(settings),
+          "AssetScaleMultiplier must be greater than zero.");
+      }
       var root = new GameObject(objectName);
       if (parent != null) root.transform.SetParent(parent, false);
 
@@ -55,9 +61,11 @@ namespace Assets.Code.Stronghold2.ModelRendering
       float appearanceScale = settings.ApplyAppearanceScale && source.AppearanceScale > 0f
         ? source.AppearanceScale
         : 1f;
-      var scale = new Vector3(source.ScaleX, source.ScaleY, source.ScaleX) * appearanceScale;
+      var scale = new Vector3(source.ScaleX, source.ScaleY, source.ScaleX)
+        * appearanceScale
+        * settings.AssetScaleMultiplier;
       return new Granny2ModelInstance(
-        $"Tree {source.Family + 1} ({index})",
+        $"Tree Family {source.Family} Variant {source.Variant} ({index})",
         new Vector3(x * settings.HorizontalCellSize, source.RawY * settings.HeightUnitScale, z * settings.HorizontalCellSize),
         new Vector3(0f, yaw, 0f),
         scale);

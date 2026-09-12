@@ -151,6 +151,19 @@ tag 27 or one of the remaining Landscape blocks. Campaign water uses more materi
 especially along shores and transitions, so these values should not be used as the sole
 surface-presence test. Exact controlled values in tag 19 are currently authoritative.
 
+The texture-paint probe identifies tag 27 as the primary ground-material selector:
+`terrain-flat` uses `0x0C` and the nine cells painted with the presumed mountain brush
+use `0x08`. The paint also changes one byte in tag 27 after its initial 65,536-byte
+grid, so the remaining bytes likely contribute blending or transition state. See
+[Terrain texture selection and tinting](./TerrainTextures.md) for the evidence and
+the independent tag-22 tint grid.
+
+The river and sea probe values (`0x1A` and `0x1F`) overlap the now-confirmed
+ground-texture IDs for `heath_edge` and `forest_floor`. They must therefore not be
+treated as an authoritative water-material lookup; water type remains defined by exact
+tag-19 feature values, and water rendering should continue to use its separately
+configured river/sea materials.
+
 ## Ground and water-surface heights
 
 Painting water also changes the base terrain:

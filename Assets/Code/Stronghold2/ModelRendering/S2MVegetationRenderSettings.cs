@@ -11,6 +11,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public bool FlipX;
     public bool FlipZ;
     public bool ApplyAppearanceScale = true;
+    [Tooltip("Uniform multiplier for every GR2 model placed by the S2M map. Does not change map coordinates.")]
+    [Min(0.000001f)] public float AssetScaleMultiplier = 1f;
     public Granny2ModelRenderSettings Model = new();
   }
 }

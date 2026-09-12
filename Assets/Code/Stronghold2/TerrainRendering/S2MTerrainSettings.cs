@@ -13,13 +13,23 @@ namespace Assets.Code.Stronghold2.TerrainRendering
     [Min(0.000001f)]
     public float HeightUnitScale = 1f / 1024f;
 
-    [Tooltip("Reverse the serialized X axis when copying it into Unity TerrainData.")]
+    [Tooltip("Reverse the serialized X axis when generating the terrain mesh.")]
     public bool FlipX;
 
-    [Tooltip("Reverse the serialized row axis when copying it into Unity's Z axis.")]
+    [Tooltip("Reverse the serialized row axis when generating Unity's Z axis.")]
     public bool FlipZ;
 
-    [Tooltip("Optional runtime material override for the generated Terrain.")]
+    [Tooltip("Use plane-0's four per-cell corner heights instead of collapsing the map to its primary grid.")]
+    public bool UsePerCellCornerHeights = true;
+
+    [Min(1)]
+    [Tooltip("Number of terrain cells in each square render chunk.")]
+    public int CellsPerChunk = 32;
+
+    [Tooltip("Create a MeshCollider for every generated terrain chunk.")]
+    public bool GenerateMeshColliders = true;
+
+    [Tooltip("Optional runtime material override for generated terrain mesh chunks.")]
     public Material Material;
   }
 }

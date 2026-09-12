@@ -58,7 +58,7 @@ namespace OpenSH2.Granny2MeshConverter
         GrannyFileInfo32 info = Marshal.PtrToStructure<GrannyFileInfo32>(infoPointer);
         ValidateCount(info.MeshCount, "mesh");
 
-        var model = new GrannyModel();
+        var model = new GrannyModel { ModelCount = info.ModelCount };
         for (int i = 0; i < info.MeshCount; i++)
         {
           IntPtr meshPointer = Marshal.ReadIntPtr(info.Meshes, i * IntPtr.Size);

@@ -8,7 +8,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
   /// <summary>Loads the DXT1, DXT3, and DXT5 DDS textures used by Stronghold 2.</summary>
   internal static class DdsTextureLoader
   {
-    public static Texture2D Load(string path)
+    /// <param name="keepReadable">Keep CPU pixels when a caller needs to copy this texture into another runtime texture.</param>
+    public static Texture2D Load(string path, bool keepReadable = false)
     {
       byte[] bytes = File.ReadAllBytes(path);
       if (bytes.Length < 128 || Encoding.ASCII.GetString(bytes, 0, 4) != "DDS ")
@@ -34,7 +35,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         filterMode = FilterMode.Bilinear
       };
       texture.SetPixels32(pixels);
-      texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+      texture.Apply(updateMipmaps: false, makeNoLongerReadable: !keepReadable);
       return texture;
     }
 

@@ -18,8 +18,9 @@ namespace Assets.Code.Stronghold2.TerrainRendering
     [SerializeField]
     private S2MTerrainSettings settings = new();
 
-    public Terrain RenderedTerrain { get; private set; }
-    private S2MFile RenderedMap { get; set; }
+    public GameObject RenderedTerrain { get; private set; }
+    public S2MFile RenderedMap { get; private set; }
+    public event Action<GameObject> TerrainRendered;
 
     private void OnEnable()
     {
@@ -51,7 +52,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
     public void RenderTerrain(S2MFile map)
     {
       if (map == null) throw new ArgumentNullException(nameof(map));
-      Terrain newTerrain = S2MTerrainRenderer.Render(map, transform, settings);
+      GameObject newTerrain = S2MTerrainRenderer.Render(map, transform, settings);
 
       if (RenderedTerrain != null)
       {
@@ -61,6 +62,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
       RenderedTerrain = newTerrain;
       RenderedMap = map;
+      TerrainRendered?.Invoke(newTerrain);
     }
 
     private void OnMapLoaded(S2MFile map)

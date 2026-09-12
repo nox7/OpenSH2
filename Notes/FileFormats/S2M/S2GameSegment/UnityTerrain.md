@@ -1,11 +1,14 @@
-# Rendering HeightLayer with Unity Terrain
+# Rendering HeightLayer with a chunked Unity mesh
 
-`S2MFileLoader` parses the file into an `S2MFile`. `S2MTerrainRenderer` then creates a runtime `UnityEngine.Terrain` from that already loaded map's confirmed primary `HeightLayer` plane. File loading and scene rendering are deliberately separate so other renderers can reuse the same map data.
+`S2MFileLoader` parses the file into an `S2MFile`. `S2MTerrainRenderer` then creates
+runtime mesh chunks from that already loaded map's `HeightLayer`. File loading and
+scene rendering are deliberately separate so other renderers can reuse the same map
+data.
 
 ## Runtime components
 
 1. Add `S2MMapLoader` to a GameObject, set its S2M file path, and enable **Load On Start**. A relative path is resolved beneath `Application.streamingAssetsPath`; an absolute path is also accepted.
-2. Add `S2MTerrainRendererComponent`, assign the map loader, and enable **Render When Map Loaded**. The generated Terrain becomes a child of the renderer component's GameObject.
+2. Add `S2MTerrainRendererComponent`, assign the map loader, and enable **Render When Map Loaded**. The generated terrain root and its mesh chunks become children of the renderer component's GameObject.
 
 `S2MMapLoader.LoadedMap` retains the parsed `S2MFile`. Terrain, water, estate, foliage, and placed-object renderers can all consume this same reference without reopening the file.
 
@@ -16,35 +19,63 @@ The component exposes these initial calibration settings:
 - `HorizontalCellSize`: horizontal Unity units per serialized S2M cell; default 1.
 - `HeightUnitScale`: vertical Unity units per raw S2M height unit; default 1/1024.
 - `FlipX` and `FlipZ`: reverse either serialized axis after entity coordinates establish the final orientation.
-- `Material`: optional Terrain material override.
+- `UsePerCellCornerHeights`: preserve the four HeightLayer plane-0 corner values owned by each cell; enabled by default.
+- `CellsPerChunk`: terrain-cell width and height of each generated mesh chunk; default 32.
+- `GenerateMeshColliders`: create a MeshCollider for each chunk; enabled by default.
+- `Material`: optional material override shared by generated mesh chunks.
 
 Code can keep loading and rendering in separate stages:
 
 ```csharp
 S2MFile map = S2MFileLoader.Load(s2mFilePath);
 
-Terrain terrain = S2MTerrainRenderer.Render(
+GameObject terrain = S2MTerrainRenderer.Render(
   map,
   parentTransform,
   new S2MTerrainSettings());
 ```
 
-## Resolution conversion
+## Exact cell geometry
 
-Unity TerrainData requires a `2^n + 1` heightmap resolution. The decoded S2M plane is 256×256, so the renderer creates a 257×257 TerrainData heightmap. It copies all source samples directly and duplicates the final row and column to form Unity's required outer edge. It does not interpolate interior samples.
+Unity TerrainData cannot represent two different heights at the same grid coordinate.
+That loses authored S2M plane-0 corner overrides, so it is not the final terrain
+backend. The renderer instead emits one quad per serialized cell, with four independent
+vertices that retain the documented plane-0 corner order. A 256x256 map at the default
+32-cell chunk size produces 64 mesh chunks.
 
-Raw heights are normalized to the 0–1 values required by `TerrainData.SetHeights`. The TerrainData vertical size is set to `(maximum - minimum) × HeightUnitScale`, and the Terrain object's local Y position is set to `minimum × HeightUnitScale`. Together these preserve each primary height as `rawHeight × HeightUnitScale` in local space.
+Raw corner heights are converted directly to local Unity Y using `HeightUnitScale`.
+Every generated cell duplicates its vertices intentionally, allowing neighboring cells
+to disagree where the original data does. Normals initially derive from the primary
+height grid so ordinary terrain receives smooth lighting without welding those
+independent corner positions. A later shader/normal pass can refine lighting around
+intentional discontinuities.
 
 ## Current limits
 
-Only the primary height plane is rendered. `HeightLayer` also exposes three separately counted planes with four corner heights per cell. Plane 0 contains base-terrain cell corners and has occasional per-cell overrides in campaign maps. Planes 1 and 2 are zero in every controlled terrain-brush probe and sparse in campaign maps; they are not smoothing layers.
+The renderer uses plane 0 for base terrain when it is available. The primary height
+plane is retained as a fallback and for smooth-normal generation. Planes 1 and 2 are
+zero in every controlled terrain-brush probe and sparse in campaign maps; they are not
+smoothing layers.
 
 The controlled specific-height probes reveal six standard levels between 0 and 10,240. This makes 1/1024 the best current vertical calibration: the first level is about 1.67 Unity units and the maximum is 10. The earlier 1/256 default made every feature four times too tall and was the main cause of the exaggerated Unity peaks.
 
-The primary plane can still contain intentional one-cell discontinuities. In `war_chapter1.s2m`, the maximum primary sample is 10,240 and an immediate neighbor is -256. At 1/1024 this is approximately 10.25 vertical units across one horizontal cell. Plane 0's per-cell corner overrides may refine some of this steep terrain, but Unity Terrain cannot retain different heights for coincident cell corners. A later custom, chunked mesh renderer should consume plane 0 directly if those overrides prove visually significant.
+The primary plane can still contain intentional one-cell discontinuities. In `war_chapter1.s2m`, the maximum primary sample is 10,240 and an immediate neighbor is -256. At 1/1024 this is approximately 10.25 vertical units across one horizontal cell. The chunked renderer retains the additional plane-0 corner overrides directly, including their distinct coincident-corner values.
 
 Clamping the maximum is not recommended. The six controlled levels show that 10,240 is a legitimate authored height, and clamping would discard map data.
 
 The grass-to-rock change seen after raising a tile is not represented by a changed height-layer plane. In the flat-versus-one-raise probe, the only semantic change inside `Landscape` was another copy of the new `1706` height. This suggests that the original material chooses rocky detail procedurally from slope/normal data, although the complete `Landscape` schema is still unknown.
 
-The terrain renderer does not yet apply terrain textures, estate coloring, vegetation, rocks, or placed objects. Water-like surfaces are handled by the separate water renderer. The other features are serialized in separate S2Game objects and should be layered onto the generated terrain as their schemas are decoded.
+The terrain mesh writes the per-cell tag-27 material ID, tag-19 feature ID, and the
+candidate tag-30 quarter-turn value to UV1, tag-22 tint to vertex color, and the four
+cardinal neighbour tint/rotation values to additional UV channels.
+`S2MTerrainTextureRenderer` consumes those attributes with the separately loaded,
+legally installed DDS assets. Its shader uses the same smooth cardinal-edge
+weights for both material textures and terrain tint, so tint transitions are no longer
+hard square boundaries. The blend width is controlled by
+`S2MTerrainTextureRenderSettings.AdjacentMaterialBlendWidth` (default `0.2` cell), on
+`S2MTerrainTextureRendererComponent` or when calling `S2MTerrainTextureRenderer.Apply`.
+The remaining tag-27 blend payload is still under investigation, so these weights remain
+an adjacency-based approximation. Water-like surfaces are handled by the separate water
+renderer. Estate coloring, vegetation, rocks, and placed objects are serialized in
+separate S2Game objects and should be layered onto the generated terrain as their schemas
+are decoded.
