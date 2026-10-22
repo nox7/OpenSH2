@@ -20,7 +20,8 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     /// Candidate per-cell terrain texture orientation values decoded from the first
     /// 256x256 grid in Landscape tag 30. Values observed in shipped and controlled
     /// maps are 0 through 3 and are interpreted as quarter-turns by the terrain
-    /// renderer. The surrounding tag-27 tail remains preserved as raw data because
+    /// renderer. Maps that omit tag 30 receive a zero-filled grid (no rotation).
+    /// The surrounding tag-27 tail remains preserved as raw data because
     /// the probe changes a corresponding byte there as well.
     /// </summary>
     public byte[] TerrainTextureRotationValues { get; internal set; }

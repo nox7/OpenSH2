@@ -61,7 +61,12 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       byte[] flowDirections = GetGrid(blocks, FlowDirectionBlockTag, cellCount);
       byte[] landscapeFeatureValues = GetGrid(blocks, LandscapeFeatureBlockTag, cellCount);
       Color32[] terrainTintColors = GetColorGrid(blocks, TerrainTintBlockTag, cellCount);
-      byte[] terrainTextureRotationValues = GetGrid(blocks, TerrainTextureRotationBlockTag, cellCount);
+      // Older maps such as war_chapter2 omit tag 30. Keep their material,
+      // height, and water grids and use the renderer's default of no rotation.
+      // A present but incomplete rotation block still indicates invalid data.
+      byte[] terrainTextureRotationValues = blocks.ContainsKey(TerrainTextureRotationBlockTag)
+        ? GetGrid(blocks, TerrainTextureRotationBlockTag, cellCount)
+        : new byte[cellCount];
 
       return new Landscape
       {

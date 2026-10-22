@@ -90,7 +90,7 @@ public class Main : MonoBehaviour
   {
     try
     {
-      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
+      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter2.s2m";
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
       S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(mapFile, gameInstallPath);

@@ -44,6 +44,15 @@ Offsets above describe the 12-byte-prefix variant and point to each block's tag.
 
 The logical-size value can be `128` even though the height byte length is still 262,144 and therefore contains a 256x256 backing grid. The reader derives serialized dimensions from the block length rather than treating this field as the array dimension.
 
+The block directory also varies between maps. `war_chapter2.s2m` has no tag 30
+(texture rotation), while tag 27 still contains 233,472 bytes including the complete
+65,536-byte surface-material grid. It also omits tags 31 and 33 and includes tag 21.
+An absent tag 30 is supported by supplying a zero-filled rotation grid; this is a
+rendering default, not evidence that older maps encode rotation elsewhere. A present
+but undersized tag 30 remains a decoding error. Requiring tag 30 causes the entire
+Landscape to fall back to `RawS2Object`, which later appears as missing material IDs
+in the terrain texture loader even though tag 27 is intact.
+
 Landscape grids are serialized in X-major order:
 
 ```text
