@@ -13,9 +13,12 @@ namespace Assets.Code.Stronghold2.ModelRendering
       S2MVegetationData vegetation,
       Transform parent = null,
       S2MVegetationRenderSettings settings = null,
-      string objectName = "S2M Vegetation")
+      string objectName = "S2M Vegetation",
+      float treeModelScale = 1f)
     {
       if (vegetation == null) throw new ArgumentNullException(nameof(vegetation));
+      if (!(treeModelScale > 0f) || float.IsInfinity(treeModelScale))
+        throw new ArgumentOutOfRangeException(nameof(treeModelScale), "Tree model scale must be finite and positive.");
       settings ??= new S2MVegetationRenderSettings();
       if (settings.AssetScaleMultiplier <= 0f)
       {
@@ -32,7 +35,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         for (int i = 0; i < batch.Instances.Count; i++)
         {
           ForestInstance source = batch.Instances[i];
-          transforms.Add(ToUnityInstance(source, vegetation.Map, settings, i));
+          transforms.Add(ToUnityInstance(source, vegetation.Map, settings, i, treeModelScale));
         }
         Granny2ModelRenderer.RenderInstances(
           batch.Model,
@@ -48,7 +51,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
       ForestInstance source,
       S2MFile map,
       S2MVegetationRenderSettings settings,
-      int index)
+      int index,
+      float treeModelScale)
     {
       float x = source.MapX;
       float z = source.MapZ;
@@ -63,7 +67,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
         : 1f;
       var scale = new Vector3(source.ScaleX, source.ScaleY, source.ScaleX)
         * appearanceScale
-        * settings.AssetScaleMultiplier;
+        * settings.AssetScaleMultiplier
+        * treeModelScale;
       return new Granny2ModelInstance(
         $"Tree Family {source.Family} Variant {source.Variant} ({index})",
         new Vector3(x * settings.HorizontalCellSize, source.RawY * settings.HeightUnitScale, z * settings.HorizontalCellSize),

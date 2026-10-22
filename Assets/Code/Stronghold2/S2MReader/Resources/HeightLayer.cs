@@ -6,6 +6,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
   {
     public const int CornersPerCell = 4;
 
+    /// <summary>Decoded grid dimensions, cropped to playable terrain bounds after map loading.</summary>
     public int Width { get; set; }
     public int Height { get; set; }
     /// <summary>The first, confirmed float32 height plane in row-major file order.</summary>

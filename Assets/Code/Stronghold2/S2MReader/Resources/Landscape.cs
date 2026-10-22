@@ -5,6 +5,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
 {
   public sealed class Landscape : S2Object
   {
+    /// <summary>Decoded grid dimensions, cropped to playable terrain bounds after map loading.</summary>
     public int Width { get; internal set; }
     public int Height { get; internal set; }
     public int LogicalMapSize { get; internal set; }
@@ -58,8 +59,9 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
 
       foreach (ForestInstance tree in map.Forest.Instances)
       {
-        int startX = Math.Min(tree.CellX * ForestFootprintSize, water.Width - 1);
-        int startZ = Math.Min(tree.CellZ * ForestFootprintSize, water.Height - 1);
+        int startX = tree.CellX * ForestFootprintSize;
+        int startZ = tree.CellZ * ForestFootprintSize;
+        if (startX >= water.Width || startZ >= water.Height) continue;
         for (int z = startZ; z < Math.Min(startZ + ForestFootprintSize, water.Height); z++)
         {
           for (int x = startX; x < Math.Min(startX + ForestFootprintSize, water.Width); x++)

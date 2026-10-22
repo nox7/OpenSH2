@@ -74,7 +74,6 @@ namespace Assets.Code.Stronghold2.S2MReader
           if (parsed is HeightLayer heightLayer)
           {
             MapFile.HeightLayer = heightLayer;
-            if (MapFile.MapSize == 0) MapFile.MapSize = heightLayer.Width;
           }
         }
 
@@ -85,6 +84,7 @@ namespace Assets.Code.Stronghold2.S2MReader
         Debug.Log($"Read {segmentObjects.Count} objects from S2M segment {i}.");
       }
 
+      MapFile.ApplyPlayableTerrainSize();
       return MapFile;
     }
 

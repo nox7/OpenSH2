@@ -42,7 +42,23 @@ In the current serialization variant, `Landscape` begins with a 12-byte prefix f
 
 Offsets above describe the 12-byte-prefix variant and point to each block's tag. Data begins eight bytes later. The initial tag-4 record additionally stores the logical map size and an unknown value before its byte length, so its height data begins at payload offset 28. In the prefixless variant all these offsets are 12 bytes earlier.
 
-The logical-size value can be `128` even though the height byte length is still 262,144 and therefore contains a 256x256 backing grid. The reader derives serialized dimensions from the block length rather than treating this field as the array dimension.
+The logical-size value can be `128` even though the height byte length is still
+262,144 and therefore contains a 256x256 backing grid. Object readers derive serialized
+dimensions from block lengths. After reading the objects, `S2MReader` crops decoded
+Landscape and HeightLayer grids to the logical playable size, retaining cells from
+`(0,0)` through `(size-1,size-1)`. Each row uses the original backing stride; every
+HeightLayer corner plane retains all four values per retained cell. Heights, materials,
+tints, rotations, water features, and flow directions consequently share the same
+playable dimensions. Full Landscape payloads and decompressed segments remain intact.
+
+Landscape's logical size takes precedence over the uncompressed `mapsize` header
+when present. `war_chapter2.s2m` omits that header option and declares 128 in Landscape;
+the old reader fell back to the 256-wide HeightLayer backing grid. `S2MFile.MapSize`
+reports the effective playable size; `IntegerOptions` retains original header values.
+The implementation accepts any positive logical size that fits the
+stored grids, rather than selecting between hardcoded sizes. Invalid dimensions fail
+loading instead of being clamped. Tree assets outside the playable square are skipped,
+and their forest-floor footprints are not clamped onto the boundary.
 
 The block directory also varies between maps. `war_chapter2.s2m` has no tag 30
 (texture rotation), while tag 27 still contains 233,472 bytes including the complete

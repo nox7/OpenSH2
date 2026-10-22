@@ -24,6 +24,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
       {
         foreach (ForestInstance instance in map.Forest.Instances)
         {
+          if (map.MapSize > 0 && (instance.MapX < 0f || instance.MapZ < 0f
+            || instance.MapX >= map.MapSize || instance.MapZ >= map.MapSize)) continue;
           if (!S2MVegetationAssetCatalog.TryGetTreeAsset(instance.Family, instance.Variant, lowDetail, out string path))
           {
             unsupported++;
