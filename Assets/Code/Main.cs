@@ -5,6 +5,7 @@ using Assets.Code.Stronghold2.AssetLoading;
 using Assets.Code.Stronghold2.ModelRendering;
 using Assets.Code.Stronghold2.TerrainRendering;
 using Assets.Code.Video;
+using Assets.Code.Lighting;
 using UnityEngine;
 
 public class Main : MonoBehaviour
@@ -22,6 +23,7 @@ public class Main : MonoBehaviour
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
   {
+    if (GetComponent<AtmosphereController>() == null) gameObject.AddComponent<AtmosphereController>();
     // Game.Initialize();
     RunTests();
   }

@@ -29,9 +29,12 @@ Shader "OpenSH2/Stronghold 2 Water"
       #pragma target 3.5
       #pragma vertex Vertex
       #pragma fragment Fragment
+      #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+      #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+      #include "Assets/Code/Lighting/Shaders/TransparentFog.hlsl"
 
       CBUFFER_START(UnityPerMaterial)
         half4 _BaseColor;
@@ -87,7 +90,8 @@ Shader "OpenSH2/Stronghold 2 Water"
         float2 uv = frac(input.uv);
         half3 surface = SAMPLE_TEXTURE2D(_SurfaceTexture, sampler_SurfaceTexture, uv).rgb;
         half3 albedo = surface * _BaseColor.rgb;
-        Light mainLight = GetMainLight();
+        Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS));
+        half shadow = lerp(mainLight.shadowAttenuation, 1.0h, GetMainLightShadowFade(input.positionWS));
         float surfaceHeight = dot(surface, float3(0.2126, 0.7152, 0.0722));
         float heightX = dot(SAMPLE_TEXTURE2D(_SurfaceTexture, sampler_SurfaceTexture, frac(uv + float2(0.002, 0))).rgb, float3(0.2126, 0.7152, 0.0722));
         float heightZ = dot(SAMPLE_TEXTURE2D(_SurfaceTexture, sampler_SurfaceTexture, frac(uv + float2(0, 0.002))).rgb, float3(0.2126, 0.7152, 0.0722));
@@ -107,8 +111,8 @@ Shader "OpenSH2/Stronghold 2 Water"
         waveFeature *= waveFeature;
         half specular = pow(saturate(dot(waterNormalWS, halfDirectionWS)), _SunGlintSharpness)
           * _SunGlintIntensity * _UseWaveHighlights * waveFeature;
-        half3 diffuse = albedo * (SampleSH(waterNormalWS) + mainLight.color * directLight) * _SurfaceBrightness;
-        return half4(diffuse + mainLight.color * specular, _Opacity);
+        half3 diffuse = albedo * (SampleSH(waterNormalWS) + mainLight.color * directLight * shadow) * _SurfaceBrightness;
+        return half4(ApplyOpenSH2TransparentFog(diffuse + mainLight.color * specular * shadow, input.positionWS), _Opacity);
       }
       ENDHLSL
     }

@@ -393,6 +393,7 @@ GameObject:
   m_Component:
   - component: {fileID: 742588518}
   - component: {fileID: 742588517}
+  - component: {fileID: 742588519}
   m_Layer: 0
   m_Name: Main
   m_TagString: Untagged
@@ -498,3 +499,21 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 742588518}
+
+--- !u!114 &742588519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 742588516}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccf03dd37c4649e5ae32fd8ffe7b2e20, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  sun: {fileID: 410087040}
+  profile: {fileID: 0}
+  timeOfDay: 17.5
+  advanceTime: 0
+  dayLengthSeconds: 600

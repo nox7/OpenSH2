@@ -170,6 +170,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
         if (shader == null) throw new InvalidOperationException("No compatible model shader was found.");
         material = new Material(shader);
+        ConfigureImportedOpaqueLighting(material);
       }
       material.name = string.IsNullOrWhiteSpace(data?.Name) ? "GR2 Material" : data.Name;
       material.enableInstancing = true;
@@ -202,6 +203,30 @@ namespace Assets.Code.Stronghold2.ModelRendering
       // Bark alpha is not an opacity mask. It must remain opaque, while the
       // remaining landscape-tree texture groups are alpha-tested foliage cards.
       return !textureName.StartsWith("bark", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void ConfigureImportedOpaqueLighting(Material material)
+    {
+      // GR2 imports currently supply diffuse textures, not PBR material data.
+      // Lit defaults otherwise add a pale specular/reflection layer to bark and
+      // masonry, particularly conspicuous in shadow and near sunset.
+      if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0f);
+      if (material.HasProperty("_Glossiness")) material.SetFloat("_Glossiness", 0f);
+      if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", 0f);
+      if (material.HasProperty("_WorkflowMode"))
+      {
+        material.SetFloat("_WorkflowMode", 0f); // Specular workflow: zero reflectance.
+        material.SetColor("_SpecColor", Color.black);
+        material.EnableKeyword("_SPECULAR_SETUP");
+      }
+      if (material.HasProperty("_SpecularHighlights")) material.SetFloat("_SpecularHighlights", 0f);
+      if (material.HasProperty("_EnvironmentReflections")) material.SetFloat("_EnvironmentReflections", 0f);
+      if (material.HasProperty("_GlossyReflections")) material.SetFloat("_GlossyReflections", 0f);
+      material.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+      material.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+      material.EnableKeyword("_GLOSSYREFLECTIONS_OFF");
+      // Zero specular color matters as well: URP's reflections-off path can
+      // still supply a fallback glossy environment color to its BRDF.
     }
 
     private static string ResolveTexturePath(string gr2Path, string embeddedPath)

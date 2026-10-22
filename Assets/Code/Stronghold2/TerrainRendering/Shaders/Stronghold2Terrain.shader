@@ -25,6 +25,8 @@ Shader "OpenSH2/Stronghold 2 Terrain"
       #pragma target 3.5
       #pragma vertex Vertex
       #pragma fragment Fragment
+      #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+      #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -66,6 +68,7 @@ Shader "OpenSH2/Stronghold 2 Terrain"
         nointerpolation float4 neighbourTintSouth : TEXCOORD7;
         nointerpolation float4 neighbourTintNorth : TEXCOORD8;
         nointerpolation float textureRotation : TEXCOORD9;
+        float3 positionWS : TEXCOORD10;
         half4 color : COLOR;
       };
 
@@ -132,6 +135,7 @@ Shader "OpenSH2/Stronghold 2 Terrain"
       {
         Varyings output;
         output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
+        output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
         output.normalWS = TransformObjectToWorldNormal(input.normalOS);
         output.uv = input.uv.xy * _TextureScale;
         if (input.cellData.w > 0.5)
@@ -160,13 +164,53 @@ Shader "OpenSH2/Stronghold 2 Terrain"
         float4 neighbourRotations = float4(input.neighbourTintWest.w, input.neighbourTintEast.w, input.neighbourTintSouth.w, input.neighbourTintNorth.w);
         half3 albedo = SampleBlendedMaterial(input.materialId, input.neighbourMaterialIds, neighbourRotations, input.textureRotation, input.uv, input.cellUv).rgb * terrainTint;
         half3 normalWS = normalize(input.normalWS);
-        Light mainLight = GetMainLight();
+        Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS));
         half directLight = saturate(dot(normalWS, mainLight.direction));
-        half3 lighting = SampleSH(normalWS) + mainLight.color * directLight;
+        half shadow = lerp(mainLight.shadowAttenuation, 1.0h, GetMainLightShadowFade(input.positionWS));
+        half3 lighting = SampleSH(normalWS) + mainLight.color * directLight * shadow;
         return half4(albedo * lighting, 1.0h);
       }
 
       // Terrain tint and material transitions share the same adjustable edge width.
+      ENDHLSL
+    }
+    Pass
+    {
+      Name "ShadowCaster"
+      Tags { "LightMode" = "ShadowCaster" }
+      ZWrite On ZTest LEqual ColorMask 0 Cull Back
+      HLSLPROGRAM
+      #pragma vertex GeometryVertex
+      #pragma fragment GeometryFragment
+      #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+      #define OPENSH2_SHADOW_PASS
+      #include "Assets/Code/Lighting/Shaders/MapGeometryPass.hlsl"
+      ENDHLSL
+    }
+    Pass
+    {
+      Name "DepthNormals"
+      Tags { "LightMode" = "DepthNormals" }
+      ZWrite On Cull Back
+      HLSLPROGRAM
+      #pragma target 3.5
+      #pragma vertex GeometryVertex
+      #pragma fragment GeometryNormalsFragment
+      #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+      #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
+      #define OPENSH2_NORMALS_PASS
+      #include "Assets/Code/Lighting/Shaders/MapGeometryPass.hlsl"
+      ENDHLSL
+    }
+    Pass
+    {
+      Name "DepthOnly"
+      Tags { "LightMode" = "DepthOnly" }
+      ZWrite On ColorMask R Cull Back
+      HLSLPROGRAM
+      #pragma vertex GeometryVertex
+      #pragma fragment GeometryFragment
+      #include "Assets/Code/Lighting/Shaders/MapGeometryPass.hlsl"
       ENDHLSL
     }
   }
