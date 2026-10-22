@@ -153,6 +153,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       Granny2GeneratedModelResources resources)
     {
       bool isFoliage = settings.UseFoliageMaterials && IsFoliageMaterial(data);
+      bool alphaTest = isFoliage || (data?.TexturePath?.IndexOf(".alphatest.", StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
       Material material;
       if (settings.FallbackMaterial != null)
       {
@@ -183,7 +184,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         else material.mainTexture = texture;
         resources.Add(texture);
       }
-      if (isFoliage)
+      if (alphaTest)
       {
         ConfigureAlphaTest(material, settings.AlphaCutoff);
         if (settings.DoubleSided && material.HasProperty("_Cull"))
@@ -232,8 +233,23 @@ namespace Assets.Code.Stronghold2.ModelRendering
     private static string ResolveTexturePath(string gr2Path, string embeddedPath)
     {
       if (string.IsNullOrWhiteSpace(embeddedPath)) return null;
-      string fileName = Path.GetFileNameWithoutExtension(embeddedPath) + ".dds";
+      string normalized = embeddedPath.Replace('\\', '/');
+      string fileName = Path.GetFileNameWithoutExtension(normalized) + ".dds";
       string sibling = Path.Combine(Path.GetDirectoryName(gr2Path) ?? string.Empty, fileName);
+
+      // Open keep interiors reference e.g. meshes/units/models/knight.dds.
+      // Rebase the exporter's obsolete drive path onto this model's installation.
+      string sourcePath = Path.GetFullPath(gr2Path).Replace('\\', '/');
+      int sourceMeshes = sourcePath.LastIndexOf("/meshes/", StringComparison.OrdinalIgnoreCase);
+      int embeddedMeshes = normalized.IndexOf("/meshes/", StringComparison.OrdinalIgnoreCase);
+      if (sourceMeshes >= 0 && embeddedMeshes >= 0)
+      {
+        string relative = Path.ChangeExtension(normalized.Substring(embeddedMeshes + 1), ".dds");
+        foreach (string part in relative.Split('/'))
+          if (part == "." || part == "..") return null;
+        string rebased = Path.Combine(sourcePath.Substring(0, sourceMeshes), relative);
+        if (File.Exists(rebased)) return rebased;
+      }
       return File.Exists(sibling) ? sibling : null;
     }
 

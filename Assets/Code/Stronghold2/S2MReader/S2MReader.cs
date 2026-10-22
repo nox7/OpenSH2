@@ -31,6 +31,7 @@ namespace Assets.Code.Stronghold2.S2MReader
 
     public S2MFile ReadS2MFile()
     {
+      var keeps = new List<Keep>();
       MapFile.SourcePath = Path.GetFullPath(FilePath);
       using var stream = File.OpenRead(FilePath);
       using var reader = new BinaryReader(stream);
@@ -72,6 +73,7 @@ namespace Assets.Code.Stronghold2.S2MReader
           if (parsed is Landscape landscape) MapFile.Landscape = landscape;
           if (parsed is Forest forest) MapFile.Forest = forest;
           if (parsed is Bridges bridges) MapFile.Bridges = bridges;
+          if (parsed is Keep keep) keeps.Add(keep);
           if (parsed is HeightLayer heightLayer)
           {
             MapFile.HeightLayer = heightLayer;
@@ -85,6 +87,7 @@ namespace Assets.Code.Stronghold2.S2MReader
         Debug.Log($"Read {segmentObjects.Count} objects from S2M segment {i}.");
       }
 
+      MapFile.Keeps = keeps;
       MapFile.ApplyPlayableTerrainSize();
       return MapFile;
     }
@@ -252,6 +255,7 @@ namespace Assets.Code.Stronghold2.S2MReader
         "Landscape" => new LandscapeReader(obj),
         "Forest" => new ForestReader(obj),
         "Bridges" => new BridgesReader(obj),
+        "Keep1" or "Keep2" or "Keep3" or "Keep4" => new KeepReader(obj),
 
         // Actions
         "AITroopRetreatAction" => new AITroopRetreatActionReader(obj),

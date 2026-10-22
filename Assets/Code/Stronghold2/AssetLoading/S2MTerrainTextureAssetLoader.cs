@@ -12,7 +12,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
   {
     private readonly Dictionary<string, Texture2D> textureCache = new(StringComparer.OrdinalIgnoreCase);
 
-    public S2MTerrainTextureData Load(S2MFile map, string gameInstallPath)
+    public S2MTerrainTextureData Load(S2MFile map, string gameInstallPath, bool[] primaryHeightCells = null)
     {
       if (map == null) throw new ArgumentNullException(nameof(map));
       if (map.WaterLayer?.SurfaceMaterialIds == null)
@@ -22,7 +22,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
 
       var textures = new Dictionary<byte, Texture2D>();
       var unsupported = new HashSet<byte>();
-      foreach (byte materialId in S2MTerrainSurfaceMaterialGrid.Create(map))
+      foreach (byte materialId in S2MTerrainSurfaceMaterialGrid.Create(map, primaryHeightCells))
       {
         if (textures.ContainsKey(materialId) || unsupported.Contains(materialId)) continue;
         if (!S2MTerrainTextureAssetCatalog.TryGetAssetPath(materialId, out string relativePath))

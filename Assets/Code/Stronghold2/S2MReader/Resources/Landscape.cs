@@ -46,15 +46,17 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public const float RockSlopeHeightDifference = 900f;
     private const int ForestFootprintSize = 2;
 
-    public static byte[] Create(S2MFile map)
+    public static byte[] Create(S2MFile map, bool[] primaryHeightCells = null)
     {
       if (map == null) throw new ArgumentNullException(nameof(map));
       WaterLayer water = map.WaterLayer;
       if (water?.SurfaceMaterialIds == null || water.SurfaceMaterialIds.Length != water.Width * water.Height)
         throw new InvalidOperationException("The map does not contain a complete terrain material grid.");
+      if (primaryHeightCells != null && primaryHeightCells.Length != water.Width * water.Height)
+        throw new ArgumentException("Primary-height mask must match the terrain dimensions.", nameof(primaryHeightCells));
 
       var materialIds = (byte[])water.SurfaceMaterialIds.Clone();
-      ApplySlopeOverrides(map, materialIds);
+      ApplySlopeOverrides(map, materialIds, primaryHeightCells);
       if (map.Forest?.Instances == null) return materialIds;
 
       foreach (ForestInstance tree in map.Forest.Instances)
@@ -71,7 +73,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
       return materialIds;
     }
 
-    private static void ApplySlopeOverrides(S2MFile map, byte[] materialIds)
+    private static void ApplySlopeOverrides(S2MFile map, byte[] materialIds, bool[] primaryHeightCells)
     {
       HeightLayer heightLayer = map.HeightLayer;
       if (heightLayer?.Heights == null || heightLayer.Width <= 0 || heightLayer.Height <= 0)
@@ -87,26 +89,26 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
           // An authored cliff selector is authoritative. Height alone forces the
           // ordinary rock slope, but never invents cliff subdivision geometry.
           if (materialIds[index] == CliffFaceMaterialId) continue;
-          float difference = GetCellHeightDifference(heightLayer, index, x, z);
+          float difference = GetCellHeightDifference(heightLayer, index, x, z, primaryHeightCells?[index] ?? false);
           if (difference >= RockSlopeHeightDifference) materialIds[index] = RockSlopeMaterialId;
         }
       }
     }
 
-    private static float GetCellHeightDifference(HeightLayer heightLayer, int cellIndex, int x, int z)
+    private static float GetCellHeightDifference(HeightLayer heightLayer, int cellIndex, int x, int z, bool usePrimaryHeights)
     {
-      float c0 = GetCornerHeight(heightLayer, cellIndex, 0, x, z + 1);
-      float c1 = GetCornerHeight(heightLayer, cellIndex, 1, x + 1, z + 1);
-      float c2 = GetCornerHeight(heightLayer, cellIndex, 2, x, z);
-      float c3 = GetCornerHeight(heightLayer, cellIndex, 3, x + 1, z);
+      float c0 = GetCornerHeight(heightLayer, cellIndex, 0, x, z + 1, usePrimaryHeights);
+      float c1 = GetCornerHeight(heightLayer, cellIndex, 1, x + 1, z + 1, usePrimaryHeights);
+      float c2 = GetCornerHeight(heightLayer, cellIndex, 2, x, z, usePrimaryHeights);
+      float c3 = GetCornerHeight(heightLayer, cellIndex, 3, x + 1, z, usePrimaryHeights);
       return Math.Max(
         Math.Max(Math.Abs(c0 - c1), Math.Abs(c0 - c2)),
         Math.Max(Math.Abs(c1 - c3), Math.Abs(c2 - c3)));
     }
 
-    private static float GetCornerHeight(HeightLayer heightLayer, int cellIndex, int corner, int x, int z)
+    private static float GetCornerHeight(HeightLayer heightLayer, int cellIndex, int corner, int x, int z, bool usePrimaryHeights)
     {
-      if (heightLayer.CornerHeightPlanes?.Length > 0
+      if (!usePrimaryHeights && heightLayer.CornerHeightPlanes?.Length > 0
         && heightLayer.CornerHeightPlanes[0]?.Length == heightLayer.Width * heightLayer.Height * HeightLayer.CornersPerCell)
         return heightLayer.CornerHeightPlanes[0][cellIndex * HeightLayer.CornersPerCell + corner];
       x = Math.Max(0, Math.Min(x, heightLayer.Width - 1));

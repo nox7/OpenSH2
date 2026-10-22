@@ -34,9 +34,11 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
     /// <summary>
     /// Runtime mask for cells whose raised walking surface is replaced by loaded
-    /// models. Render their primary ground heights instead, retaining the riverbed.
+    /// models. Render their primary ground heights instead, retaining exterior
+    /// ground around buildings and the riverbed beneath bridges.
     /// Indexed z * width + x.
     /// </summary>
     [NonSerialized] public bool[] PrimaryHeightCells;
+
   }
 }

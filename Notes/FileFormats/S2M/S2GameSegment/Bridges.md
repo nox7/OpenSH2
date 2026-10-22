@@ -78,9 +78,11 @@ unverified in Unity.
 
 ## Runtime behavior
 
-`S2MBridgeAssetLoader` loads both replacement meshes before producing a two-cell-wide
-terrain mask. `Main` passes this mask to `S2MTerrainRenderer` and renders the modular
-assemblies with `S2MBridgeRenderer`, under the same scaled map root. This mask selects
+`S2MBuildingAssetLoader` delegates to `S2MBridgeAssetLoader`, which loads both
+replacement meshes before producing a two-cell-wide terrain mask. Main uses the
+map-level building data for terrain masks and calls `S2MBuildingRenderer`, which
+renders the modular assemblies with `S2MBridgeRenderer` under the scaled map root.
+The bridge mask selects
 `S2MTerrainSettings.PrimaryHeightCells`: masked cells render the primary ground grid
 instead of the elevated plane-0 walking corners. Terrain triangles and colliders
 remain beneath the bridge, preserving the riverbed and bank surfaces. Bridge mesh
@@ -88,6 +90,9 @@ colliders supply the deck, and building textures use opaque materials rather tha
 the foliage alpha-test rules. Water remains on its independently decoded surface
 plane. The earlier implementation skipped masked cells entirely, leaving riverbed
 holes; the mask now replaces only the raised terrain surface with base terrain.
+Keep footprints now also select primary ground heights, restoring exterior ground
+around foundations and stairs. The map-level loader combines these with a copy of
+the bridge mask; neither coverage removes terrain or changes navigation heights.
 
 Unfinished, unknown, out-of-bounds, odd-length, or otherwise unsupported spans retain
 their terrain. The mask is runtime render data; decoded HeightLayer navigation

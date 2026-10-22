@@ -16,9 +16,10 @@ public class Main : MonoBehaviour
 
   [Min(0.0001f)]
   [Tooltip("Uniform multiplier for loaded tree models, in addition to Game Scale and vegetation asset scaling. Changes tree size without moving trees. Applied when the map loads.")]
-  [SerializeField] private float treeModelScale = 1f;
+  [SerializeField] private float treeModelScale = 0.5f;
 
   [SerializeField] private S2MVegetationRenderSettings vegetationRenderSettings = new();
+  [SerializeField] private S2MKeepRenderSettings keepRenderSettings = new();
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
@@ -99,18 +100,19 @@ public class Main : MonoBehaviour
       string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
-      S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(mapFile, gameInstallPath);
       if (gameScale <= 0f) throw new System.InvalidOperationException("Game scale must be positive.");
       if (!(treeModelScale > 0f) || float.IsInfinity(treeModelScale))
         throw new System.InvalidOperationException("Tree model scale must be finite and positive.");
+      S2MBuildingData buildingData = new S2MBuildingAssetLoader().Load(mapFile, gameInstallPath);
+      S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(
+        mapFile, gameInstallPath, buildingData.PrimaryHeightCells);
       var mapWorld = new GameObject("S2M Map World");
       mapWorld.transform.SetParent(transform, worldPositionStays: false);
       mapWorld.transform.localScale = Vector3.one * gameScale;
-      S2MBridgeData bridgeData = new S2MBridgeAssetLoader().Load(mapFile, gameInstallPath);
       var terrainSettings = new S2MTerrainSettings
       {
         UsePerCellCornerHeights = true,
-        PrimaryHeightCells = bridgeData.ReplacedTerrainCells
+        PrimaryHeightCells = buildingData.PrimaryHeightCells
       };
       GameObject terrain = S2MTerrainRenderer.Render(
         mapFile,
@@ -120,8 +122,8 @@ public class Main : MonoBehaviour
       S2MTerrainTextureRenderer.Apply(terrain, terrainTextures, new(){
         AdjacentMaterialBlendWidth = 0.5f
         });
-      S2MBridgeRenderer.Render(bridgeData, mapWorld.transform, terrainSettings);
-      Debug.Log($"Rendered {bridgeData.Spans.Count} completed bridges; retained terrain for {bridgeData.UnsupportedSpanCount} unfinished or unsupported bridge records.");
+      S2MBuildingRenderer.Render(buildingData, mapWorld.transform, terrainSettings, keepRenderSettings);
+      Debug.Log($"Rendered {buildingData.BuildingCount} supported buildings and completed bridges.");
 
       GameObject water = S2MWaterRenderer.Render(mapFile, mapWorld.transform, new()
       {

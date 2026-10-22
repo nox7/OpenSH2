@@ -25,7 +25,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
       settings ??= new S2MTerrainSettings();
       Validate(map.HeightLayer, settings);
-      byte[] surfaceMaterialIds = S2MTerrainSurfaceMaterialGrid.Create(map);
+      byte[] surfaceMaterialIds = S2MTerrainSurfaceMaterialGrid.Create(map, settings.PrimaryHeightCells);
 
       var root = new GameObject(string.IsNullOrWhiteSpace(terrainName) ? "S2M Terrain" : terrainName);
       if (parent != null) root.transform.SetParent(parent, worldPositionStays: false);
@@ -788,8 +788,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       int gridX,
       int gridZ)
     {
-      // Bridge plane-0 corners describe the elevated walking deck. The primary
-      // grid still contains the bank/riverbed; draw it beneath the bridge mesh.
+      // Building/bridge plane-0 corners describe raised walking surfaces. The
+      // primary grid retains the ground/riverbed beneath the replacement models.
       if (settings.UsePerCellCornerHeights
         && !(settings.PrimaryHeightCells?[cellIndex] ?? false)
         && heightLayer.CornerHeightPlanes?.Length > 0
