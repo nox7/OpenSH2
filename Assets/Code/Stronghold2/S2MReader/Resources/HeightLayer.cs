@@ -13,8 +13,9 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public float[] Heights { get; set; }
     /// <summary>
     /// Three separately serialized planes containing four corner heights per
-    /// cell. Plane zero follows the base terrain. The purposes of the two
-    /// sparse upper planes are not known yet.
+    /// cell. Plane zero includes terrain and elevated bridge walking surfaces;
+    /// the primary Heights grid retains the ground beneath those bridges.
+    /// Plane one supplies water surfaces; the remaining plane is not yet understood.
     /// </summary>
     public float[][] CornerHeightPlanes { get; set; }
 

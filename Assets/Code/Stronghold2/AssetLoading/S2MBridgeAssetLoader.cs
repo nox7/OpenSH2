@@ -10,6 +10,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public IReadOnlyList<BridgeSpan> Spans { get; internal set; } = Array.Empty<BridgeSpan>();
     public Granny2ModelData EndModel { get; internal set; }
     public Granny2ModelData MiddleModel { get; internal set; }
+    /// <summary>Cells whose raised walking deck is replaced; the base terrain remains visible.</summary>
     public bool[] ReplacedTerrainCells { get; internal set; }
     public int UnsupportedSpanCount { get; internal set; }
   }

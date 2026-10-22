@@ -83,7 +83,6 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         for (int x = startX; x < startX + chunkWidth; x++)
         {
           int cellIndex = z * map.HeightLayer.Width + x;
-          if (settings.HiddenCells != null && settings.HiddenCells[cellIndex]) continue;
           if (surfaceMaterialIds[cellIndex] == S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId
             && TryAddSubdividedCliffCell(
               vertices, normals, textureCoordinates, cellData, neighbourMaterialIds,
@@ -789,7 +788,10 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       int gridX,
       int gridZ)
     {
+      // Bridge plane-0 corners describe the elevated walking deck. The primary
+      // grid still contains the bank/riverbed; draw it beneath the bridge mesh.
       if (settings.UsePerCellCornerHeights
+        && !(settings.PrimaryHeightCells?[cellIndex] ?? false)
         && heightLayer.CornerHeightPlanes?.Length > 0
         && heightLayer.CornerHeightPlanes[0]?.Length == heightLayer.Width * heightLayer.Height * HeightLayer.CornersPerCell)
       {
@@ -871,8 +873,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         throw new ArgumentOutOfRangeException(nameof(settings.HeightUnitScale), "Height unit scale must be positive.");
       if (settings.CellsPerChunk <= 0)
         throw new ArgumentOutOfRangeException(nameof(settings.CellsPerChunk), "CellsPerChunk must be positive.");
-      if (settings.HiddenCells != null && settings.HiddenCells.Length != heightLayer.Width * heightLayer.Height)
-        throw new ArgumentException("Hidden-cell mask must match the terrain dimensions.", nameof(settings));
+      if (settings.PrimaryHeightCells != null && settings.PrimaryHeightCells.Length != heightLayer.Width * heightLayer.Height)
+        throw new ArgumentException("Primary-height mask must match the terrain dimensions.", nameof(settings));
     }
   }
 

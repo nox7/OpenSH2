@@ -110,7 +110,7 @@ public class Main : MonoBehaviour
       var terrainSettings = new S2MTerrainSettings
       {
         UsePerCellCornerHeights = true,
-        HiddenCells = bridgeData.ReplacedTerrainCells
+        PrimaryHeightCells = bridgeData.ReplacedTerrainCells
       };
       GameObject terrain = S2MTerrainRenderer.Render(
         mapFile,

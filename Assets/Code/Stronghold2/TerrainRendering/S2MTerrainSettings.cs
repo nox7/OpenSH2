@@ -32,7 +32,11 @@ namespace Assets.Code.Stronghold2.TerrainRendering
     [Tooltip("Optional runtime material override for generated terrain mesh chunks.")]
     public Material Material;
 
-    /// <summary>Runtime mask for cells replaced by loaded models, indexed z * width + x.</summary>
-    [NonSerialized] public bool[] HiddenCells;
+    /// <summary>
+    /// Runtime mask for cells whose raised walking surface is replaced by loaded
+    /// models. Render their primary ground heights instead, retaining the riverbed.
+    /// Indexed z * width + x.
+    /// </summary>
+    [NonSerialized] public bool[] PrimaryHeightCells;
   }
 }
