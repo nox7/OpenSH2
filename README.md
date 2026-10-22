@@ -18,6 +18,9 @@ The project currently can play the intro videos (after auto-converting them to M
 
 <img width="1912" height="987" alt="image" src="https://github.com/user-attachments/assets/e5730f8b-00a3-49be-9d5b-af50a28fbe85" />
 
+<img width="1374" height="546" alt="image" src="https://github.com/user-attachments/assets/c33e8d99-812e-49ed-bf12-df7b2b39a64b" />
+
+
 ## Bugs Fixed - Or Will Be Fixed
 The following bugs are known and will be fixed in OpenSH2.
 ### Map Editor
