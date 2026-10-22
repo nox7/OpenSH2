@@ -28,6 +28,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public WaterLayer WaterLayer => Landscape?.Water;
     public HeightLayer HeightLayer { get; internal set; }
     public Forest Forest { get; internal set; }
+    public Bridges Bridges { get; internal set; }
     /// <summary>Complete zlib payloads in their original S2M file order.</summary>
     public IReadOnlyList<ZLibDecompressedSegment> DecompressedSegments { get; internal set; } = Array.Empty<ZLibDecompressedSegment>();
 

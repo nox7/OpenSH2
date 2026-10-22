@@ -83,6 +83,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         for (int x = startX; x < startX + chunkWidth; x++)
         {
           int cellIndex = z * map.HeightLayer.Width + x;
+          if (settings.HiddenCells != null && settings.HiddenCells[cellIndex]) continue;
           if (surfaceMaterialIds[cellIndex] == S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId
             && TryAddSubdividedCliffCell(
               vertices, normals, textureCoordinates, cellData, neighbourMaterialIds,
@@ -870,6 +871,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         throw new ArgumentOutOfRangeException(nameof(settings.HeightUnitScale), "Height unit scale must be positive.");
       if (settings.CellsPerChunk <= 0)
         throw new ArgumentOutOfRangeException(nameof(settings.CellsPerChunk), "CellsPerChunk must be positive.");
+      if (settings.HiddenCells != null && settings.HiddenCells.Length != heightLayer.Width * heightLayer.Height)
+        throw new ArgumentException("Hidden-cell mask must match the terrain dimensions.", nameof(settings));
     }
   }
 

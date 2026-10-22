@@ -31,5 +31,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
     [Tooltip("Optional runtime material override for generated terrain mesh chunks.")]
     public Material Material;
+
+    /// <summary>Runtime mask for cells replaced by loaded models, indexed z * width + x.</summary>
+    [NonSerialized] public bool[] HiddenCells;
   }
 }

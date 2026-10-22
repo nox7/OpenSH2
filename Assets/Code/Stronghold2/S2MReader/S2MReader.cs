@@ -71,6 +71,7 @@ namespace Assets.Code.Stronghold2.S2MReader
           if (i == 1 && parsed is EstateLayer radarEstateLayer) MapFile.RadarEstateLayer = radarEstateLayer;
           if (parsed is Landscape landscape) MapFile.Landscape = landscape;
           if (parsed is Forest forest) MapFile.Forest = forest;
+          if (parsed is Bridges bridges) MapFile.Bridges = bridges;
           if (parsed is HeightLayer heightLayer)
           {
             MapFile.HeightLayer = heightLayer;
@@ -250,6 +251,7 @@ namespace Assets.Code.Stronghold2.S2MReader
         "HeightLayer" => new HeightLayerReader(obj),
         "Landscape" => new LandscapeReader(obj),
         "Forest" => new ForestReader(obj),
+        "Bridges" => new BridgesReader(obj),
 
         // Actions
         "AITroopRetreatAction" => new AITroopRetreatActionReader(obj),

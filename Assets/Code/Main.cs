@@ -94,7 +94,7 @@ public class Main : MonoBehaviour
   {
     try
     {
-      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter2.s2m";
+      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
       S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(mapFile, gameInstallPath);
@@ -104,17 +104,22 @@ public class Main : MonoBehaviour
       var mapWorld = new GameObject("S2M Map World");
       mapWorld.transform.SetParent(transform, worldPositionStays: false);
       mapWorld.transform.localScale = Vector3.one * gameScale;
+      S2MBridgeData bridgeData = new S2MBridgeAssetLoader().Load(mapFile, gameInstallPath);
+      var terrainSettings = new S2MTerrainSettings
+      {
+        UsePerCellCornerHeights = true,
+        HiddenCells = bridgeData.ReplacedTerrainCells
+      };
       GameObject terrain = S2MTerrainRenderer.Render(
         mapFile,
         mapWorld.transform,
-        new()
-        {
-          UsePerCellCornerHeights = true,
-        }
+        terrainSettings
         );
       S2MTerrainTextureRenderer.Apply(terrain, terrainTextures, new(){
         AdjacentMaterialBlendWidth = 0.5f
         });
+      S2MBridgeRenderer.Render(bridgeData, mapWorld.transform, terrainSettings);
+      Debug.Log($"Rendered {bridgeData.Spans.Count} completed bridges; retained terrain for {bridgeData.UnsupportedSpanCount} unfinished or unsupported bridge records.");
 
       GameObject water = S2MWaterRenderer.Render(mapFile, mapWorld.transform, new()
       {

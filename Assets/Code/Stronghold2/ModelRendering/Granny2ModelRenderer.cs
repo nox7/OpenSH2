@@ -152,7 +152,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       Granny2ModelRenderSettings settings,
       Granny2GeneratedModelResources resources)
     {
-      bool isFoliage = IsFoliageMaterial(data);
+      bool isFoliage = settings.UseFoliageMaterials && IsFoliageMaterial(data);
       Material material;
       if (settings.FallbackMaterial != null)
       {
