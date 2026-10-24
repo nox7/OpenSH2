@@ -10,6 +10,9 @@ You must own the original game from Firefly Studios. This is simply an engine th
 ## Straying from Original Game
 This engine will stray from the original game by fixing quirks, adding new settings for enemies (bigger kingdoms, more units, harder AI), etc. The intent is to stay "true enough" to the original game. Additionally, Lua modding will be supported.
 
+## Clean-Room Design
+There have been no reverse engineering or decompilation processes in the making of this engine. This project follows a clean-room practice in studying and recreating an interoperable software which is protected under US and EU interoperability clauses in copyright law.
+
 ## Reimplementation Notes
 Studies, such as research on the file formats, will be found in the `Notes` directory.
 
@@ -19,7 +22,6 @@ The project currently can play the intro videos (after auto-converting them to M
 <img width="1912" height="987" alt="image" src="https://github.com/user-attachments/assets/e5730f8b-00a3-49be-9d5b-af50a28fbe85" />
 
 <img width="1374" height="546" alt="image" src="https://github.com/user-attachments/assets/c33e8d99-812e-49ed-bf12-df7b2b39a64b" />
-
 
 ## Bugs Fixed - Or Will Be Fixed
 The following bugs are known and will be fixed in OpenSH2.
