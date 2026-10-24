@@ -14,6 +14,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
     private const int TerrainTintBlockTag = 22;
     private const int TerrainTextureRotationBlockTag = 30;
     private const int LandscapeFeatureBlockTag = 19;
+    private const int TerrainCutoutBlockTag = 18;
 
     public LandscapeReader(S2Object obj) : base(obj) { }
 
@@ -84,6 +85,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
         },
         TerrainTintColors = terrainTintColors,
         TerrainTextureRotationValues = Transpose(terrainTextureRotationValues, side),
+        TerrainCutoutValues = blocks.ContainsKey(TerrainCutoutBlockTag)
+          ? Transpose(GetGrid(blocks, TerrainCutoutBlockTag, cellCount), side) : null,
         RawPayload = payload
       };
     }

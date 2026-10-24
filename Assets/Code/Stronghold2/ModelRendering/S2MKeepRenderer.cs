@@ -13,11 +13,11 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public const float ModelUnitsPerCell = 204.8f;
 
     public static GameObject Render(S2MKeepData data, Transform parent = null,
-      S2MTerrainSettings terrainSettings = null, S2MKeepRenderSettings settings = null)
+      S2MTerrainSettings terrainSettings = null, S2MBuildingRenderSettings settings = null)
     {
       if (data == null) throw new ArgumentNullException(nameof(data));
       terrainSettings ??= new S2MTerrainSettings();
-      settings ??= new S2MKeepRenderSettings();
+      settings ??= new S2MBuildingRenderSettings();
       var root = new GameObject("S2M Keeps");
       if (parent != null) root.transform.SetParent(parent, false);
       root.transform.localPosition = new Vector3(
@@ -32,14 +32,14 @@ namespace Assets.Code.Stronghold2.ModelRendering
       foreach (S2MKeepBatch batch in data.Batches)
       {
         var instances = new List<Granny2ModelInstance>();
-        foreach (Keep keep in batch.Keeps) instances.Add(CreateInstance(keep, terrainSettings));
+        foreach (Keep keep in batch.Keeps) instances.Add(S2MBuildingRenderer.CreateInstance(keep, terrainSettings));
         GameObject closed = Granny2ModelRenderer.RenderInstances(batch.Closed, instances,
           root.transform, modelSettings, $"{batch.Size} Keep Exteriors");
         GameObject open = Granny2ModelRenderer.RenderInstances(batch.Open, instances,
           root.transform, modelSettings, $"{batch.Size} Keep Interiors");
         GameObject tables = Granny2ModelRenderer.RenderInstances(batch.Table, instances,
           root.transform, modelSettings, $"{batch.Size} Keep Tables");
-        Bounds bounds = GetLocalBounds(batch.Closed, modelSettings.UnitScale);
+        Bounds bounds = Granny2ModelRenderer.GetLocalBounds(batch.Closed, modelSettings.UnitScale);
         for (int i = 0; i < instances.Count; i++)
         {
           Granny2ModelInstance placement = instances[i];
@@ -48,7 +48,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
           view.transform.localPosition = placement.Position;
           view.transform.localRotation = Quaternion.Euler(placement.EulerAngles);
           view.transform.localScale = placement.Scale;
-          view.AddComponent<S2MKeepInteriorView>().Initialize(settings,
+          view.AddComponent<S2MBuildingInteriorView>().Initialize(settings,
             closed.transform.GetChild(i).gameObject, open.transform.GetChild(i).gameObject,
             tables.transform.GetChild(i).gameObject, bounds);
         }
@@ -64,28 +64,5 @@ namespace Assets.Code.Stronghold2.ModelRendering
       return root;
     }
 
-    internal static Granny2ModelInstance CreateInstance(Keep keep, S2MTerrainSettings settings)
-    {
-      return new Granny2ModelInstance($"{keep.Type} ({keep.Id})",
-        new Vector3(keep.MapX * settings.HorizontalCellSize, keep.RawY * settings.HeightUnitScale,
-          keep.MapZ * settings.HorizontalCellSize), new Vector3(0f, keep.RotationDegrees, 0f),
-        new Vector3(1f, settings.HeightUnitScale * 1024f / settings.HorizontalCellSize, 1f));
-    }
-
-    internal static Bounds GetLocalBounds(Granny2ModelData model, float unitScale)
-    {
-      bool hasVertex = false;
-      var bounds = new Bounds();
-      foreach (Granny2MeshData mesh in model.Meshes)
-      {
-        for (int i = 0; i < mesh.VertexData.Length; i += 8)
-        {
-          var vertex = new Vector3(mesh.VertexData[i], mesh.VertexData[i + 2], mesh.VertexData[i + 1]) * unitScale;
-          if (!hasVertex) { bounds = new Bounds(vertex, Vector3.zero); hasVertex = true; }
-          else bounds.Encapsulate(vertex);
-        }
-      }
-      return bounds;
-    }
   }
 }

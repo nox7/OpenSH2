@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace Assets.Code.Stronghold2.ModelRendering
 {
-  public enum KeepViewMode { Automatic, Closed, Open }
+  public enum BuildingViewMode { Automatic, Closed, Open }
 
   [Serializable]
-  public sealed class S2MKeepRenderSettings
+  public sealed class S2MBuildingRenderSettings
   {
-    public KeepViewMode ViewMode = KeepViewMode.Automatic;
+    public BuildingViewMode ViewMode = BuildingViewMode.Automatic;
     [Tooltip("Optional camera for the interior view. Uses the main camera when unset.")]
     public Camera ViewCamera;
     [Tooltip("Distance from the camera to the exterior bounds, in unscaled map units, at which interiors open.")]

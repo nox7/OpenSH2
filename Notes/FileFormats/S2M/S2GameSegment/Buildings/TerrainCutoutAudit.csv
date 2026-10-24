@@ -1,0 +1,85 @@
+map,type,object_id,x,z,raw_y,yaw,footprint_width,footprint_height,tag18_marked_cells,footprint_cells,landscape_min,landscape_max,primary_min,primary_max,corner0_min,corner0_max
+Axon (backup).s2m,SawPit,901422496,102,129,0,270,2,1,2,2,0,0,,,,
+Axon (backup).s2m,SawPit,901420256,200,98,0,0,1,2,2,2,0,0,,,,
+Axon.s2m,SawPit,902844480,102,129,0,270,2,1,2,2,0,0,0,0,0,0
+Axon.s2m,SawPit,902842520,200,98,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,108183184,208,222,10240,90,4,1,2,4,10240,10240,10240,10240,10240,10240
+Kill Barclay.s2m,SawPit,861107496,215,215,10240,0,1,4,2,4,10240,10240,10240,10240,10240,10240
+Kill Barclay.s2m,SawPit,861112816,219,211,10240,0,1,4,2,4,10240,10240,10240,10240,10240,10240
+Kill Barclay.s2m,GongPit,861101256,191,207,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+Kill Barclay.s2m,GongPit,861102536,194,171,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+Kill Barclay.s2m,GongPit,861103816,212,171,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+Kill Barclay.s2m,GongPit,861104584,213,204,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+Kill Barclay.s2m,SawPit,861110576,137,110,0,0,1,4,2,4,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861109736,187,69,0,0,1,4,2,4,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861112536,125,129,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861145600,120,130,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861140280,21,212,0,270,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861146720,17,219,0,270,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861144480,11,226,0,270,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861141120,154,10,0,270,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861143080,11,198,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861141400,121,103,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861142240,126,99,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861147000,113,122,0,90,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861142520,114,117,0,90,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861180360,53,154,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861174480,150,15,0,180,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861176160,148,19,0,270,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861179800,238,56,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861178120,244,49,0,270,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861173920,249,45,0,270,2,1,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861175600,32,109,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861172800,26,122,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861212216,109,23,0,0,1,2,2,2,0,0,0,0,0,0
+Kill Barclay.s2m,SawPit,861208296,118,21,0,0,1,2,2,2,0,0,0,0,0,0
+Peace Campaign.s2m,SawPit,580317224,132,133,5110.212,0,1,2,2,2,5111.2725,5116.571,,,,
+Peace Campaign.s2m,SawPit,356757344,51,147,3398.6575,0,1,4,2,4,3405.8928,3413,,,,
+Peace Campaign.s2m,SawPit,357706776,170,222,6826,0,1,4,2,4,6826,6826,,,,
+Peace Campaign.s2m,SawPit,571378472,167,220,6826,0,1,4,2,4,6826,6826,,,,
+Peace Campaign.s2m,SawPit,577087432,231,190,0,0,1,2,2,2,0,0,,,,
+war_chapter8.s2m,GongPit,107872536,35,36,1706,0,2,2,4,4,1706,1706,1706,1706,1706,1706
+war_chapter8.s2m,GongPit,107868696,52,26,1706,0,2,2,4,4,1706,1706,1706,1706,1706,1706
+war_chapter8.s2m,GongPit,861215168,150,234,0,0,2,2,4,4,0,0,0,0,0,0
+war_chapter8.s2m,GongPit,861212608,200,231,0,0,2,2,4,4,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,217298048,228,7,0,0,1,2,2,2,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,217300568,230,8,0,0,1,2,2,2,0,0,0,0,0,0
+war_chapter8.s2m,GongPit,861218752,206,35,0,0,2,2,4,4,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,217298328,167,201,0,0,1,2,2,2,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,217299448,170,201,0,0,1,2,2,2,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,217299728,172,202,0,0,1,2,2,2,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,217298608,175,202,0,0,1,2,2,2,0,0,0,0,0,0
+war_chapter8.s2m,FishPond,210287648,168,230,0,0,6,5,30,30,0,0,0,0,0,0
+war_chapter8.s2m,GongPit,861214656,173,68,0,0,2,2,4,4,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,861268480,186,65,0,0,1,2,2,2,0,0,0,0,0,0
+war_chapter8.s2m,SawPit,861269880,185,68,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,107985176,208,222,10240,90,4,1,2,4,10240,10240,10240,10240,10240,10240
+[Patched] Kill Barclay.s2m,SawPit,861442256,215,215,10240,0,1,4,2,4,10240,10240,10240,10240,10240,10240
+[Patched] Kill Barclay.s2m,SawPit,861441696,219,211,10240,0,1,4,2,4,10240,10240,10240,10240,10240,10240
+[Patched] Kill Barclay.s2m,GongPit,861427096,191,207,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+[Patched] Kill Barclay.s2m,GongPit,861421208,194,171,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+[Patched] Kill Barclay.s2m,GongPit,861427352,212,171,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+[Patched] Kill Barclay.s2m,GongPit,861423768,213,204,10240,90,2,2,4,4,10240,10240,10240,10240,10240,10240
+[Patched] Kill Barclay.s2m,SawPit,861439456,137,110,0,0,1,4,2,4,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861444496,187,69,0,0,1,4,2,4,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861438616,125,129,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861495080,120,130,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861493120,21,212,0,270,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861493960,17,219,0,270,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861491440,11,226,0,270,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861492840,154,10,0,270,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861493400,11,198,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861488640,121,103,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861490600,126,99,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861489480,113,122,0,90,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861490880,114,117,0,90,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861521720,53,154,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861529000,150,15,0,180,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861527320,148,19,0,270,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861522560,238,56,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861526200,244,49,0,270,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861527880,249,45,0,270,2,1,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861524520,32,109,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861525080,26,122,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861550696,109,23,0,0,1,2,2,2,0,0,0,0,0,0
+[Patched] Kill Barclay.s2m,SawPit,861551256,118,21,0,0,1,2,2,2,0,0,0,0,0,0

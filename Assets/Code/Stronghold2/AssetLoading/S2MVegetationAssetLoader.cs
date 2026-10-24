@@ -7,8 +7,6 @@ namespace Assets.Code.Stronghold2.AssetLoading
   /// <summary>Loads only the distinct GR2 models referenced by one map.</summary>
   public sealed class S2MVegetationAssetLoader
   {
-    private readonly Dictionary<string, Granny2ModelData> modelCache = new(StringComparer.OrdinalIgnoreCase);
-
     public S2MVegetationData Load(
       S2MFile map,
       string gameInstallPath,
@@ -37,14 +35,13 @@ namespace Assets.Code.Stronghold2.AssetLoading
         }
       }
 
+      var models = Granny2AssetConverter.LoadOrConvertMany(gameInstallPath, grouped.Keys, converterPath, cacheDirectory);
       var batches = new List<S2MVegetationBatch>(grouped.Count);
       foreach (KeyValuePair<string, List<ForestInstance>> pair in grouped)
       {
-        if (!modelCache.TryGetValue(pair.Key, out Granny2ModelData model))
-        {
-          model = Granny2AssetConverter.LoadOrConvert(gameInstallPath, pair.Key, converterPath, cacheDirectory);
-          modelCache.Add(pair.Key, model);
-        }
+        Granny2AssetLoadResult result = models[pair.Key];
+        if (result.Error != null) throw result.Error;
+        Granny2ModelData model = result.Model;
         batches.Add(new S2MVegetationBatch
         {
           AssetRelativePath = pair.Key,

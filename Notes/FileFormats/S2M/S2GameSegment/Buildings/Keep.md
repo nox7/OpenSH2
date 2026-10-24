@@ -37,7 +37,8 @@ Keeps contain an actor position followed by an inherited `Building` payload.
 The actor position is not the model origin, especially for rotated buildings.
 `KeepReader` uses the Building transform, preserving the complete raw payload.
 
-The Building section begins with `A5 C1 FF FF`, followed by a segment-local type
+The shared `BuildingPlacementReader`, also used by `KeepReader`, reads the Building
+section beginning with `A5 C1 FF FF`, followed by a segment-local type
 index. On the first use of that type, an inline ASCII registration appears:
 `int32 8`, eight bytes `Building`. Following the optional registration are
 `int32 1`, `int32 52`, and a 52-byte data body. Later references omit the name.
@@ -83,7 +84,7 @@ only the map-level building loader and renderer. Keeps are parented under the
 scaled map root and follow terrain's horizontal scale, height scale, and optional
 reflected axes.
 
-After replacement assets load, the building loader computes each keep's occupied
+Independently of replacement asset support, the building loader computes each building's occupied
 rectangle from the serialized rotated footprint and model origin. For yaw 90,
 the minimum Z is origin Z minus footprint height; for yaw 270, the minimum X is
 origin X minus footprint width. Yaw 180 subtracts both dimensions. Width and
@@ -106,7 +107,7 @@ modified. Future unit movement can still sample the original floor/stair heights
 through `HeightLayer.GetCornerHeight`; render geometry is not a replacement for
 that navigation data.
 
-`Main` exposes **Keep Render Settings**:
+`Main` exposes **Building Render Settings**:
 
 - **View Mode**: Automatic, Closed, or Open.
 - **View Camera**: optional override; otherwise the tagged main camera is used.

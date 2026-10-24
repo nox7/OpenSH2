@@ -73,6 +73,8 @@ namespace Assets.Code.Stronghold2.S2MReader
           if (parsed is Landscape landscape) MapFile.Landscape = landscape;
           if (parsed is Forest forest) MapFile.Forest = forest;
           if (parsed is Bridges bridges) MapFile.Bridges = bridges;
+          if (i == 2 && parsed is RawS2Object mapObject && parsed.Type == "Map")
+            MapFile.WallLayer = WallLayerReader.Read(mapObject.Payload);
           if (parsed is Keep keep) keeps.Add(keep);
           if (parsed is HeightLayer heightLayer)
           {
@@ -88,6 +90,7 @@ namespace Assets.Code.Stronghold2.S2MReader
       }
 
       MapFile.Keeps = keeps;
+      MapFile.BuildingPlacements = BuildingPlacementReader.ReadAll(MapFile.S2GameObjects);
       MapFile.ApplyPlayableTerrainSize();
       return MapFile;
     }

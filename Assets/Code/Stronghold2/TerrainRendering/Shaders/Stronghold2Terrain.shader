@@ -87,10 +87,11 @@ Shader "OpenSH2/Stronghold 2 Terrain"
       half4 SampleMaterial(float materialId, float2 uv, float quarterTurns)
       {
         // Slices 0..23 are the GROUND1 IDs 0x08..0x1F. Slice 24 is the
-        // separately serialized cliff-face selector 0x27.
+        // separately serialized cliff-face selector 0x27; 25/26 are cultivated
+        // ground 0x25/0x26 from the building-owned appearance overlays.
         float slice = materialId >= 8.0 && materialId <= 31.0
           ? materialId - 8.0
-          : (materialId == 39.0 ? 24.0 : 4.0);
+          : (materialId == 39.0 ? 24.0 : (materialId == 37.0 ? 25.0 : (materialId == 38.0 ? 26.0 : 4.0)));
         return SAMPLE_TEXTURE2D_ARRAY(_TerrainTextureArray, sampler_TerrainTextureArray, RotateTextureUv(uv, quarterTurns), slice);
       }
 

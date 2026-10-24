@@ -26,6 +26,13 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     /// the probe changes a corresponding byte there as well.
     /// </summary>
     public byte[] TerrainTextureRotationValues { get; internal set; }
+    /// <summary>
+    /// Saved terrain suppression values from Landscape tag 18, transposed to
+    /// row-major order and cropped with the other grids. Value 1 marks a cutout;
+    /// raw values are retained. Null when this optional block is absent.
+    /// Building asset loading decides which cutouts have replacement geometry.
+    /// </summary>
+    public byte[] TerrainCutoutValues { get; internal set; }
     /// <summary>Complete type-specific payload excluding the object trailer.</summary>
     public byte[] RawPayload { get; internal set; }
   }
@@ -46,7 +53,8 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public const float RockSlopeHeightDifference = 900f;
     private const int ForestFootprintSize = 2;
 
-    public static byte[] Create(S2MFile map, bool[] primaryHeightCells = null)
+    public static byte[] Create(S2MFile map, bool[] primaryHeightCells = null,
+      S2MTerrainSurfaceOverrides surfaceOverrides = null)
     {
       if (map == null) throw new ArgumentNullException(nameof(map));
       WaterLayer water = map.WaterLayer;
@@ -54,22 +62,33 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
         throw new InvalidOperationException("The map does not contain a complete terrain material grid.");
       if (primaryHeightCells != null && primaryHeightCells.Length != water.Width * water.Height)
         throw new ArgumentException("Primary-height mask must match the terrain dimensions.", nameof(primaryHeightCells));
+      if (surfaceOverrides != null && (surfaceOverrides.Width != water.Width || surfaceOverrides.Height != water.Height))
+        throw new ArgumentException("Surface overrides must match the terrain dimensions.", nameof(surfaceOverrides));
 
       var materialIds = (byte[])water.SurfaceMaterialIds.Clone();
       ApplySlopeOverrides(map, materialIds, primaryHeightCells);
-      if (map.Forest?.Instances == null) return materialIds;
-
-      foreach (ForestInstance tree in map.Forest.Instances)
+      if (map.Forest?.Instances != null)
       {
-        int startX = tree.CellX * ForestFootprintSize;
-        int startZ = tree.CellZ * ForestFootprintSize;
-        if (startX >= water.Width || startZ >= water.Height) continue;
-        for (int z = startZ; z < Math.Min(startZ + ForestFootprintSize, water.Height); z++)
+        foreach (ForestInstance tree in map.Forest.Instances)
         {
-          for (int x = startX; x < Math.Min(startX + ForestFootprintSize, water.Width); x++)
-            materialIds[z * water.Width + x] = ForestFloorMaterialId;
+          int startX = tree.CellX * ForestFootprintSize;
+          int startZ = tree.CellZ * ForestFootprintSize;
+          if (startX >= water.Width || startZ >= water.Height) continue;
+          for (int z = startZ; z < Math.Min(startZ + ForestFootprintSize, water.Height); z++)
+          {
+            for (int x = startX; x < Math.Min(startX + ForestFootprintSize, water.Width); x++)
+              materialIds[z * water.Width + x] = ForestFloorMaterialId;
+          }
         }
       }
+      // Cultivated ground wins over ordinary slope/forest appearance while its
+      // building exists. Preserve explicit cliff topology and all source grids.
+      if (surfaceOverrides != null)
+        for (int i = 0; i < materialIds.Length; i++)
+        {
+          byte material = surfaceOverrides.GetMaterialId(i);
+          if (material != 0 && materialIds[i] != CliffFaceMaterialId) materialIds[i] = material;
+        }
       return materialIds;
     }
 

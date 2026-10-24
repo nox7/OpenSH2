@@ -9,6 +9,16 @@ The S2M does not store those paths. It stores compact material and appearance da
 the `Landscape` object's fixed-size blocks. OpenSH2 must map those values to the
 locally installed assets at runtime rather than redistribute the DDS files.
 
+## Farm appearance overlays
+
+Saved Landscape tag-19 values `0x25`/`0x26` identify cultivated soil patches,
+matching `terrain/crop_1.dds` (tilled furrows) and `terrain/crop_2.dds` (patchy
+earth/grass). These are derived building-owned surface overrides; the original
+tag-27 materials remain intact for later building removal. See
+[Farm surfaces](Buildings/FarmSurfaces.md) for ownership, sampled shapes and
+validation. Texture-array slots 25/26 hold these surfaces; the existing cliff
+slice remains slot 24.
+
 ## Controlled paint probe
 
 The following 256x256 maps were compared against `terrain-flat.s2m`:

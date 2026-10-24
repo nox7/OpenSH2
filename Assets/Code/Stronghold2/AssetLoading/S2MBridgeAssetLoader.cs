@@ -38,10 +38,11 @@ namespace Assets.Code.Stronghold2.AssetLoading
       }
       if (spans.Count == 0) return result;
 
-      result.EndModel = Granny2AssetConverter.LoadOrConvert(gameInstallPath,
-        "meshes/buildings/bridge_end.GR2", converterPath, cacheDirectory);
-      result.MiddleModel = Granny2AssetConverter.LoadOrConvert(gameInstallPath,
-        "meshes/buildings/bridge_middle.GR2", converterPath, cacheDirectory);
+      string[] paths = { "meshes/buildings/bridge_end.GR2", "meshes/buildings/bridge_middle.GR2" };
+      var models = Granny2AssetConverter.LoadOrConvertMany(gameInstallPath, paths, converterPath, cacheDirectory);
+      foreach (string path in paths) if (models[path].Error != null) throw models[path].Error;
+      result.EndModel = models[paths[0]].Model;
+      result.MiddleModel = models[paths[1]].Model;
       if (result.EndModel.Meshes.Count == 0 || result.MiddleModel.Meshes.Count == 0)
         throw new InvalidOperationException("Bridge replacement meshes contain no geometry.");
 

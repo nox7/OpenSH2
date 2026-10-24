@@ -34,17 +34,15 @@ namespace Assets.Code.Stronghold2.AssetLoading
           groups.Add(keep.Size, placements = new List<Keep>());
         placements.Add(keep);
       }
+      var paths = new List<string>();
+      foreach (KeepSize size in groups.Keys)
+        foreach (string part in new[] { "closed", "open", "table", "collision" })
+          paths.Add($"meshes/buildings/{GetStem(size)}_{part}.GR2");
+      var models = Granny2AssetConverter.LoadOrConvertMany(gameInstallPath, paths, converterPath, cacheDirectory);
       var batches = new List<S2MKeepBatch>();
       foreach (KeyValuePair<KeepSize, List<Keep>> group in groups)
       {
-        string stem = group.Key switch
-        {
-          KeepSize.Wooden => "Keep_wooden",
-          KeepSize.Small => "Keep_small",
-          KeepSize.Medium => "keep_medium",
-          KeepSize.Large => "Keep_large",
-          _ => throw new InvalidOperationException($"Unsupported keep size {group.Key}.")
-        };
+        string stem = GetStem(group.Key);
         batches.Add(new S2MKeepBatch
         {
           Size = group.Key, Keeps = group.Value,
@@ -54,8 +52,9 @@ namespace Assets.Code.Stronghold2.AssetLoading
 
         Granny2ModelData LoadPart(string part)
         {
-          Granny2ModelData model = Granny2AssetConverter.LoadOrConvert(gameInstallPath,
-            $"meshes/buildings/{stem}_{part}.GR2", converterPath, cacheDirectory);
+          Granny2AssetLoadResult result = models[$"meshes/buildings/{stem}_{part}.GR2"];
+          if (result.Error != null) throw result.Error;
+          Granny2ModelData model = result.Model;
           if (model.Meshes.Count == 0)
             throw new InvalidOperationException($"Keep asset {stem}_{part} contains no geometry.");
           return model;
@@ -63,5 +62,12 @@ namespace Assets.Code.Stronghold2.AssetLoading
       }
       return new S2MKeepData { Map = map, Batches = batches };
     }
+
+    private static string GetStem(KeepSize size) => size switch
+    {
+      KeepSize.Wooden => "Keep_wooden", KeepSize.Small => "Keep_small",
+      KeepSize.Medium => "keep_medium", KeepSize.Large => "Keep_large",
+      _ => throw new InvalidOperationException($"Unsupported keep size {size}.")
+    };
   }
 }

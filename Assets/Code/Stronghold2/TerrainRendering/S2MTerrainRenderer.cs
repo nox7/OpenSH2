@@ -25,7 +25,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
       settings ??= new S2MTerrainSettings();
       Validate(map.HeightLayer, settings);
-      byte[] surfaceMaterialIds = S2MTerrainSurfaceMaterialGrid.Create(map, settings.PrimaryHeightCells);
+      byte[] surfaceMaterialIds = S2MTerrainSurfaceMaterialGrid.Create(map, settings.PrimaryHeightCells, settings.SurfaceOverrides);
 
       var root = new GameObject(string.IsNullOrWhiteSpace(terrainName) ? "S2M Terrain" : terrainName);
       if (parent != null) root.transform.SetParent(parent, worldPositionStays: false);
@@ -46,7 +46,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         {
           int chunkWidth = Math.Min(settings.CellsPerChunk, map.HeightLayer.Width - x);
           GameObject chunk = CreateChunk(map, surfaceMaterialIds, settings, material, x, z, chunkWidth, chunkHeight, generatedMeshes);
-          chunk.transform.SetParent(root.transform, worldPositionStays: false);
+          if (chunk != null) chunk.transform.SetParent(root.transform, worldPositionStays: false);
         }
       }
 
@@ -83,6 +83,9 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         for (int x = startX; x < startX + chunkWidth; x++)
         {
           int cellIndex = z * map.HeightLayer.Width + x;
+          // Skip before ordinary/cliff geometry is emitted. The collider shares
+          // this mesh, so no invisible terrain remains across a building's pit.
+          if (settings.TerrainCutoutCells?[cellIndex] ?? false) continue;
           if (surfaceMaterialIds[cellIndex] == S2MTerrainSurfaceMaterialGrid.CliffFaceMaterialId
             && TryAddSubdividedCliffCell(
               vertices, normals, textureCoordinates, cellData, neighbourMaterialIds,
@@ -100,6 +103,10 @@ namespace Assets.Code.Stronghold2.TerrainRendering
           AddCellTriangles(triangles, vertexStart, settings.FlipX ^ settings.FlipZ);
         }
       }
+
+      // Entirely suppressed chunks need neither GPU resources nor an empty
+      // MeshCollider (Unity rejects collider meshes without geometry).
+      if (vertices.Count == 0) return null;
 
       var mesh = new Mesh
       {
@@ -160,7 +167,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
       byte materialId = surfaceMaterialIds[cellIndex];
       byte featureId = map.WaterLayer?.LandscapeFeatureValues?[cellIndex] ?? 0;
-      byte textureRotation = GetTerrainTextureRotation(map.Landscape?.TerrainTextureRotationValues, heightLayer.Width, heightLayer.Height, cellIndex % heightLayer.Width, cellIndex / heightLayer.Width);
+      byte textureRotation = GetTerrainTextureRotation(map.Landscape?.TerrainTextureRotationValues, heightLayer.Width, heightLayer.Height, cellIndex % heightLayer.Width, cellIndex / heightLayer.Width, settings.SurfaceOverrides);
       cellData.Add(new Vector4(materialId / 255f, featureId / 255f, textureRotation / 3f, 0f));
       // Neighbour IDs belong to the owning cell, not the vertex coordinate. The
       // right/top vertices are one past the last cell index at map boundaries.
@@ -186,7 +193,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         neighbourTintWest,
         neighbourTintEast,
         neighbourTintSouth,
-        neighbourTintNorth);
+        neighbourTintNorth, settings.SurfaceOverrides);
     }
 
     private static bool TryAddSubdividedCliffCell(
@@ -647,7 +654,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
           cellData, neighbourMaterialIds, neighbourTintWest, neighbourTintEast,
           neighbourTintSouth, neighbourTintNorth, colors, map, surfaceMaterialIds,
           cellIndex, x, z, materialId, blendNeighbours: true, applyTextureRotation: !wallProjected,
-          wallProjected: wallProjected);
+          wallProjected: wallProjected, surfaceOverrides: settings.SurfaceOverrides);
       }
 
       private Vector3 GetInterpolatedSurfaceNormal(Vector3 gridPoint)
@@ -682,12 +689,13 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       byte materialId,
       bool blendNeighbours,
       bool applyTextureRotation,
-      bool wallProjected)
+      bool wallProjected,
+      S2MTerrainSurfaceOverrides surfaceOverrides = null)
     {
       HeightLayer heightLayer = map.HeightLayer;
       byte featureId = map.WaterLayer?.LandscapeFeatureValues?[cellIndex] ?? 0;
       byte textureRotation = applyTextureRotation
-        ? GetTerrainTextureRotation(map.Landscape?.TerrainTextureRotationValues, heightLayer.Width, heightLayer.Height, x, z)
+        ? GetTerrainTextureRotation(map.Landscape?.TerrainTextureRotationValues, heightLayer.Width, heightLayer.Height, x, z, surfaceOverrides)
         : (byte)0;
       cellData.Add(new Vector4(materialId / 255f, featureId / 255f, textureRotation / 3f, wallProjected ? 1f : 0f));
       neighbourMaterialIds.Add(blendNeighbours
@@ -704,7 +712,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         ? map.Landscape.TerrainTintColors[cellIndex]
         : Color.white;
       colors.Add(terrainTint);
-      AddNeighbourTerrainTints(map.Landscape?.TerrainTintColors, map.Landscape?.TerrainTextureRotationValues, heightLayer.Width, heightLayer.Height, x, z, neighbourTintWest, neighbourTintEast, neighbourTintSouth, neighbourTintNorth);
+      AddNeighbourTerrainTints(map.Landscape?.TerrainTintColors, map.Landscape?.TerrainTextureRotationValues, heightLayer.Width, heightLayer.Height, x, z, neighbourTintWest, neighbourTintEast, neighbourTintSouth, neighbourTintNorth, surfaceOverrides);
     }
 
     private static void AddNeighbourTerrainTints(
@@ -717,13 +725,14 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       List<Vector4> west,
       List<Vector4> east,
       List<Vector4> south,
-      List<Vector4> north)
+      List<Vector4> north,
+      S2MTerrainSurfaceOverrides surfaceOverrides = null)
     {
       Color32 baseTint = GetTerrainTint(tintColors, width, height, x, z, Color.white);
-      west.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x - 1, z, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x - 1, z)));
-      east.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x + 1, z, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x + 1, z)));
-      south.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x, z - 1, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x, z - 1)));
-      north.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x, z + 1, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x, z + 1)));
+      west.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x - 1, z, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x - 1, z, surfaceOverrides)));
+      east.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x + 1, z, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x + 1, z, surfaceOverrides)));
+      south.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x, z - 1, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x, z - 1, surfaceOverrides)));
+      north.Add(ToNormalizedColorWithRotation(GetTerrainTint(tintColors, width, height, x, z + 1, baseTint), GetTerrainTextureRotation(rotationValues, width, height, x, z + 1, surfaceOverrides)));
     }
 
     private static Color32 GetTerrainTint(Color32[] tintColors, int width, int height, int x, int z, Color32 fallback)
@@ -740,11 +749,14 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       return new Vector4(color.r / 255f, color.g / 255f, color.b / 255f, rotation / 3f);
     }
 
-    private static byte GetTerrainTextureRotation(byte[] rotationValues, int width, int height, int x, int z)
+    private static byte GetTerrainTextureRotation(byte[] rotationValues, int width, int height, int x, int z,
+      S2MTerrainSurfaceOverrides surfaceOverrides = null)
     {
-      if (rotationValues == null || rotationValues.Length < width * height) return 0;
       x = Math.Max(0, Math.Min(x, width - 1));
       z = Math.Max(0, Math.Min(z, height - 1));
+      if (surfaceOverrides != null && surfaceOverrides.TryGetTextureRotation(z * width + x, out byte rotation))
+        return rotation;
+      if (rotationValues == null || rotationValues.Length < width * height) return 0;
       return (byte)(rotationValues[z * width + x] & 3);
     }
 
@@ -875,6 +887,11 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         throw new ArgumentOutOfRangeException(nameof(settings.CellsPerChunk), "CellsPerChunk must be positive.");
       if (settings.PrimaryHeightCells != null && settings.PrimaryHeightCells.Length != heightLayer.Width * heightLayer.Height)
         throw new ArgumentException("Primary-height mask must match the terrain dimensions.", nameof(settings));
+      if (settings.TerrainCutoutCells != null && settings.TerrainCutoutCells.Length != heightLayer.Width * heightLayer.Height)
+        throw new ArgumentException("Terrain cutout mask must match the terrain dimensions.", nameof(settings));
+      if (settings.SurfaceOverrides != null
+        && (settings.SurfaceOverrides.Width != heightLayer.Width || settings.SurfaceOverrides.Height != heightLayer.Height))
+        throw new ArgumentException("Surface overrides must match the terrain dimensions.", nameof(settings));
     }
   }
 

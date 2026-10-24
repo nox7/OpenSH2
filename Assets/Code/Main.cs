@@ -7,6 +7,7 @@ using Assets.Code.Stronghold2.TerrainRendering;
 using Assets.Code.Video;
 using Assets.Code.Lighting;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Main : MonoBehaviour
 {
@@ -19,7 +20,9 @@ public class Main : MonoBehaviour
   [SerializeField] private float treeModelScale = 0.5f;
 
   [SerializeField] private S2MVegetationRenderSettings vegetationRenderSettings = new();
-  [SerializeField] private S2MKeepRenderSettings keepRenderSettings = new();
+  [FormerlySerializedAs("keepRenderSettings")]
+  [SerializeField] private S2MBuildingRenderSettings buildingRenderSettings = new();
+  [SerializeField] private S2MWallRenderSettings wallRenderSettings = new();
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
@@ -97,46 +100,75 @@ public class Main : MonoBehaviour
   {
     try
     {
+      var loadTimer = System.Diagnostics.Stopwatch.StartNew();
+      double previousStage = 0d;
+      var loadStages = new System.Collections.Generic.List<string>();
+      void RecordStage(string name)
+      {
+        double elapsed = loadTimer.Elapsed.TotalSeconds;
+        loadStages.Add($"{name} {elapsed - previousStage:F3}s");
+        previousStage = elapsed;
+      }
       string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
+      RecordStage("map decoding");
       if (gameScale <= 0f) throw new System.InvalidOperationException("Game scale must be positive.");
       if (!(treeModelScale > 0f) || float.IsInfinity(treeModelScale))
         throw new System.InvalidOperationException("Tree model scale must be finite and positive.");
       S2MBuildingData buildingData = new S2MBuildingAssetLoader().Load(mapFile, gameInstallPath);
+      RecordStage("building assets");
       S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(
-        mapFile, gameInstallPath, buildingData.PrimaryHeightCells);
+        mapFile, gameInstallPath, buildingData.PrimaryHeightCells, buildingData.SurfaceOverrides);
+      RecordStage("terrain textures");
       var mapWorld = new GameObject("S2M Map World");
       mapWorld.transform.SetParent(transform, worldPositionStays: false);
       mapWorld.transform.localScale = Vector3.one * gameScale;
       var terrainSettings = new S2MTerrainSettings
       {
         UsePerCellCornerHeights = true,
-        PrimaryHeightCells = buildingData.PrimaryHeightCells
+        PrimaryHeightCells = buildingData.PrimaryHeightCells,
+        TerrainCutoutCells = buildingData.TerrainCutoutCells,
+        SurfaceOverrides = buildingData.SurfaceOverrides
       };
       GameObject terrain = S2MTerrainRenderer.Render(
         mapFile,
         mapWorld.transform,
         terrainSettings
         );
+      RecordStage("terrain geometry");
       S2MTerrainTextureRenderer.Apply(terrain, terrainTextures, new(){
         AdjacentMaterialBlendWidth = 0.5f
         });
-      S2MBuildingRenderer.Render(buildingData, mapWorld.transform, terrainSettings, keepRenderSettings);
+      RecordStage("terrain materials");
+      S2MBuildingRenderer.Render(buildingData, mapWorld.transform, terrainSettings, buildingRenderSettings);
+      RecordStage("building geometry/materials/colliders");
+      S2MWallRenderer.Render(mapFile, gameInstallPath, mapWorld.transform, terrainSettings, wallRenderSettings);
+      RecordStage("wall geometry/materials/colliders");
       Debug.Log($"Rendered {buildingData.BuildingCount} supported buildings and completed bridges.");
+      var reportedBuildingIssues = new System.Collections.Generic.HashSet<string>();
+      foreach (S2MBuildingAssetIssue issue in buildingData.Issues)
+      {
+        string message = $"{issue.ObjectType}: {issue.Reason}";
+        if (reportedBuildingIssues.Add(message)) Debug.LogWarning(message);
+      }
 
       GameObject water = S2MWaterRenderer.Render(mapFile, mapWorld.transform, new()
       {
         GameInstallPath = gameInstallPath
       });
+      RecordStage("water and diagnostics");
       S2MVegetationData vegetationData = new S2MVegetationAssetLoader().Load(
         mapFile,
         gameInstallPath);
+      RecordStage("vegetation assets");
       GameObject vegetation = S2MVegetationRenderer.Render(
         vegetationData,
         mapWorld.transform,
         vegetationRenderSettings,
         treeModelScale: treeModelScale);
+      RecordStage("vegetation rendering");
+      Debug.Log($"Map loaded in {loadTimer.Elapsed.TotalSeconds:F3}s: {string.Join(", ", loadStages)}.");
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; decoded {mapFile.Forest?.Instances.Count ?? 0} Forest records, rendered {vegetationData.SupportedInstanceCount} trees ({vegetationData.UnsupportedInstanceCount} unsupported records).");
     }

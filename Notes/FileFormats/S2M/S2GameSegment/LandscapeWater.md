@@ -32,7 +32,7 @@ In the current serialization variant, `Landscape` begins with a 12-byte prefix f
 | 1,515,588 | 7 | 65,536 | Water flow-direction byte grid |
 | 1,581,132 | 22 | 524,288 | Unknown |
 | 2,105,428 | 16 | 12 | Unknown |
-| 2,105,448 | 18 | 65,536 | Unknown byte grid |
+| 2,105,448 | 18 | 65,536 | Candidate terrain suppression/cutout byte grid; see [Building terrain cutouts](Buildings/TerrainCutouts.md) |
 | 2,170,992 | 19 | 65,536 | General landscape-feature byte grid |
 | 2,236,536 | 20 | 28,676 | Unknown |
 | 2,265,220 | 25 | 4 | Unknown |

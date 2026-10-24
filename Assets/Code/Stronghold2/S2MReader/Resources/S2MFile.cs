@@ -29,7 +29,10 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public HeightLayer HeightLayer { get; internal set; }
     public Forest Forest { get; internal set; }
     public Bridges Bridges { get; internal set; }
+    /// <summary>Decoded Map tag 14; retains backing stride independently of playable map size.</summary>
+    public WallLayer WallLayer { get; internal set; }
     public IReadOnlyList<Keep> Keeps { get; internal set; } = Array.Empty<Keep>();
+    public IReadOnlyList<BuildingPlacement> BuildingPlacements { get; internal set; } = Array.Empty<BuildingPlacement>();
     /// <summary>Complete zlib payloads in their original S2M file order.</summary>
     public IReadOnlyList<ZLibDecompressedSegment> DecompressedSegments { get; internal set; } = Array.Empty<ZLibDecompressedSegment>();
 
@@ -64,6 +67,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
         Landscape.Heights = CropGrid(Landscape.Heights, width, height, size);
         Landscape.TerrainTintColors = CropGrid(Landscape.TerrainTintColors, width, height, size);
         Landscape.TerrainTextureRotationValues = CropGrid(Landscape.TerrainTextureRotationValues, width, height, size);
+        Landscape.TerrainCutoutValues = CropGrid(Landscape.TerrainCutoutValues, width, height, size);
         WaterLayer water = Landscape.Water;
         if (water != null)
         {

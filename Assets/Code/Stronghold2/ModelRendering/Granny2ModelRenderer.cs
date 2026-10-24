@@ -10,6 +10,23 @@ namespace Assets.Code.Stronghold2.ModelRendering
   /// <summary>Renders already loaded OpenSH2 Granny model data without performing file I/O.</summary>
   public static class Granny2ModelRenderer
   {
+    public static Bounds GetLocalBounds(Granny2ModelData model, float unitScale)
+    {
+      if (model == null) throw new ArgumentNullException(nameof(model));
+      bool hasVertex = false;
+      var bounds = new Bounds();
+      foreach (Granny2MeshData mesh in model.Meshes)
+      {
+        for (int i = 0; i < mesh.VertexData.Length; i += 8)
+        {
+          var vertex = new Vector3(mesh.VertexData[i], mesh.VertexData[i + 2], mesh.VertexData[i + 1]) * unitScale;
+          if (!hasVertex) { bounds = new Bounds(vertex, Vector3.zero); hasVertex = true; }
+          else bounds.Encapsulate(vertex);
+        }
+      }
+      return bounds;
+    }
+
     public static GameObject Render(
       Granny2ModelData model,
       Transform parent = null,
@@ -179,10 +196,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
       string texturePath = ResolveTexturePath(gr2Path, data?.TexturePath);
       if (texturePath != null)
       {
-        Texture2D texture = DdsTextureLoader.Load(texturePath);
+        Texture2D texture = resources.LoadSharedTexture(texturePath);
         if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
         else material.mainTexture = texture;
-        resources.Add(texture);
       }
       if (alphaTest)
       {
@@ -206,7 +222,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       return !textureName.StartsWith("bark", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void ConfigureImportedOpaqueLighting(Material material)
+    internal static void ConfigureImportedOpaqueLighting(Material material)
     {
       // GR2 imports currently supply diffuse textures, not PBR material data.
       // Lit defaults otherwise add a pale specular/reflection layer to bark and
@@ -305,10 +321,19 @@ namespace Assets.Code.Stronghold2.ModelRendering
   internal sealed class Granny2GeneratedModelResources : MonoBehaviour
   {
     private readonly List<UnityEngine.Object> generated = new();
+    private readonly List<string> sharedTextures = new();
     public void Add(UnityEngine.Object value) { if (value != null) generated.Add(value); }
+
+    public Texture2D LoadSharedTexture(string path)
+    {
+      Texture2D texture = Granny2TextureCache.Acquire(path);
+      sharedTextures.Add(path);
+      return texture;
+    }
 
     private void OnDestroy()
     {
+      foreach (string path in sharedTextures) Granny2TextureCache.Release(path);
       foreach (UnityEngine.Object value in generated)
       {
         if (value == null) continue;

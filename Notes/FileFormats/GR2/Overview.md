@@ -46,8 +46,10 @@ dotnet build .\Tools\Granny2MeshConverter\Granny2MeshConverter.csproj -c Release
 
 The Unity-side flow is deliberately split:
 
-1. `Granny2AssetConverter.LoadOrConvert` validates the installation, updates a cached
-   `.osh2mesh` file when necessary, and loads `Granny2ModelData`.
+1. `Granny2AssetConverter.LoadOrConvertMany` validates the installation, updates
+   missing/stale `.osh2mesh` files in one converter process per asset batch, and
+   loads each distinct `Granny2ModelData` once. `LoadOrConvert` wraps this for
+   single-model inspection.
 2. `Granny2ModelRenderer.Render` accepts only already loaded `Granny2ModelData`; it
    performs no GR2 conversion or cache-file I/O.
 3. `Granny2ModelLoaderComponent` and `Granny2ModelRendererComponent` provide the same
@@ -69,6 +71,47 @@ Asset Relative Path: meshes/landscape/tree_1.gr2
 Then assign that loader to a `Granny2ModelRendererComponent`. The loader caches beneath
 `Application.persistentDataPath/OpenSH2/Cache/Meshes`; the renderer creates one Unity
 mesh per GR2 mesh and one submesh per Granny triangle material group.
+
+## Map loading performance
+
+The original implementation launched a separate x86 converter process for every
+uncached GR2. Extending building support increased chapter 8 to 165 distinct
+building assets, so process startup dominated the first load. Rebuilding the
+converter also invalidates the older caches; this explained the editor log's
+176 conversion messages across buildings and vegetation.
+
+Building loaders now gather their asset requests before loading. Ordinary
+buildings, keeps, bridges, and vegetation each convert their stale requests in
+a batch, sharing one Granny DLL load/process per group. A UTF-8 manifest contains
+input/output path pairs. The converter returns one result per asset, so a damaged
+optional model does not discard unrelated successful conversions. Temporary
+manifests/results are removed after the process completes. The single-file CLI
+remains supported.
+
+The cache still checks source GR2, installed Granny DLL, and converter modification
+times. A current cache starts no native process. Missing or stale assets regenerate;
+batching does not bypass invalidation. Conversion logs are summarized per batch
+instead of logging every asset with a Unity stack trace.
+
+Measured on the local `war_chapter8.s2m` with the real asset loaders and native
+converter, using separate empty directories for the before/after runs:
+
+| Building asset load | Before | After |
+|---|---:|---:|
+| Empty cache | 63.962 s / 165 processes | 1.899 s / 3 processes |
+| Current cache | 0.078 s / 0 processes | 0.083 s / 0 processes |
+
+Both versions return 243 supported buildings/bridge spans and the same five
+reported issues. All 165 generated mesh caches are byte-for-byte identical.
+These measurements exclude Unity texture upload, mesh construction, physics,
+terrain and vegetation rendering; they are not full Play-mode timings.
+`Main.RunTests` now logs total map load time and separate stage times for map
+decoding, building assets, terrain textures/geometry/materials, building rendering,
+water/diagnostics, and vegetation assets/rendering.
+
+Regression checks also cover mixed valid/invalid/missing assets, path validation,
+case-insensitive deduplication, paths with spaces/Unicode, warm cache reuse,
+stale-cache regeneration and temporary-file cleanup.
 
 ## Verified `tree_1.gr2` result
 

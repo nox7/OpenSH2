@@ -31,3 +31,6 @@ The current terrain-texture selector and tint evidence is documented in [Terrain
 
 Placed landscape records and the demand-loaded GR2 rendering path are documented in
 [Forest vegetation and Unity rendering](./Vegetation.md).
+
+The candidate wall placement grid in `Map` tag 14, including the likely wooden
+fortification flag, is documented in [Wall placement investigation](./Walls.md).

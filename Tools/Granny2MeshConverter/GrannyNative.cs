@@ -62,7 +62,8 @@ namespace OpenSH2.Granny2MeshConverter
         for (int i = 0; i < info.MeshCount; i++)
         {
           IntPtr meshPointer = Marshal.ReadIntPtr(info.Meshes, i * IntPtr.Size);
-          model.Meshes.Add(ReadMesh(meshPointer));
+          GrannyMesh mesh = ReadMesh(meshPointer);
+          if (mesh != null) model.Meshes.Add(mesh);
         }
         return model;
       }
@@ -83,6 +84,11 @@ namespace OpenSH2.Granny2MeshConverter
       ValidateCount(vertexCount, "vertex");
       ValidateCount(indexCount, "index");
       ValidateCount(groupCount, "triangle group");
+      // Exported helpers/empty submeshes can have no topology and report zero
+      // bytes per index. They do not invalidate the drawable meshes in the file.
+      if (indexCount == 0) return null;
+      if (vertexCount == 0 || indexCount % 3 != 0)
+        throw new InvalidDataException("A Granny drawable mesh has invalid vertex/triangle counts.");
       if (sourceIndexSize != 2 && sourceIndexSize != 4)
         throw new InvalidDataException($"Unsupported Granny index size {sourceIndexSize}.");
 

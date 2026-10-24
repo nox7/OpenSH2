@@ -8,9 +8,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
   /// <summary>Applies already loaded terrain DDS assets to an already generated terrain mesh.</summary>
   public static class S2MTerrainTextureRenderer
   {
-    private const int FirstMaterialId = 0x08;
-    private const int CliffFaceMaterialId = 0x27;
-    private const int MaterialCount = 25;
+    private const int MaterialCount = S2MTerrainTextureAssetCatalog.TextureArraySliceCount;
 
     public static void Apply(
       GameObject terrainRoot,
@@ -75,7 +73,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       };
       for (int slice = 0; slice < MaterialCount; slice++)
       {
-        byte materialId = slice < 24 ? (byte)(FirstMaterialId + slice) : (byte)CliffFaceMaterialId;
+        byte materialId = S2MTerrainTextureAssetCatalog.GetMaterialIdForSlice(slice);
         if (textures.TryGetValue(materialId, out Texture2D texture))
           array.SetPixels32(Resample(texture, width, height), slice);
         else

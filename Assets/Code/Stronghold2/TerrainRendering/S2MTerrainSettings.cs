@@ -1,4 +1,5 @@
 using System;
+using Assets.Code.Stronghold2.S2MReader.Resources;
 using UnityEngine;
 
 namespace Assets.Code.Stronghold2.TerrainRendering
@@ -39,6 +40,15 @@ namespace Assets.Code.Stronghold2.TerrainRendering
     /// Indexed z * width + x.
     /// </summary>
     [NonSerialized] public bool[] PrimaryHeightCells;
+
+    /// <summary>
+    /// Runtime mask of cells to omit from terrain geometry and its mesh collider.
+    /// Supply the building loader's authorized cutouts, not the raw saved grid.
+    /// Indexed z * width + x before axis flips; source heights remain intact.
+    /// </summary>
+    [NonSerialized] public bool[] TerrainCutoutCells;
+    /// <summary>Building-owned material and orientation overlays, separate from the source terrain.</summary>
+    [NonSerialized] public S2MTerrainSurfaceOverrides SurfaceOverrides;
 
   }
 }

@@ -88,6 +88,48 @@ The controlled water probes identify one use for plane 1. Painting water on heig
 
 `HeightLayer.CornerHeightPlanes[plane]` preserves the three planes in file order. Use `GetCornerHeight(plane, cellIndex, corner)` for checked access.
 
+## Building ground versus walking surfaces
+
+There is no decoded universal renderable/walkable flag. In building footprints,
+the primary `Heights` grid retains underlying ground, while corner plane 0 can
+contain raised building floors, stairs, and platforms. Outside those footprints,
+plane 0 also carries real terrain details and waterbed corners, so replacing it
+globally with the primary grid would be incorrect.
+
+Chapter 8 has three `StoneBarracks` objects with 6x5 rotated footprints. All their
+primary ground samples are 0; their plane-0 corners reach 3427.1875 or 4298.4 raw
+units. Those elevations belong to the absent building surfaces, not visible earth.
+Rendering them as terrain leaves elevated patches without ground underneath.
+
+The shared inherited Building block supplies a model transform and rotated
+footprint independently of whether a concrete building's assets/gameplay fields
+have been decoded. `S2MFile.BuildingPlacements` retains this common metadata for
+246 objects in chapter 8, including the barracks. Concrete unsupported objects
+remain `RawS2Object` with complete payloads.
+
+`S2MBuildingAssetLoader` derives `PrimaryHeightCells` from these placed-building
+footprints plus supported bridge spans. Terrain geometry and slope materials use
+the primary grid there, even when the building has no visual model yet. This
+selection is generated render data, not a Boolean field recovered from S2M.
+Original height arrays and raw bytes are unchanged. Future navigation must use
+the preserved surface data and still-undecoded connectivity/occupancy rules;
+the generated Unity terrain chunks are not a complete walkability model.
+
+### Underground building geometry
+
+Gong pits, saw pits and the eel pond do not contain a lowered excavation in the
+decoded HeightLayer samples at their positions. All 77 target placements with a
+decoded HeightLayer have primary and plane-0 heights at placement level across
+their footprints. A separate Landscape tag-18 byte grid marks the corresponding
+pit cells, including only two cells of larger four-cell saw-pit reservations.
+This is a high-confidence terrain cutout candidate rather than a height plane.
+The renderer now omits saved cutout cells only inside loaded building footprints;
+source heights and walking surfaces remain unchanged.
+The controlled bakery placement changes one tag-18 cell while leaving Landscape
+heights and all four HeightLayer planes unchanged. See
+[Building terrain cutouts](Buildings/TerrainCutouts.md) for measurements, limits
+and the distinction between saved suppression data and `PrimaryHeightCells`.
+
 ## Logical map size versus serialized grid
 
 Maps whose header says `mapsize = 128` still serialize the same 65,536 primary values and three 65,536-cell corner planes. Radar and estate grids are also 256x256 in those samples. `mapsize` therefore describes the usable map extent or map class rather than the serialized backing-grid dimensions.
