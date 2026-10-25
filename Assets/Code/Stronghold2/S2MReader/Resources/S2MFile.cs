@@ -33,6 +33,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public SceneryLayer Rocks { get; internal set; }
     public SceneryLayer NaturalStone { get; internal set; }
     public IReadOnlyList<PlantActor> PlantActors { get; internal set; } = Array.Empty<PlantActor>();
+    public IReadOnlyList<ActorPlacement> Actors { get; internal set; } = Array.Empty<ActorPlacement>();
     public Bridges Bridges { get; internal set; }
     /// <summary>Decoded Map tag 14; retains backing stride independently of playable map size.</summary>
     public WallLayer WallLayer { get; internal set; }

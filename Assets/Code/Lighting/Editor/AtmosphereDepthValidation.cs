@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -75,12 +76,28 @@ namespace Assets.Code.Lighting.Editor
         terrainTexture.Apply();
         resources.Add(terrainTexture);
 
-        foreach (string shaderName in new[] { "OpenSH2/Stronghold 2 Foliage", "OpenSH2/Stronghold 2 Terrain" })
+        // Synthetic actor skin translates the card; all geometry passes must skin identically.
+        mesh.SetUVs(1, Enumerable.Repeat(Vector4.zero, mesh.vertexCount).ToList());
+        mesh.SetUVs(2, Enumerable.Repeat(new Vector4(1, 0, 0, 0), mesh.vertexCount).ToList());
+        var poses = new Texture2D(4, 2, TextureFormat.RGBAFloat, false, true) { filterMode = FilterMode.Point };
+        poses.SetPixels(Enumerable.Range(0, 8).Select(i => i % 4 == 0 ? new Color(1,0,0,0)
+          : i % 4 == 1 ? new Color(0,1,0,0) : i % 4 == 2 ? new Color(0,0,1,0) : new Color(.05f,0,0,1)).ToArray());
+        poses.Apply(); resources.Add(poses);
+        foreach (string shaderName in new[] { "OpenSH2/Stronghold 2 Foliage", "OpenSH2/Stronghold 2 Terrain", "OpenSH2/Instanced Actor" })
         {
           Shader shader = Shader.Find(shaderName);
           if (shader == null) throw new Exception("Missing shader " + shaderName);
           var material = new Material(shader);
           resources.Add(material);
+          material.enableInstancing = true;
+          bool actor = shaderName.Contains("Actor");
+          if (shaderName.Contains("Foliage")) material.EnableKeyword("_ALPHATEST_ON");
+          if (actor)
+          {
+            material.SetTexture("_ActorPoses", poses);
+            material.SetVector("_ActorClip", new Vector4(1,2,1,1));
+            material.SetFloat("_AlphaClip", 1);
+          }
           if (material.FindPass("DepthNormals") < 0) throw new Exception(shaderName + " has no DepthNormals pass");
           if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", mask);
           if (material.HasProperty("_TerrainTextureArray")) material.SetTexture("_TerrainTextureArray", terrainTexture);
@@ -105,7 +122,7 @@ namespace Assets.Code.Lighting.Editor
               // Negative control: prove fog ran, rather than silently skipping the effect.
               if (mode.Fog && actual[128 * 256 + 12].r < 0.5f)
                 throw new Exception("Fog background control failed; the atmosphere pass may not be running.");
-              if (mode.Fog && orthographic && shaderName.Contains("Foliage") && actual[128 * 256 + 60].r < 0.5f)
+              if (mode.Fog && orthographic && (shaderName.Contains("Foliage") || actor) && actual[128 * 256 + 60].r < 0.5f)
                 throw new Exception("Foliage alpha holes incorrectly wrote depth.");
             }
           }
@@ -116,6 +133,22 @@ namespace Assets.Code.Lighting.Editor
           if (missingDepth[128 * 256 + 128].r < 0.5f)
             throw new Exception("Missing-depth negative control failed; check that PC SSAO uses DepthNormals.");
           Debug.Log("PASS atmosphere preserves nearby opaque coverage: " + shaderName);
+          if (actor)
+          {
+            // A white actor must respond to the PC renderer's clustered main light.
+            material.SetFloat("_AlphaClip", 0);
+            material.SetTexture("_BaseMap", Texture2D.whiteTexture);
+            settings.AmbientIntensity = 0;
+            settings.SunAzimuth = 180;
+            settings.SunColor = Constant(Color.white);
+            controller.TimeOfDay = 15;
+            Color white = Render(camera, controller, target, readback, false, false)[128 * 256 + 128];
+            settings.SunColor = Constant(new Color(1, .3f, .1f));
+            Color warm = Render(camera, controller, target, readback, false, false)[128 * 256 + 128];
+            if (white.r < .05f || white.g < .05f || white.b < .05f || warm.r < warm.g * 2 || warm.g < warm.b * 2)
+              throw new Exception($"Actor sunlight failed: white={white}, warm={warm}");
+            Debug.Log($"PASS actor clustered sunlight: white={white}, warm={warm}");
+          }
         }
         Debug.Log("PASS atmosphere depth regression: SSAO, terrain, cutout foliage, perspective/orthographic, fog/rays/both.");
       }

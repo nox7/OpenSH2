@@ -43,10 +43,15 @@ public class Main : MonoBehaviour
   [Tooltip("Size multiplier for apple trees, hops and wheat. Apple trees also retain Tree Model Scale. Keeps plant positions fixed. Applied when the map loads.")]
   [SerializeField] private float cropModelScale = 1f;
 
+  [Min(0.0001f)]
+  [Tooltip("Size multiplier for placed units, NPCs and animals, including their equipment and vehicle parts. Keeps map placement anchors fixed. Applied when the map loads.")]
+  [SerializeField] private float unitModelScale = 1f;
+
   [SerializeField] private S2MVegetationRenderSettings vegetationRenderSettings = new();
   [FormerlySerializedAs("keepRenderSettings")]
   [SerializeField] private S2MBuildingRenderSettings buildingRenderSettings = new();
   [SerializeField] private S2MWallRenderSettings wallRenderSettings = new();
+  [SerializeField] private S2MActorRenderSettings actorRenderSettings = new();
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
@@ -120,7 +125,7 @@ public class Main : MonoBehaviour
     }
   }
 
-  private void RunTests()
+  private async void RunTests()
   {
     try
     {
@@ -200,6 +205,13 @@ public class Main : MonoBehaviour
         modelScales: sceneryScales,
         naturalStoneTextureBrightness: naturalStoneTextureBrightness);
       RecordStage("vegetation rendering");
+      S2MActorData actorData = await new S2MActorAssetLoader().LoadAsync(mapFile, gameInstallPath,
+        actorRenderSettings.Overrides, actorRenderSettings.AnimationSamplesPerSecond);
+      if (this == null || mapWorld == null) return;
+      S2MActorRenderer.Render(actorData, mapWorld.transform, terrainSettings, actorRenderSettings, unitModelScale);
+      RecordStage("placed actors and animations");
+      Debug.Log($"Rendered {actorData.PlacedCount}/{mapFile.Actors.Count} placed actors ({actorData.InactiveCount} inactive).");
+      foreach (string issue in actorData.Issues) Debug.LogWarning("Actor: " + issue);
       Debug.Log($"Map loaded in {loadTimer.Elapsed.TotalSeconds:F3}s: {string.Join(", ", loadStages)}.");
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; rendered {vegetationData.SupportedInstanceCount} scenery placements including {vegetationData.Grass.Count} grass cards ({vegetationData.InactiveInstanceCount} inactive, {vegetationData.UnsupportedInstanceCount} unsupported records).");

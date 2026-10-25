@@ -101,6 +101,7 @@ namespace Assets.Code.Stronghold2.S2MReader
 
       MapFile.Keeps = keeps;
       MapFile.PlantActors = PlantActorReader.ReadAll(MapFile.S2GameObjects);
+      MapFile.Actors = ActorPlacementReader.ReadAll(MapFile.S2GameObjects);
       MapFile.BuildingPlacements = BuildingPlacementReader.ReadAll(MapFile.S2GameObjects);
       MapFile.ApplyPlayableTerrainSize();
       return MapFile;

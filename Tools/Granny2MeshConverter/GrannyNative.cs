@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace OpenSH2.Granny2MeshConverter
 {
-  internal sealed class GrannyNative : IDisposable
+  internal sealed partial class GrannyNative : IDisposable
   {
     private const int FloatsPerVertex = 8;
     private readonly IntPtr library;

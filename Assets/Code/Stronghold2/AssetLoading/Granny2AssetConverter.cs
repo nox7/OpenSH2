@@ -102,14 +102,14 @@ namespace Assets.Code.Stronghold2.AssetLoading
     private static bool IsAssetError(Exception exception) => exception is IOException
       || exception is InvalidDataException || exception is ArgumentException || exception is InvalidOperationException;
 
-    private static void ConvertBatch(string converterPath, string gameRoot, string manifestPath, string resultsPath)
+    internal static void ConvertBatch(string converterPath, string gameRoot, string manifestPath, string resultsPath, string batchOption = "--batch")
     {
       using var process = new Process
       {
         StartInfo = new ProcessStartInfo
         {
           FileName = converterPath,
-          Arguments = $"--game-path {Quote(gameRoot)} --batch {Quote(manifestPath)} --results {Quote(resultsPath)}",
+          Arguments = $"--game-path {Quote(gameRoot)} {batchOption} {Quote(manifestPath)} --results {Quote(resultsPath)}",
           UseShellExecute = false,
           CreateNoWindow = true,
           RedirectStandardOutput = true,

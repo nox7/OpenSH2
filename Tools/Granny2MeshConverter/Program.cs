@@ -16,6 +16,25 @@ namespace OpenSH2.Granny2MeshConverter
         Stronghold2Installation installation = Stronghold2Installation.Validate(gamePath);
         using (var granny = new GrannyNative(installation.GrannyDllPath))
         {
+          if (options.TryGetValue("--actor-batch", out string actorManifest))
+          {
+            string[] lines = File.ReadAllLines(actorManifest, Encoding.UTF8);
+            if (lines.Length % 4 != 0) throw new InvalidDataException("Invalid actor manifest.");
+            var errors = new string[lines.Length / 4];
+            for (int i = 0; i < errors.Length; i++)
+            {
+              try
+              {
+                Console.Error.WriteLine("Sampling " + lines[i * 4] + " with " + lines[i * 4 + 1]);
+                granny.ExportActor(installation.ValidateAssetPath(lines[i * 4], ".gr2"),
+                  installation.ValidateAssetPath(lines[i * 4 + 1], ".gr2"), lines[i * 4 + 2], int.Parse(lines[i * 4 + 3]));
+                errors[i] = string.Empty;
+              }
+              catch (Exception e) { errors[i] = Convert.ToBase64String(Encoding.UTF8.GetBytes(e.Message)); }
+            }
+            File.WriteAllLines(GetRequired(options, "--results"), errors, Encoding.UTF8);
+            return 0;
+          }
           if (options.TryGetValue("--inspect-animations", out string inspectManifest))
           {
             foreach (string path in File.ReadAllLines(inspectManifest))
