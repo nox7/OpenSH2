@@ -94,12 +94,11 @@ namespace Assets.Code.Stronghold2.AssetLoading
       return Task.Run(() => Load(map, installation, overrides, samplesPerSecond, converter, cache));
     }
 
-    private static readonly object ConversionGate = new();
     public S2MActorData Load(S2MFile map, string installation, IEnumerable<S2MActorOverride> overrides = null,
       int samplesPerSecond = 15, string converterPath = null, string cacheDirectory = null)
     {
       // Prevent concurrent loaders from writing the same native cache temporary file.
-      lock (ConversionGate) return LoadCore(map, installation, overrides, samplesPerSecond, converterPath, cacheDirectory);
+      lock (Granny2AnimationAssetLoader.ConversionGate) return LoadCore(map, installation, overrides, samplesPerSecond, converterPath, cacheDirectory);
     }
 
     private S2MActorData LoadCore(S2MFile map, string installation, IEnumerable<S2MActorOverride> overrides,
@@ -137,51 +136,22 @@ namespace Assets.Code.Stronghold2.AssetLoading
       using (var sha = SHA256.Create()) installationKey = BitConverter.ToString(sha.ComputeHash(
         Encoding.UTF8.GetBytes(Path.GetFullPath(installation).ToUpperInvariant())), 0, 8).Replace("-", "");
       var models = Granny2AssetConverter.LoadOrConvertMany(installation, paths, converterPath, Path.Combine(cacheDirectory, "Meshes", installationKey));
-      var manifest = new List<string>(); var pending = new List<string>();
-      var caches = new Dictionary<string, string>();
+      var requests = new List<Granny2AnimationRequest>();
+      foreach (var batch in batches.Values)
+        if (models[batch.Asset.ModelPath].Error == null)
+          requests.Add(new Granny2AnimationRequest(batch.Asset.ModelPath, batch.Asset.AnimationPath));
+      var motions = Granny2AnimationAssetLoader.LoadOrConvertMany(installation, requests, samplesPerSecond, converterPath, cacheDirectory);
+      var loadedIds = new HashSet<int>();
       foreach (var pair in batches)
       {
-        var asset = pair.Value.Asset;
-        if (models[asset.ModelPath].Error != null) { issues.Add(asset.ModelPath + ": " + models[asset.ModelPath].Error.Message); continue; }
-        string source = catalog.SafePath(asset.ModelPath), clip = catalog.SafePath(asset.AnimationPath);
-        // Include installation identity, source timestamps, sampler version and sampling rate.
-        string identity = source + "|" + File.GetLastWriteTimeUtc(source).Ticks + "|" + clip + "|" + File.GetLastWriteTimeUtc(clip).Ticks
-          + "|" + File.GetLastWriteTimeUtc(converterPath).Ticks + "|" + File.GetLastWriteTimeUtc(Path.Combine(installation, "granny2.dll")).Ticks + "|v2|" + samplesPerSecond;
-        using var sha = SHA256.Create();
-        string key = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(identity))).Replace("-", "");
-        string cache = Path.Combine(cacheDirectory, key + ".osh2actor");
-        caches[pair.Key] = cache;
-        if (!File.Exists(cache)) { manifest.Add(source); manifest.Add(clip); manifest.Add(cache); manifest.Add(samplesPerSecond.ToString()); pending.Add(pair.Key); }
-      }
-      if (pending.Count > 0)
-      {
-        string file = Path.Combine(cacheDirectory, Guid.NewGuid().ToString("N") + ".batch"), errors = file + ".results";
         try
         {
-          File.WriteAllLines(file, manifest, Encoding.UTF8);
-          Granny2AssetConverter.ConvertBatch(converterPath, installation, file, errors, "--actor-batch");
-          string[] lines = File.ReadAllLines(errors, Encoding.UTF8);
-          if (lines.Length != pending.Count) throw new InvalidDataException("Incomplete actor conversion results.");
-          for (int i = 0; i < lines.Length; i++) if (lines[i].Length > 0)
-          { issues.Add(pending[i] + ": " + Encoding.UTF8.GetString(Convert.FromBase64String(lines[i]))); caches.Remove(pending[i]); }
-        }
-        catch (Exception e) when (e is InvalidDataException || e is TimeoutException)
-        {
-          // Completed caches survive a native-process failure. Missing ones become individual issues below.
-          issues.Add("Actor conversion: " + e.Message);
-        }
-        finally { if (File.Exists(file)) File.Delete(file); if (File.Exists(errors)) File.Delete(errors); }
-      }
-      var loadedIds = new HashSet<int>();
-      var loadedMotions = new Dictionary<string, Granny2ActorMotion>(StringComparer.OrdinalIgnoreCase);
-      foreach (var pair in caches)
-      {
-        try
-        {
-          var batch = batches[pair.Key];
-          batch.Model = models[batch.Asset.ModelPath].Model;
-          if (!loadedMotions.TryGetValue(pair.Value, out var motion)) loadedMotions[pair.Value] = motion = Granny2ActorMotion.Read(pair.Value);
-          batch.Motion = motion;
+          var batch = pair.Value;
+          var modelResult = models[batch.Asset.ModelPath];
+          if (modelResult.Error != null) throw new InvalidDataException(modelResult.Error.Message, modelResult.Error);
+          var animation = motions[new Granny2AnimationRequest(batch.Asset.ModelPath, batch.Asset.AnimationPath).Key];
+          if (animation.Error != null) throw new InvalidDataException(animation.Error.Message, animation.Error);
+          batch.Model = modelResult.Model; batch.Motion = animation.Motion;
           foreach (var attachment in batch.Asset.Attachments)
           {
             var model = models[attachment.ModelPath];

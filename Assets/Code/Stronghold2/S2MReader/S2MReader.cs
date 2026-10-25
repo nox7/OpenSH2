@@ -102,6 +102,14 @@ namespace Assets.Code.Stronghold2.S2MReader
       MapFile.Keeps = keeps;
       MapFile.PlantActors = PlantActorReader.ReadAll(MapFile.S2GameObjects);
       MapFile.Actors = ActorPlacementReader.ReadAll(MapFile.S2GameObjects);
+      foreach (ActorPlacement actor in MapFile.Actors)
+      {
+        // Campaign editor placements acquire mounts at player adoption. Wall/tower
+        // placements stay on foot. Do not reinterpret an already initialized save.
+        actor.MountAtMapStart = MapFile.MapType == Enums.MapType.WarCampaign && actor.Type == "Knight"
+          && actor.HasKnightState && actor.PlacedType == 71 && actor.PendingPlayer > 0
+          && actor.OnMap && actor.SavedWalkingClass == 0 && !actor.SavedMounted;
+      }
       MapFile.BuildingPlacements = BuildingPlacementReader.ReadAll(MapFile.S2GameObjects);
       MapFile.ApplyPlayableTerrainSize();
       return MapFile;

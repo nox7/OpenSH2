@@ -70,13 +70,13 @@ namespace Assets.Code.Stronghold2.AssetLoading
   {
     private readonly S2MPlacedBuildingAssetLoader placedLoader = new();
     public S2MBuildingData Load(S2MFile map, string gameInstallPath,
-      string converterPath = null, string cacheDirectory = null)
+      string converterPath = null, string cacheDirectory = null, S2MBuildingAnimationSettings animationSettings = null)
     {
       if (map == null) throw new ArgumentNullException(nameof(map));
       S2MKeepData keeps = new S2MKeepAssetLoader().Load(map, gameInstallPath, converterPath, cacheDirectory);
       S2MBridgeData bridges = new S2MBridgeAssetLoader().Load(map, gameInstallPath, converterPath, cacheDirectory);
       var issues = new List<S2MBuildingAssetIssue>();
-      IReadOnlyList<S2MPlacedBuildingBatch> batches = placedLoader.Load(map, gameInstallPath, converterPath, cacheDirectory, issues);
+      IReadOnlyList<S2MPlacedBuildingBatch> batches = placedLoader.Load(map, gameInstallPath, converterPath, cacheDirectory, issues, animationSettings);
       S2MTerrainSurfaceOverrides surfaceOverrides = S2MBuildingSurfacePatchLoader.Load(map, batches, issues);
       int generalCount = 0;
       foreach (S2MPlacedBuildingBatch batch in batches) generalCount += batch.Placements.Count;

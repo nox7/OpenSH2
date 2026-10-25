@@ -26,7 +26,23 @@ public static class ActorRenderValidation
       Check(map.Actors.Count == 792, "Chapter 8 actor decoding failed");
       Check(map.Actors.Count(a => a.Type == "Archer") == 278, "Lost archers");
       Check(map.Actors.Any(a => a.Type == "Dog") && map.Actors.Any(a => a.Type == "Sheep"), "Lost animals");
+      Check(map.Actors.Count(a => a.Type == "Knight" && a.HasKnightState) == 60, "Knight section decoding failed");
+      Check(map.Actors.Count(a => a.Type == "Knight" && a.SavedMounted) == 0, "Chapter 8 raw mount flags changed");
+      Check(map.Actors.Count(a => a.Type == "Knight" && a.MountAtMapStart) == 54, "Campaign startup mount classification failed");
+      Check(map.Actors.Count(a => a.Type == "Knight" && !a.IsMounted) == 6, "Elevated knights should remain on foot");
+      Check(map.Actors.Where(a => a.Type == "Knight" && a.MountAtMapStart).All(a => a.SavedWalkingClass == 0), "Startup mounted a knight outside open walking space");
+      Check(map.Actors.Where(a => a.Type == "Knight" && !a.IsMounted).All(a => a.SavedWalkingClass == 5), "Expected six walkway knights");
       var catalog = new S2MActorCatalog(Install);
+      var footKnight = map.Actors.First(a => a.Type == "Knight" && !a.IsMounted);
+      var mountedKnight = map.Actors.First(a => a.Type == "Knight" && a.IsMounted);
+      Check(catalog.ResolveParts(footKnight).Count == 1, "Foot knight received a horse");
+      Check(catalog.ResolveParts(mountedKnight).Count == 2, "Mounted knight lost horse (state cache collision)");
+      Check(catalog.Resolve(mountedKnight).AnimationPath.Contains("knight_horseback_idle"), "Mounted rider clip selection failed");
+      Check(catalog.Resolve(mountedKnight).Attachments.Count > 0, "Mounted equipment omitted");
+      var explicitMount = new ActorPlacement(); Set(explicitMount, "Type", "Knight"); Set(explicitMount, "SavedMounted", true);
+      Set(explicitMount, "AnimationId", 461); Set(explicitMount, "NavigationLayer", (byte)1);
+      var walkingMount = catalog.ResolveParts(explicitMount);
+      Check(walkingMount[0].AnimationPath.Contains("knight_horseback_walk") && walkingMount[1].AnimationPath.Contains("horse_knight_walk"), "Saved mounted walking pair failed");
       var dog = new ActorPlacement(); Set(dog, "Type", "Dog"); Set(dog, "AnimationId", 18);
       Check(catalog.Resolve(dog).AnimationPath.EndsWith("hunters_dog_idle.GR2", StringComparison.OrdinalIgnoreCase), "Animal action number interpreted as AML row");
       var timer = System.Diagnostics.Stopwatch.StartNew();
@@ -57,23 +73,25 @@ public static class ActorRenderValidation
         int stride = batch.Motion.Bones * 16;
         if (!batch.Asset.HoldPose) Check(batch.Motion.Matrices.Take(stride).Where((v,i) => Math.Abs(v - batch.Motion.Matrices[stride * (batch.Motion.Frames / 2) + i]) > .0001).Any(), "Static animation export");
       }
-      // Draw a real posed archer to exercise the vertex texture shader on the GPU.
+      // Draw mounted and dismounted knights at their shared authored origins.
       var cameraObject = new GameObject("Actor validation camera"); var camera = cameraObject.AddComponent<Camera>();
-      camera.transform.position = new Vector3(3, 2, 4); camera.transform.LookAt(new Vector3(0, 1, 0));
+      camera.transform.position = new Vector3(5, 3, 7); camera.transform.LookAt(new Vector3(0, 1.5f, 0));
       camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.15f,.18f,.2f);
       var light = new GameObject("Sun").AddComponent<Light>(); light.type = LightType.Directional; light.shadows = LightShadows.Soft; light.transform.rotation = Quaternion.Euler(45, -25, 0);
       RenderSettings.ambientMode = AmbientMode.Flat; RenderSettings.ambientLight = Color.gray;
       foreach (var a in map.Actors) renderer.SetTransform(a.Id, new Vector3(10000,0,10000), Quaternion.identity, Vector3.one);
-      var archer = map.Actors.First(a => a.Type == "Archer"); renderer.SetTransform(archer.Id, Vector3.zero, Quaternion.Euler(0,180,0), Vector3.one);
+      renderer.SetTransform(mountedKnight.Id, new Vector3(-1.5f,0,0), Quaternion.Euler(0,180,0), Vector3.one);
+      renderer.SetTransform(footKnight.Id, new Vector3(1.5f,0,0), Quaternion.Euler(0,180,0), Vector3.one);
+      renderer.SetPlayback(mountedKnight.Id, 0); renderer.SetPlayback(footKnight.Id, 0);
       var target = new RenderTexture(640,640,24); camera.targetTexture = target;
       typeof(S2MActorRenderer).GetMethod("LateUpdate", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(renderer, null);
       camera.Render();
       RenderTexture.active = target;
       var image = new Texture2D(640,640,TextureFormat.RGB24,false); image.ReadPixels(new Rect(0,0,640,640),0,0); image.Apply();
-      File.WriteAllBytes(Output + "/archer.png", image.EncodeToPNG());
+      File.WriteAllBytes(Output + "/knights.png", image.EncodeToPNG());
       RenderTexture.active = null; camera.targetTexture = null;
       foreach (var error in ShaderUtil.GetShaderMessages(shader)) Check(error.severity != UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error, error.message);
-      File.WriteAllText(Output + "/pass.txt", $"PASS: {data.PlacedCount} actors in {renderer.DrawBatchCount} spatial batches; {renderer.GetComponentsInChildren<Transform>(true).Length} transforms; native pose sampling, skin weights, shader, playback, map coverage.");
+      File.WriteAllText(Output + "/pass.txt", $"PASS: {data.PlacedCount} actors in {renderer.DrawBatchCount} spatial batches; {renderer.GetComponentsInChildren<Transform>(true).Length} transforms; native pose sampling, skin weights, shader, playback, map coverage; 54 mounted / 6 foot knights.");
       var generatedMesh = renderer.GetComponentInChildren<MeshFilter>(true).sharedMesh;
       var generatedMaterial = renderer.GetComponentInChildren<MeshRenderer>(true).sharedMaterial;
       var generatedPose = generatedMaterial.GetTexture("_ActorPoses");

@@ -151,7 +151,7 @@ public class Main : MonoBehaviour
         NaturalStone = naturalStoneModelScale, Grass = grassModelScale, Crops = cropModelScale
       };
       sceneryScales.Validate();
-      S2MBuildingData buildingData = new S2MBuildingAssetLoader().Load(mapFile, gameInstallPath);
+      S2MBuildingData buildingData = new S2MBuildingAssetLoader().Load(mapFile, gameInstallPath, animationSettings: buildingRenderSettings.AmbientAnimations);
       RecordStage("building assets");
       S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(
         mapFile, gameInstallPath, buildingData.PrimaryHeightCells, buildingData.SurfaceOverrides);

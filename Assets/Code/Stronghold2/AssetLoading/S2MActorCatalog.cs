@@ -14,6 +14,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public string DefinitionPath;
     public string ModelPath;
     public string AnimationPath;
+    public string AnimationAction;
+    public bool SynchronizedPlayback;
     public float Scale = 1;
     public Vector3 LocalOffset;
     public Vector3 LocalEulerAngles;
@@ -44,6 +46,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public string Action { get; internal set; }
     public float Scale { get; internal set; } = 1;
     public bool HoldPose { get; internal set; }
+    public bool SynchronizedPlayback { get; internal set; }
     public Vector3 LocalOffset { get; internal set; }
     public Vector3 LocalEulerAngles { get; internal set; }
     public List<S2MActorAttachment> Attachments { get; } = new();
@@ -57,8 +60,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
     private readonly Dictionary<string, string> definitions = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, S2MActorOverride> overrides = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Definition> parsed = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<(string type, int animation), S2MActorAsset> resolved = new();
-    private readonly Dictionary<(string type, int animation), IReadOnlyList<S2MActorAsset>> assemblies = new();
+    private readonly Dictionary<(string type, int animation, bool mounted), S2MActorAsset> resolved = new();
+    private readonly Dictionary<(string type, int animation, bool mounted), IReadOnlyList<S2MActorAsset>> assemblies = new();
     private readonly Dictionary<string, ClipEntry> animations = new(StringComparer.OrdinalIgnoreCase);
     private static readonly string[] Families = { "child", "teenager", "worker", "soldier", "hero" };
     private static readonly Dictionary<string, string> Aliases = new(StringComparer.OrdinalIgnoreCase)
@@ -101,27 +104,73 @@ namespace Assets.Code.Stronghold2.AssetLoading
 
     public S2MActorAsset Resolve(ActorPlacement actor)
     {
-      if (resolved.TryGetValue((actor.Type, actor.AnimationId), out var cached)) return cached;
-      overrides.TryGetValue(actor.Type, out var custom);
+      if (resolved.TryGetValue((actor.Type, actor.AnimationId, actor.IsMounted), out var cached)) return cached;
+      var custom = OverrideFor(actor);
       var asset = ResolveCore(actor, custom);
-      resolved[(actor.Type, actor.AnimationId)] = asset;
+      resolved[(actor.Type, actor.AnimationId, actor.IsMounted)] = asset;
       return asset;
     }
 
     public IReadOnlyList<S2MActorAsset> ResolveParts(ActorPlacement actor)
     {
-      if (assemblies.TryGetValue((actor.Type, actor.AnimationId), out var cached)) return cached;
+      if (assemblies.TryGetValue((actor.Type, actor.AnimationId, actor.IsMounted), out var cached)) return cached;
       var parts = new List<S2MActorAsset> { Resolve(actor) };
-      if (overrides.TryGetValue(actor.Type, out var custom) && custom.Parts != null)
+      var custom = OverrideFor(actor);
+      if (custom?.Parts != null)
         for (int i = 0; i < custom.Parts.Length; i++)
         {
           if (custom.Parts[i] == null) continue;
           var part = ResolveCore(actor, custom.Parts[i]); part.Key += "|" + actor.Type + ":part:" + i;
           parts.Add(part);
         }
-      assemblies[(actor.Type, actor.AnimationId)] = parts;
+      assemblies[(actor.Type, actor.AnimationId, actor.IsMounted)] = parts;
       return parts;
     }
+
+    private S2MActorOverride OverrideFor(ActorPlacement actor)
+    {
+      if (actor.Type == "Knight" && actor.IsMounted)
+      {
+        if (overrides.TryGetValue("Knight:Mounted", out var mounted)) return mounted;
+        if (overrides.TryGetValue("Knight", out var sharedOverride)) return sharedOverride;
+        // These models share their ground origin. Riding clips contain the saddle
+        // height; applying a separate rider lift would count it twice.
+        return new S2MActorOverride {
+          ObjectType = "Knight:Mounted", DefinitionPath = "meshes/units/knight.uni",
+          AnimationAction = MountedRiderAction(actor.AnimationId), SynchronizedPlayback = true,
+          Parts = new[] { new S2MActorPart {
+            DefinitionPath = "meshes/units/animals/horse_knight.aml",
+            AnimationAction = MountedHorseAction(actor.AnimationId), SynchronizedPlayback = true
+          } }
+        };
+      }
+      overrides.TryGetValue(actor.Type, out var custom);
+      return custom;
+    }
+
+    private static string MountedRiderAction(int id) => id switch
+    {
+      1 or 461 => "KNIGHT HRS WALK",
+      2 or 647 => "KNIGHT HRS CANTER",
+      460 or 931 => "KNIGHT HRS IDLE 2",
+      456 or 928 => "KNIGHT HRS ATK 1",
+      457 or 929 => "KNIGHT HRS ATK 2",
+      646 => "KNIGHT HRS ATK LFT",
+      648 => "KNIGHT HRS CANTER A",
+      462 => "KNIGHT HRS WALK ATK",
+      464 => "KNIGHT HRS REARUP",
+      458 => "KNIGHT HRS FALL",
+      _ => "KNIGHT HRS IDLE"
+    };
+
+    private static string MountedHorseAction(int id) => id switch
+    {
+      1 or 461 or 462 => "WALK",
+      2 or 647 or 648 => "RUN",
+      464 => "REAR UP",
+      458 => "DIE HIT",
+      _ => "IDLE"
+    };
 
     private S2MActorAsset ResolveCore(ActorPlacement actor, S2MActorPart custom)
     {
@@ -144,6 +193,14 @@ namespace Assets.Code.Stronghold2.AssetLoading
       string clip = custom?.AnimationPath, action = "override";
       if (definition == null && string.IsNullOrWhiteSpace(clip)) { clip = model; if (siege) action = "placed siege pose"; }
       ClipEntry selected = null;
+      if (string.IsNullOrWhiteSpace(clip) && !string.IsNullOrWhiteSpace(custom?.AnimationAction) && definition != null)
+      {
+        foreach (var entry in definition.Clips)
+          if (entry.Path != null && string.Equals(entry.Action, custom.AnimationAction, StringComparison.OrdinalIgnoreCase)) selected = entry;
+        if (selected == null) animations.TryGetValue(definition.Family + ":" + custom.AnimationAction, out selected);
+        if (selected == null) throw new InvalidDataException("Animation action not available: " + custom.AnimationAction);
+        action = selected.Action; clip = selected.Path;
+      }
       if (string.IsNullOrWhiteSpace(clip) && definition != null)
       {
         int index = actor.AnimationId - 1;
@@ -163,6 +220,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
       float scale = custom?.Scale ?? 1;
       if (!(scale > 0) || float.IsInfinity(scale)) throw new InvalidDataException("Actor scale must be finite and positive.");
       var asset = new S2MActorAsset { ModelPath = model, AnimationPath = clip, Action = action, Scale = scale,
+        SynchronizedPlayback = custom?.SynchronizedPlayback ?? false,
         HoldPose = (custom?.HoldPose ?? false) || (siege && string.IsNullOrWhiteSpace(custom?.AnimationPath)),
         LocalOffset = custom?.LocalOffset ?? Vector3.zero, LocalEulerAngles = custom?.LocalEulerAngles ?? Vector3.zero };
       for (int axis = 0; axis < 3; axis++)
@@ -185,7 +243,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
         SafePath(attachment.ModelPath); asset.Attachments.Add(attachment);
         key.Append('|').Append(attachment.ModelPath).Append(':').Append(attachment.Point).Append(':').Append(attachment.BoneName);
       }
-      key.Append("|pose:").Append(asset.HoldPose).Append('|').Append(asset.LocalOffset.ToString("R", CultureInfo.InvariantCulture))
+      key.Append("|sync:").Append(asset.SynchronizedPlayback).Append("|pose:").Append(asset.HoldPose).Append('|').Append(asset.LocalOffset.ToString("R", CultureInfo.InvariantCulture))
         .Append('|').Append(asset.LocalEulerAngles.ToString("R", CultureInfo.InvariantCulture));
       asset.Key = key.ToString();
       return asset;
@@ -210,7 +268,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
       if (animal && version > 1) r.ReadInt32();
       string model = Name(r, 32);
       string prefix = animal ? "meshes/units/animals/" : "meshes/units/models/";
-      var result = new Definition { Model = prefix + model, Prefix = prefix };
+      var result = new Definition { Model = prefix + model, Prefix = prefix, Family = family };
       if (animal) for (int i = 0; i < AnimalActions.Length; i++) result.Clips.Add(new ClipEntry { Action = AnimalActions[i] });
       int attachments = Count(r, 128);
       for (int i = 0; i < attachments; i++) result.Attachments.Add(Name(r, 32));
@@ -285,6 +343,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
     }
     private sealed class Definition
     {
+      public int Family;
       public string Model;
       public string Prefix;
       public readonly List<string> Attachments = new();

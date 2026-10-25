@@ -18,6 +18,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if (data == null) throw new ArgumentNullException(nameof(data));
       terrainSettings ??= new S2MTerrainSettings();
       settings ??= new S2MBuildingRenderSettings();
+      settings.AmbientAnimations ??= new S2MBuildingAnimationSettings();
       var root = new GameObject("S2M Buildings");
       if (parent != null) root.transform.SetParent(parent, false);
       S2MSceneryOcclusion.GetOrCreate(parent != null ? parent : root.transform, data.Map);
@@ -62,7 +63,17 @@ namespace Assets.Code.Stronghold2.ModelRendering
           }
         }
         foreach (Granny2ModelData part in batch.StaticParts)
-          modelBatches.Add(Granny2ModelRenderer.RenderInstances(part, instances, placed.transform, modelSettings));
+        {
+          GameObject rendered = null;
+          if (settings.AmbientAnimations.Enabled && batch.AmbientAnimations.TryGetValue(part.SourcePath, out var animation))
+          {
+            try { rendered = S2MBuildingAmbientAnimation.Render(part, animation, instances, batch.Placements,
+              placed.transform, modelSettings, settings.AmbientAnimations); }
+            catch (Exception e) when (e is NotSupportedException || e is InvalidOperationException)
+            { Debug.LogWarning($"Building animation {part.SourcePath}: {e.Message}; using static geometry."); }
+          }
+          modelBatches.Add(rendered != null ? rendered : Granny2ModelRenderer.RenderInstances(part, instances, placed.transform, modelSettings));
+        }
         if (terrainSettings.GenerateMeshColliders)
         {
           if (batch.Collision != null)

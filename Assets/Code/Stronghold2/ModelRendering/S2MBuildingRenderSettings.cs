@@ -1,4 +1,5 @@
 using System;
+using Assets.Code.Stronghold2.AssetLoading;
 using UnityEngine;
 
 namespace Assets.Code.Stronghold2.ModelRendering
@@ -9,6 +10,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
   public sealed class S2MBuildingRenderSettings
   {
     public BuildingViewMode ViewMode = BuildingViewMode.Automatic;
+    public S2MBuildingAnimationSettings AmbientAnimations = new();
     [Tooltip("Optional camera for the interior view. Uses the main camera when unset.")]
     public Camera ViewCamera;
     [Tooltip("Distance from the camera to the exterior bounds, in unscaled map units, at which interiors open.")]

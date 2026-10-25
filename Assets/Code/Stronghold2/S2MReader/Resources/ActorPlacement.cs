@@ -14,5 +14,19 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public float AnimationTime { get; internal set; }
     public float AnimationRate { get; internal set; } = 1;
     public bool AnimationLoops { get; internal set; } = true;
+    public int PlacedType { get; internal set; }
+    public byte NavigationLayer { get; internal set; }
+    public short TileX { get; internal set; }
+    public short TileZ { get; internal set; }
+    /// <summary>Low byte of the serialized ContextLayer entry; 255 means unavailable.</summary>
+    public byte SavedWalkingClass { get; internal set; } = byte.MaxValue;
+    public int PendingPlayer { get; internal set; }
+    public bool HasKnightState { get; internal set; }
+    public bool SavedMounted { get; internal set; }
+    public uint SavedHorseReference { get; internal set; }
+    public float HorseAnimationTime { get; internal set; }
+    /// <summary>Initial campaign placement policy, kept separate from serialized mount state.</summary>
+    public bool MountAtMapStart { get; internal set; }
+    public bool IsMounted => SavedMounted || MountAtMapStart;
   }
 }

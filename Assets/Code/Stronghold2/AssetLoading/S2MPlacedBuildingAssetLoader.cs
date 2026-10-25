@@ -13,6 +13,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public Granny2ModelData Open { get; internal set; }
     public Granny2ModelData Collision { get; internal set; }
     public IReadOnlyList<Granny2ModelData> StaticParts { get; internal set; } = Array.Empty<Granny2ModelData>();
+    public IReadOnlyDictionary<string, Granny2ActorMotion> AmbientAnimations { get; internal set; }
+      = new Dictionary<string, Granny2ActorMotion>(StringComparer.OrdinalIgnoreCase);
   }
 
   public sealed class S2MBuildingAssetIssue
@@ -32,8 +34,9 @@ namespace Assets.Code.Stronghold2.AssetLoading
     }
 
     public IReadOnlyList<S2MPlacedBuildingBatch> Load(S2MFile map, string gameInstallPath,
-      string converterPath, string cacheDirectory, List<S2MBuildingAssetIssue> issues)
+      string converterPath, string cacheDirectory, List<S2MBuildingAssetIssue> issues, S2MBuildingAnimationSettings animationSettings = null)
     {
+      animationSettings ??= new S2MBuildingAnimationSettings(); animationSettings.Validate();
       var payloads = new Dictionary<int, byte[]>();
       var placementsById = new Dictionary<int, BuildingPlacement>();
       foreach (BuildingPlacement placement in map.BuildingPlacements) placementsById[placement.Id] = placement;
@@ -88,8 +91,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
           paths.Add(descriptor.ClosedModel);
           if (descriptor.OpenModel != null) paths.Add(descriptor.OpenModel);
           if (descriptor.CollisionModel != null) paths.Add(descriptor.CollisionModel);
-          foreach (string part in S2MBuildingAssetCatalog.GetStaticParts(placements[0].Type))
-            paths.Add("meshes/buildings/" + part);
+          paths.AddRange(PartPaths(placements[0].Type));
         }
         catch (Exception exception) when (IsAssetError(exception))
         {
@@ -112,9 +114,9 @@ namespace Assets.Code.Stronghold2.AssetLoading
           batch.Open = LoadOptional(descriptor.OpenModel, placements);
           batch.Collision = LoadOptional(descriptor.CollisionModel, placements);
           var parts = new List<Granny2ModelData>();
-          foreach (string part in S2MBuildingAssetCatalog.GetStaticParts(placements[0].Type))
+          foreach (string part in PartPaths(placements[0].Type))
           {
-            Granny2ModelData model = LoadOptional("meshes/buildings/" + part, placements);
+            Granny2ModelData model = LoadOptional(part, placements);
             if (model != null) parts.Add(model);
           }
           batch.StaticParts = parts;
@@ -126,7 +128,34 @@ namespace Assets.Code.Stronghold2.AssetLoading
             issues.Add(Issue(placement, $"{descriptor.RelativePath}: {exception.Message}"));
         }
       }
+      var requests = new List<Granny2AnimationRequest>();
+      foreach (var batch in batches) foreach (var loop in S2MBuildingAnimationCatalog.GetLoops(batch.Placements[0].Type, animationSettings)) requests.Add(loop.Request);
+      var animations = Granny2AnimationAssetLoader.LoadOrConvertMany(gameInstallPath, requests, animationSettings.SamplesPerSecond,
+        converterPath, cacheDirectory == null ? null : Path.Combine(cacheDirectory, "Animations"));
+      foreach (var batch in batches)
+      {
+        var loaded = new Dictionary<string, Granny2ActorMotion>(StringComparer.OrdinalIgnoreCase);
+        foreach (var loop in S2MBuildingAnimationCatalog.GetLoops(batch.Placements[0].Type, animationSettings))
+        {
+          var animation = animations[loop.Request.Key];
+          if (animation.Error != null)
+          {
+            issues.Add(Issue(batch.Placements[0], "Ambient animation " + loop.ModelPath + ": " + animation.Error.Message + "; using static geometry."));
+            continue;
+          }
+          loaded[Path.GetFullPath(Path.Combine(gameInstallPath, loop.Request.ModelPath))] = animation.Motion;
+        }
+        batch.AmbientAnimations = loaded;
+      }
       return batches;
+
+      IEnumerable<string> PartPaths(string type)
+      {
+        var parts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string part in S2MBuildingAssetCatalog.GetStaticParts(type)) parts.Add("meshes/buildings/" + part);
+        foreach (var loop in S2MBuildingAnimationCatalog.GetLoops(type, animationSettings)) parts.Add(loop.Request.ModelPath);
+        return parts;
+      }
 
       Granny2ModelData LoadModel(string path)
       {

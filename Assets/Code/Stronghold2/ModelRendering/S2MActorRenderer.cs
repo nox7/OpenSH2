@@ -19,6 +19,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public bool CastShadows = true;
     public bool ReceiveShadows = true;
     public bool RandomizeLoopPhase = true;
+    [Tooltip("Replacement for the game's crest placeholder. Null uses plain cloth until player heraldry is resolved.")]
+    public Texture2D CrestTexture;
+    public Color CrestColor = new(.6f, .6f, .65f, 1);
     public S2MActorOverride[] Overrides = Array.Empty<S2MActorOverride>();
     [Tooltip("Assign in builds so Unity retains the runtime actor shader.")]
     public Shader Shader;
@@ -68,16 +71,11 @@ namespace Assets.Code.Stronghold2.ModelRendering
     private void Prepare(S2MActorBatchData batch, S2MFile map, S2MTerrainSettings terrain, Shader shader)
     {
       var motion = batch.Motion;
-      if (motion.Bones * 4 > SystemInfo.maxTextureSize || motion.Frames > SystemInfo.maxTextureSize)
-        throw new NotSupportedException("Actor clip exceeds GPU texture limits; reduce animation sampling rate.");
       var template = Granny2ModelRenderer.Render(batch.Model, transform, new Granny2ModelRenderSettings
       { UnitScale = settings.ModelUnitScale, UseFoliageMaterials = false, OpaqueShader = shader, FallbackMaterial = templateMaterial }, "Shared " + batch.Asset.ModelPath);
       template.SetActive(false);
       var resources = template.GetComponent<Granny2GeneratedModelResources>();
-      var texture = new Texture2D(motion.Bones * 4, motion.Frames, TextureFormat.RGBAFloat, false, true)
-      { name = batch.Asset.Action, filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
-      resources.Add(texture);
-      texture.SetPixelData(motion.Matrices, 0); texture.Apply(false, true);
+      var texture = Granny2AnimationRendering.CreatePoseTexture(motion, resources, batch.Asset.Action);
       var filters = new List<MeshFilter>(template.GetComponentsInChildren<MeshFilter>(true));
       var boneIndices = new List<Vector4[]>(motion.BoneIndices);
       var boneWeights = new List<Vector4[]>(motion.BoneWeights);
@@ -104,16 +102,19 @@ namespace Assets.Code.Stronghold2.ModelRendering
       {
         Mesh mesh = filters[m].sharedMesh;
         if (mesh.vertexCount != boneIndices[m].Length) throw new InvalidOperationException("Actor vertex/skin cache mismatch.");
-        mesh.SetUVs(1, new List<Vector4>(boneIndices[m]));
-        mesh.SetUVs(2, new List<Vector4>(boneWeights[m]));
-        // Derive bounds across every sampled pose, not merely the bind pose.
-        mesh.bounds = AnimatedBounds(mesh.vertices, motion, boneIndices[m], boneWeights[m], settings.ModelUnitScale);
+        Granny2AnimationRendering.ApplySkin(mesh, motion, boneIndices[m], boneWeights[m], settings.ModelUnitScale);
       }
       var materials = template.GetComponentsInChildren<MeshRenderer>(true);
       foreach (var r in materials) foreach (var material in r.sharedMaterials)
       {
-        material.SetTexture("_ActorPoses", texture);
-        material.SetVector("_ActorClip", new Vector4(motion.Bones, motion.Frames, motion.Duration, settings.ModelUnitScale));
+        if (material.GetTexture("_BaseMap") is Texture2D diffuse
+          && string.Equals(diffuse.name, "crest", StringComparison.OrdinalIgnoreCase))
+        {
+          // crest.dds is exporter placeholder text, not the player's heraldry.
+          material.SetTexture("_BaseMap", settings.CrestTexture != null ? settings.CrestTexture : Texture2D.whiteTexture);
+          material.SetColor("_BaseColor", settings.CrestColor);
+        }
+        Granny2AnimationRendering.ConfigureMaterial(material, motion, texture, settings.ModelUnitScale);
       }
       var groups = new Dictionary<(int x, int z), List<int>>();
       for (int i = 0; i < batch.Placements.Count; i++)
@@ -140,7 +141,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
             if (terrain.FlipZ) { z = map.MapSize - z; yaw = -yaw; }
             draw.Local[j] = Matrix4x4.TRS(new Vector3(x * terrain.HorizontalCellSize, p.RawY * terrain.HeightUnitScale, z * terrain.HorizontalCellSize),
               Quaternion.Euler(0, yaw, 0), Vector3.one * settings.ModelScale * modelScaleMultiplier * batch.Scales[index]) * draw.PartTransform;
-            float phase = settings.RandomizeLoopPhase && p.AnimationLoops ? (unchecked((uint)p.Id * 2654435761u) & 65535) / 65536f * motion.Duration : 0;
+            float phase = settings.RandomizeLoopPhase && p.AnimationLoops ? (unchecked((uint)p.Id * 2654435761u) & 65535) / 65536f * (batch.Asset.SynchronizedPlayback ? 1f : motion.Duration) : 0;
             draw.Playback[j] = new Vector4(batch.Asset.HoldPose ? 0 : p.AnimationTime + phase, batch.Asset.HoldPose ? 0 : p.AnimationRate, p.AnimationLoops ? 1 : 0, 0);
             if (!actors.TryGetValue(p.Id, out var pieces)) actors[p.Id] = pieces = new List<(DrawBatch batch, int index)>();
             pieces.Add((draw, j));
@@ -194,28 +195,6 @@ namespace Assets.Code.Stronghold2.ModelRendering
               null, LightProbeUsage.Off);
         }
       }
-    }
-
-    private static Bounds AnimatedBounds(Vector3[] vertices, Granny2ActorMotion motion, Vector4[] indices, Vector4[] weights, float unitScale)
-    {
-      var bounds = new Bounds(); bool initialized = false;
-      for (int frame = 0; frame < motion.Frames; frame++)
-        for (int v = 0; v < vertices.Length; v++)
-        {
-          Vector3 p = new Vector3(vertices[v].x, vertices[v].z, vertices[v].y) / unitScale, posed = Vector3.zero;
-          for (int w = 0; w < 4; w++)
-          {
-            float weight = weights[v][w]; if (weight == 0) continue;
-            int b = (frame * motion.Bones + (int)indices[v][w]) * 16;
-            float[] a = motion.Matrices;
-            posed += weight * new Vector3(p.x * a[b] + p.y * a[b + 4] + p.z * a[b + 8] + a[b + 12],
-              p.x * a[b + 1] + p.y * a[b + 5] + p.z * a[b + 9] + a[b + 13],
-              p.x * a[b + 2] + p.y * a[b + 6] + p.z * a[b + 10] + a[b + 14]);
-          }
-          posed = new Vector3(posed.x, posed.z, posed.y) * unitScale;
-          if (!initialized) { bounds = new Bounds(posed, Vector3.zero); initialized = true; } else bounds.Encapsulate(posed);
-        }
-      bounds.Expand(.05f); return bounds;
     }
 
     private static readonly string[] AttachmentPoints = {

@@ -22,6 +22,16 @@ Main also exposes `Actor Render Settings`. Its `Overrides` array maps a saved `O
 
 Horse carts have a default assembly of a seated rider, horse, cart and wheels. Carts and siege engines currently hold a placed pose. The ballista/fire-ballista fallback uses the combined ballista mesh. Full siege crew/aim/articulation, cart load variants and terrain-following vehicle articulation are future work. Saved lord appearance variants, animal age/coat variants, and player/team recoloring are not decoded yet; override the definition to choose another appearance. Unknown actor classes are reported once per distinct issue and skipped without guessing a model.
 
+## Mounted knights
+
+Knight field 0 is an 11-byte packed body: byte 0 is the saved mounted flag, bytes 1–4 are the horse reference (serial then slot), bytes 5–8 retain horse animation time, and the final two bytes are additional mount state. The reader seeds concrete type registrations from outer object headers so this section can be decoded even when it does not repeat its name.
+
+Campaign editor placements need an additional startup rule. In the local Chapter 8 file all 60 saved mount flags and horse references are zero. Soldier field 0 offset 61 records a pending player assignment. Knights with placed type 71 and a pending player acquire a mount at campaign initialization when their saved walking class is Open (0). The three counted ContextLayer class grids are sampled with their original backing stride; the other six knights occupy Walkway (5) on layer 1 and remain on foot. Missing class data is treated conservatively. This policy is restricted to initial WarCampaign placements; explicit saved mounted state is preserved independently. `SavedMounted`, `MountAtMapStart`, and `IsMounted` expose that distinction.
+
+Mounted knights use **two models**, the ordinary `knight.GR2` and `horse_knight.GR2`. The knight's horseback clips already position him in the saddle: both models share a ground origin, rotation and scale, with no added vertical offset. The catalog selects matching idle/walk/canter/rear-up/death actions and resolves the riding equipment through AnimList. Mounted pairs use the same time offset in seconds instead of independent normalized random phases. Transform/playback changes by the knight's ID affect both parts, with shared meshes and GPU pose textures as for other populations.
+
+Use `ObjectType = "Knight:Mounted"` in an override to customize only the mounted assembly; a general `Knight` override applies to both states. `AnimationAction` selects a named definition/AnimList action while retaining its equipment bindings. `SynchronizedPlayback` opts custom parts into the shared seconds offset. The game's `crest.dds` is an exporter placeholder; actor rendering replaces it with neutral cloth by default. `CrestTexture` and `CrestColor` can customize that surface until player heraldry is resolved.
+
 ## Animation and scale
 
 The existing x86 `Tools/Granny2MeshConverter` loads the user's installed Granny DLL. `--actor-batch` accepts UTF-8 groups of four lines: absolute model GR2, absolute clip GR2, output cache, integer sample rate. The result file has one line per group, empty for success or base64 UTF-8 error text. Rebuild the converter with:
