@@ -67,8 +67,8 @@ records and finite corner heights, and retains all eight trailing bytes.
   polygons. Zero and unknown shapes are not filled with guessed wall cubes.
 - Four saved corner heights define the upper surface. The primary ground-height
   grid defines the base; the wall's elevated secondary plane is not used as ground.
-  The stone walking course sits 0.08 height units above the saved body top, with
-  a separate textured riser connecting it to the wall sides.
+  Walks and parapet bases use those saved heights directly, including building
+  joins. There is no additional raised slab or vertical walkway-textured band.
 - Saved side masks choose body faces; saved top masks choose parapets and merlons.
   This preserves the omissions at gatehouse/building joins instead of closing
   every neighboring gap. At shared edges between actual wall polygons, any
@@ -76,7 +76,7 @@ records and finite corner heights, and retains all eight trailing bytes.
 - Flag bit 2 selects timber materials; other supported shapes use masonry.
 - Stone walkway, wall side, and battlement cap textures are separate materials.
   Timber sides, plank walkway, and end grain are also separate.
-- Stone parapets are 0.30 cells thick. Alternating merlons occupy 70% of their
+- Stone parapets are 0.30 cells thick. Interior merlons occupy 70% of their
   repeat interval. Their faces remain vertical and flush with the wall footprint;
   only the coping slopes, with its inner edge 0.035 height units above its outer
   edge. Each stone course segment and merlon is level along the edge's length;
@@ -157,7 +157,7 @@ wall edges even where adjacent cells have different upper corner heights. For a
 masked-out cardinal edge, the renderer now checks that the neighboring playable
 cell contains a wall polygon with the opposite matching edge. It then emits only
 the vertical strip where this cell is higher than its neighbor. Heights include
-the stone walking course, so stone/timber transitions are closed as well.
+the saved walking surface, so stone/timber transitions are closed as well.
 
 If the two linear height profiles cross along an edge, the strip is clipped at
 their intersection. Each cell supplies only its higher portion, avoiding reversed
@@ -209,3 +209,62 @@ the stepped silhouette. Previews are written to `Temp/WallProbe/CornerOrder`.
 The updated run passed with 1,076 cells, 23 chunks, and 35,380 triangles.
 The synthetic Z-ramp and chapter 8 slope previews were visually inspected; the
 previously reversed, stepped walk now joins as a continuous graded surface.
+
+## Saved deck height and building joins
+
+The earlier `StoneWalkRise = 0.08` was an incorrect visual calibration. Saved
+wall heights already locate the walking surface; adding another raised course
+floated the walk and parapets above nearby building decks. The setting and offset
+have been removed entirely, so previously serialized values cannot retain the
+incorrect elevation. Parapet bases now begin at the saved surface height.
+
+Inspection of `queens_solar_closed.GR2` confirms that the bedchamber already has
+an eight-triangle `walltop.DDS` group. Its deck vertices lie at approximately
+3.2417–3.2436 map units above the building origin, while adjacent saved wall cells
+are at 3.25. An additional deck is unnecessary. Runtime wall bodies run directly
+to the saved walk height, with masonry/timber on their sides. The former vertical
+walkway-textured riser band is no longer generated. Building-owned side omissions
+remain governed by the saved masks, avoiding duplicate outward faces against the
+building mesh; actual height differences between wall neighbors remain closed.
+
+The Unity harness renders both bedchambers from the current map at their saved
+positions and rotations. It compared 16 deck-triangle samples to rendered wall
+surfaces; the maximum saved/model difference was 0.008334 map units. It also
+asserts that every triangle in the stone-walkway material group has an upward
+normal, rejecting vertical wall-top texture bands. Updated saved-height, X/Z ramp,
+scale/flip, wood/stone transition, and wall-step checks passed with 1,076 cells,
+23 chunks, and 34,082 triangles. Preview images and measurements are under
+`Temp/WallProbe/JunctionFix`. The updated bedchamber and rear views were inspected.
+
+## Joined right-angle parapet corners
+
+Stone parapet edges are now collected into a map-wide endpoint layout before
+chunks are generated. An unambiguous incoming/outgoing pair at a right angle and
+matching saved elevation receives a shared corner definition. The inner edge is
+mitered using both inward normals; the original outer turn remains a shared
+vertex. Both incident runs end in halves of the same corner merlon instead of
+independently placing intersecting rectangular blocks. The corner merlon covers
+the full parapet-width square at a convex turn, including the former exposed
+sliver of walkway. Each arm extends to the regular merlon endpoint along its
+run, rather than stopping at the parapet thickness. This preserves the regular
+0.15-cell gap to the next merlon on both sides of the corner.
+
+Both halves use the same course height, coping rise, and world-space cap UVs.
+They emit adjoining cap triangles and omit their internal diagonal end faces.
+The continuous low course is mitered in the same way. Interior merlon spacing,
+level tops, and outward-sloping caps remain as before.
+
+The global layout is independent of cell/chunk ownership. It also handles
+supported concave right-angle turns; the inner miter point must lie in an actual
+wall polygon, preventing a bridge between disconnected walls that merely touch
+at a vertex. Ambiguous branches, mismatched heights, and non-right-angle turns
+keep their separate edges. Wooden palisades retain their existing spike layout.
+The joined corner construction requires parapet width below the half-cell
+merlon interval; wider custom dimensions retain the unjoined fallback.
+
+The Unity harness checks all four convex orientations, coverage at the outer
+corner, four cap triangles for the two extended joined quads, absence of an internal
+diagonal face, and a concave junction across X=32 (two render chunks). Those
+checks and the existing wall, ramp, collider, and bedchamber tests passed with
+1,076 cells, 23 chunks, and 33,548 triangles. Convex/concave close-ups and the
+chapter 8 corner were visually inspected in `Temp/WallProbe/CornerJoin`.

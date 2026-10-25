@@ -1,11 +1,17 @@
 # Forest vegetation and Unity rendering
 
+For the current `war_chapter8.s2m` missing-rendering inventory, recovered additional
+family mappings, Grass sprites, Shrubs, Rocks and NaturalStone, see the original
+[Foliage rendering audit](./FoliageRenderingAudit.md). Those landscape layers are
+now implemented; see [Foliage rendering](./FoliageRendering.md) for current behavior,
+crop stages, state handling and Unity validation.
+
 `S2MFile.Forest` is the loaded, renderer-independent representation of the placed
 landscape records in the S2Game `Forest` object. The empty `Walls` object immediately
 before it omits the optional zero header field, an object-stream edge case that the
-reader must preserve rather than consuming its trailer. The initial implementation recognizes
-families 0, 1, and 2 as the three controlled tree tools. Other family values are kept in
-memory but deliberately not rendered until controlled probes identify them.
+reader must preserve rather than consuming its trailer. The initial implementation
+recognized families 0, 1, and 2 as the three controlled tree tools. The catalog now
+also includes families 3–13 using the recovered original-engine lookup.
 
 Each controlled tree map was made with individual 1x1-brush clicks and contains one
 65-byte record per click. `terrain-forest-1`, `terrain-forest-2`, and
@@ -28,7 +34,8 @@ The three editor screenshots show distinct silhouettes within a Family. Conseque
 does not happen to roll Variant 2, but this is insufficient evidence that it is
 invalid.
 
-The exact `Family + Variant -> GR2 path` table is still undecoded. It cannot be a
+The initial controlled probes alone did not decode the exact
+`Family + Variant -> GR2 path` table. It cannot be a
 selection among models embedded in `forest_tree_N.gr2`: native Granny inspection shows
 each `forest_tree_1` through `forest_tree_4` file contains exactly one Granny model
 and one mesh. A material-list search also identifies `forest_canopy_1` through `4`,
@@ -36,10 +43,11 @@ but these are 8-vertex, 4-triangle crossed-billboard meshes using `foest_bb*.tga
 they are distant-LOD assets, not the close tree variants. By contrast, each
 `forest_tree_N` is a 163--199 vertex tree containing bark and broadleaf materials.
 
-The remaining likely implementation is a separate game-side lookup table selecting
+The original implementation uses a separate game-side lookup table selecting
 one installed GR2 path for each Family/Variant pair. Candidate source groups include
 the numbered `forest_tree_N` set and the `tree_1`/`tree_1b`/... sets. Do not assign
-them by name alone; confirm the table visually or locate the original engine table.
+them by name alone; the first three families were subsequently confirmed visually
+below, and the additional engine lookups are documented in the linked audit.
 
 ## Demand-driven asset loading
 
@@ -48,7 +56,8 @@ map never uses. `S2MVegetationAssetLoader` groups placements by resolved asset p
 loads or converts each distinct GR2 once, and retains a model cache for later map loads.
 It returns `S2MVegetationData`; `S2MVegetationRenderer` performs no file I/O.
 
-The current catalog resolves these installed-game paths:
+The first three visually confirmed catalog families resolve these installed-game paths
+(the linked rendering document covers the additional families):
 
 | Forest family | Variant values | GR2 files |
 | ---: | --- | --- |

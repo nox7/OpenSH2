@@ -20,6 +20,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       settings ??= new S2MBuildingRenderSettings();
       var root = new GameObject("S2M Buildings");
       if (parent != null) root.transform.SetParent(parent, false);
+      S2MSceneryOcclusion.GetOrCreate(parent != null ? parent : root.transform, data.Map);
       S2MKeepRenderer.Render(data.Keeps, root.transform, terrainSettings, settings);
       S2MBridgeRenderer.Render(data.Bridges, root.transform, terrainSettings);
       var placed = new GameObject("Placed Buildings");
@@ -34,21 +35,25 @@ namespace Assets.Code.Stronghold2.ModelRendering
       };
       foreach (S2MPlacedBuildingBatch batch in data.Batches)
       {
+        Transform[] buildingRoots = CreateBuildingRoots(batch.Placements, placed.transform, data.Map);
+        var modelBatches = new List<GameObject>();
         var instances = new List<Granny2ModelInstance>(batch.Placements.Count);
         foreach (BuildingPlacement placement in batch.Placements) instances.Add(CreateInstance(placement, terrainSettings));
         string name = System.IO.Path.GetFileNameWithoutExtension(batch.Descriptor.RelativePath);
         GameObject closed = Granny2ModelRenderer.RenderInstances(batch.Closed, instances,
           placed.transform, modelSettings, name + " Exteriors");
+        modelBatches.Add(closed);
         if (batch.Open != null)
         {
           GameObject open = Granny2ModelRenderer.RenderInstances(batch.Open, instances,
             placed.transform, modelSettings, name + " Interiors");
+          modelBatches.Add(open);
           Bounds bounds = Granny2ModelRenderer.GetLocalBounds(batch.Closed, modelSettings.UnitScale);
           for (int i = 0; i < instances.Count; i++)
           {
             Granny2ModelInstance instance = instances[i];
             var view = new GameObject(instance.Name + " View");
-            view.transform.SetParent(placed.transform, false);
+            view.transform.SetParent(buildingRoots[i], false);
             view.transform.localPosition = instance.Position;
             view.transform.localRotation = Quaternion.Euler(instance.EulerAngles);
             view.transform.localScale = instance.Scale;
@@ -57,13 +62,14 @@ namespace Assets.Code.Stronghold2.ModelRendering
           }
         }
         foreach (Granny2ModelData part in batch.StaticParts)
-          Granny2ModelRenderer.RenderInstances(part, instances, placed.transform, modelSettings);
+          modelBatches.Add(Granny2ModelRenderer.RenderInstances(part, instances, placed.transform, modelSettings));
         if (terrainSettings.GenerateMeshColliders)
         {
           if (batch.Collision != null)
           {
             GameObject collision = Granny2ModelRenderer.RenderInstances(batch.Collision, instances,
               placed.transform, modelSettings, name + " Collision");
+            modelBatches.Add(collision);
             foreach (MeshRenderer renderer in collision.GetComponentsInChildren<MeshRenderer>()) renderer.enabled = false;
             foreach (MeshFilter filter in collision.GetComponentsInChildren<MeshFilter>())
               filter.gameObject.AddComponent<MeshCollider>().sharedMesh = filter.sharedMesh;
@@ -75,7 +81,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
             for (int i = 0; i < instances.Count; i++)
             {
               var collision = new GameObject(instances[i].Name + " Collision");
-              collision.transform.SetParent(placed.transform, false);
+              collision.transform.SetParent(buildingRoots[i], false);
               collision.transform.localPosition = instances[i].Position;
               collision.transform.localRotation = Quaternion.Euler(instances[i].EulerAngles);
               collision.transform.localScale = instances[i].Scale;
@@ -84,8 +90,31 @@ namespace Assets.Code.Stronghold2.ModelRendering
             }
           }
         }
+        foreach (GameObject modelBatch in modelBatches) ParentInstances(modelBatch, buildingRoots);
       }
       return root;
+    }
+
+    internal static Transform[] CreateBuildingRoots(IReadOnlyList<BuildingPlacement> placements, Transform parent, S2MFile map)
+    {
+      var occupancy = S2MSceneryOcclusion.GetOrCreate(parent, map);
+      var roots = new Transform[placements.Count];
+      for (int i = 0; i < placements.Count; i++)
+      {
+        BuildingPlacement placement = placements[i];
+        var root = new GameObject($"{placement.Type} ({placement.Id}) Building");
+        root.transform.SetParent(parent, false);
+        roots[i] = root.transform;
+        if (S2MBuildingOccupancy.CanResolve(placement)) root.AddComponent<S2MBuildingPresence>().Initialize(occupancy, placement);
+      }
+      return roots;
+    }
+
+    internal static void ParentInstances(GameObject batch, Transform[] roots)
+    {
+      // Roots have identity transforms in their common map frame. Preserve each
+      // instance's placement and shared batch resources while grouping its lifetime.
+      for (int i = 0; i < roots.Length; i++) batch.transform.GetChild(0).SetParent(roots[i], false);
     }
 
     internal static Granny2ModelInstance CreateInstance(BuildingPlacement building, S2MTerrainSettings settings) => new(

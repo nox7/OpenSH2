@@ -73,6 +73,36 @@ namespace OpenSH2.Granny2MeshConverter
       }
     }
 
+    public string InspectAnimation(string filePath)
+    {
+      IntPtr file = readEntireFile(filePath);
+      if (file == IntPtr.Zero) throw new InvalidDataException($"Granny could not read {filePath}.");
+      try
+      {
+        IntPtr infoPointer = getFileInfo(file);
+        if (infoPointer == IntPtr.Zero) throw new InvalidDataException("Granny returned no file information.");
+        GrannyFileInfo32 info = Marshal.PtrToStructure<GrannyFileInfo32>(infoPointer);
+        ValidateCount(info.SkeletonCount, "skeleton");
+        ValidateCount(info.MeshCount, "mesh");
+        var report = new System.Text.StringBuilder();
+        report.AppendFormat("{0}: models={1}, skeletons={2}, meshes={3}, trackGroups={4}, animations={5}",
+          Path.GetFileName(filePath), info.ModelCount, info.SkeletonCount, info.MeshCount, info.TrackGroupCount, info.AnimationCount);
+        for (int i = 0; i < info.SkeletonCount; i++)
+        {
+          IntPtr skeleton = Marshal.ReadIntPtr(info.Skeletons, i * 4);
+          if (skeleton == IntPtr.Zero) throw new InvalidDataException("A Granny skeleton pointer is null.");
+          report.AppendFormat("; skeleton[{0}]={1}, bones={2}", i, ReadString(Marshal.ReadIntPtr(skeleton)), Marshal.ReadInt32(skeleton, 4));
+        }
+        for (int i = 0; i < info.MeshCount; i++)
+        {
+          var mesh = Marshal.PtrToStructure<GrannyMesh32>(Marshal.ReadIntPtr(info.Meshes, i * 4));
+          report.AppendFormat("; mesh[{0}]={1}, boneBindings={2}, morphTargets={3}", i, ReadString(mesh.Name), mesh.BoneBindingCount, mesh.MorphTargetCount);
+        }
+        return report.ToString();
+      }
+      finally { freeFile(file); }
+    }
+
     private GrannyMesh ReadMesh(IntPtr meshPointer)
     {
       if (meshPointer == IntPtr.Zero) throw new InvalidDataException("A Granny mesh pointer is null.");

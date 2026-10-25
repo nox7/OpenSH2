@@ -16,6 +16,12 @@ namespace OpenSH2.Granny2MeshConverter
         Stronghold2Installation installation = Stronghold2Installation.Validate(gamePath);
         using (var granny = new GrannyNative(installation.GrannyDllPath))
         {
+          if (options.TryGetValue("--inspect-animations", out string inspectManifest))
+          {
+            foreach (string path in File.ReadAllLines(inspectManifest))
+              if (!string.IsNullOrWhiteSpace(path)) Console.WriteLine(granny.InspectAnimation(installation.ValidateAssetPath(path, ".gr2")));
+            return 0;
+          }
           if (options.TryGetValue("--batch", out string manifestPath))
           {
             // Pairs of UTF-8 lines: absolute input and output paths. One result

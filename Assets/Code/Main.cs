@@ -19,6 +19,30 @@ public class Main : MonoBehaviour
   [Tooltip("Uniform multiplier for loaded tree models, in addition to Game Scale and vegetation asset scaling. Changes tree size without moving trees. Applied when the map loads.")]
   [SerializeField] private float treeModelScale = 0.5f;
 
+  [Min(0.0001f)]
+  [Tooltip("Size multiplier for shrub vegetation. Forest objects, including gorse and lavender, use Tree Model Scale. Applied when the map loads.")]
+  [SerializeField] private float vegetationModelScale = 1f;
+
+  [Min(0.0001f)]
+  [Tooltip("Size multiplier for decorative rock models. Keeps their map positions fixed. Applied when the map loads.")]
+  [SerializeField] private float rockModelScale = 1f;
+
+  [Min(0.0001f)]
+  [Tooltip("Size multiplier for natural stone deposits, separate from decorative rocks. Applied when the map loads.")]
+  [SerializeField] private float naturalStoneModelScale = 1f;
+
+  [Min(0f)]
+  [Tooltip("Lightens natural stone's texture before lighting. 1 = original texture; 2 = twice the texture brightness. Applied when the map loads.")]
+  [SerializeField] private float naturalStoneTextureBrightness = 2f;
+
+  [Min(0.0001f)]
+  [Tooltip("Size multiplier for camera-facing grass cards. Keeps their ground anchors fixed. Applied when the map loads.")]
+  [SerializeField] private float grassModelScale = 1f;
+
+  [Min(0.0001f)]
+  [Tooltip("Size multiplier for apple trees, hops and wheat. Apple trees also retain Tree Model Scale. Keeps plant positions fixed. Applied when the map loads.")]
+  [SerializeField] private float cropModelScale = 1f;
+
   [SerializeField] private S2MVegetationRenderSettings vegetationRenderSettings = new();
   [FormerlySerializedAs("keepRenderSettings")]
   [SerializeField] private S2MBuildingRenderSettings buildingRenderSettings = new();
@@ -116,6 +140,12 @@ public class Main : MonoBehaviour
       if (gameScale <= 0f) throw new System.InvalidOperationException("Game scale must be positive.");
       if (!(treeModelScale > 0f) || float.IsInfinity(treeModelScale))
         throw new System.InvalidOperationException("Tree model scale must be finite and positive.");
+      var sceneryScales = new S2MSceneryModelScales
+      {
+        Vegetation = vegetationModelScale, Rocks = rockModelScale,
+        NaturalStone = naturalStoneModelScale, Grass = grassModelScale, Crops = cropModelScale
+      };
+      sceneryScales.Validate();
       S2MBuildingData buildingData = new S2MBuildingAssetLoader().Load(mapFile, gameInstallPath);
       RecordStage("building assets");
       S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(
@@ -166,11 +196,14 @@ public class Main : MonoBehaviour
         vegetationData,
         mapWorld.transform,
         vegetationRenderSettings,
-        treeModelScale: treeModelScale);
+        treeModelScale: treeModelScale,
+        modelScales: sceneryScales,
+        naturalStoneTextureBrightness: naturalStoneTextureBrightness);
       RecordStage("vegetation rendering");
       Debug.Log($"Map loaded in {loadTimer.Elapsed.TotalSeconds:F3}s: {string.Join(", ", loadStages)}.");
 
-      Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; decoded {mapFile.Forest?.Instances.Count ?? 0} Forest records, rendered {vegetationData.SupportedInstanceCount} trees ({vegetationData.UnsupportedInstanceCount} unsupported records).");
+      Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; rendered {vegetationData.SupportedInstanceCount} scenery placements including {vegetationData.Grass.Count} grass cards ({vegetationData.InactiveInstanceCount} inactive, {vegetationData.UnsupportedInstanceCount} unsupported records).");
+      foreach (string issue in vegetationData.Issues) Debug.LogWarning(issue);
     }
     catch (System.Exception exception)
     {

@@ -34,6 +34,9 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public float MapX => RawX / 1024f;
     public float MapY => RawY / 1024f;
     public float MapZ => RawZ / 1024f;
-    public bool IsKnownTree => Family <= 2;
+    public bool IsKnownTree => Family <= 13;
+    // The original renderer tests the variant's low byte as a signed char.
+    // 0xFF is the inactive sentinel, not a request for graphical variant 255.
+    public bool IsInactive => (Variant & 0xFF) == 0xFF;
   }
 }

@@ -11,12 +11,18 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public IReadOnlyList<S2MVegetationBatch> Batches { get; internal set; } = Array.Empty<S2MVegetationBatch>();
     public int SupportedInstanceCount { get; internal set; }
     public int UnsupportedInstanceCount { get; internal set; }
+    public int InactiveInstanceCount { get; internal set; }
+    public IReadOnlyList<SceneryInstance> Grass { get; internal set; } = Array.Empty<SceneryInstance>();
+    public string GrassTexturePath { get; internal set; }
+    public IReadOnlyList<PlantActor> Wheat { get; internal set; } = Array.Empty<PlantActor>();
+    public string WheatTexturePath { get; internal set; }
+    public IReadOnlyList<string> Issues { get; internal set; } = Array.Empty<string>();
   }
 
   public sealed class S2MVegetationBatch
   {
     public string AssetRelativePath { get; internal set; }
     public Granny2ModelData Model { get; internal set; }
-    public IReadOnlyList<ForestInstance> Instances { get; internal set; } = Array.Empty<ForestInstance>();
+    public IReadOnlyList<SceneryInstance> Instances { get; internal set; } = Array.Empty<SceneryInstance>();
   }
 }

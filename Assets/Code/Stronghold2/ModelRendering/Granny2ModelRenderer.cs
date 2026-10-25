@@ -67,6 +67,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
       var resources = root.AddComponent<Granny2GeneratedModelResources>();
       List<PreparedMesh> meshes = PrepareMeshes(model, settings, resources);
 
+      var swayProperties = new MaterialPropertyBlock();
+      int swayId = Shader.PropertyToID("_ModelSway");
       for (int i = 0; i < instances.Count; i++)
       {
         Granny2ModelInstance instance = instances[i];
@@ -76,6 +78,25 @@ namespace Assets.Code.Stronghold2.ModelRendering
         instanceObject.transform.localRotation = Quaternion.Euler(instance.EulerAngles);
         instanceObject.transform.localScale = instance.Scale;
         AddPreparedMeshes(meshes, instanceObject.transform);
+        if (instance.Sway.y > 0f && settings.UseModelSway)
+        {
+          swayProperties.SetVector(swayId, instance.Sway);
+          foreach (MeshRenderer renderer in instanceObject.GetComponentsInChildren<MeshRenderer>())
+          {
+            renderer.SetPropertyBlock(swayProperties);
+            // The GPU rotates around the root; CPU culling must include that swept volume.
+            Bounds bounds = renderer.localBounds;
+            Vector3 size = renderer.transform.lossyScale;
+            size = new Vector3(Mathf.Abs(size.x), Mathf.Abs(size.y), Mathf.Abs(size.z));
+            float ratio = Mathf.Max(size.x, Mathf.Max(size.y, size.z))
+              / Mathf.Max(0.000001f, Mathf.Min(size.x, Mathf.Min(size.y, size.z)));
+            Vector3 center = bounds.center;
+            float radius = (new Vector3(Mathf.Abs(center.x), Mathf.Abs(center.y), Mathf.Abs(center.z)) + bounds.extents).magnitude;
+            float displacement = 2f * radius * Mathf.Sin(instance.Sway.y * Mathf.Deg2Rad) * ratio;
+            bounds.Expand(2f * displacement);
+            renderer.localBounds = bounds;
+          }
+        }
       }
       return root;
     }
@@ -176,7 +197,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       {
         material = new Material(settings.FallbackMaterial);
       }
-      else if (isFoliage)
+      else if (isFoliage || settings.UseModelSway)
       {
         Shader shader = Shader.Find("OpenSH2/Stronghold 2 Foliage");
         if (shader == null)
@@ -185,13 +206,19 @@ namespace Assets.Code.Stronghold2.ModelRendering
       }
       else
       {
-        Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+        // Serialized Unity objects can have a managed wrapper but no native
+        // object. ?? does not respect Unity's overloaded null comparison.
+        Shader shader = settings.OpaqueShader;
+        if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null) shader = Shader.Find("Standard");
         if (shader == null) throw new InvalidOperationException("No compatible model shader was found.");
         material = new Material(shader);
         ConfigureImportedOpaqueLighting(material);
       }
       material.name = string.IsNullOrWhiteSpace(data?.Name) ? "GR2 Material" : data.Name;
       material.enableInstancing = true;
+      if (material.HasProperty("_Cull")) material.SetFloat("_Cull", alphaTest && settings.DoubleSided ? 0f : 2f);
+      if (material.HasProperty("_TextureBrightness")) material.SetFloat("_TextureBrightness", settings.TextureBrightness);
 
       string texturePath = ResolveTexturePath(gr2Path, data?.TexturePath);
       if (texturePath != null)
@@ -308,16 +335,20 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public Vector3 Position { get; }
     public Vector3 EulerAngles { get; }
     public Vector3 Scale { get; }
+    /// <summary>Phase (radians), amplitude (degrees), speed multiplier, axis direction (radians).</summary>
+    public Vector4 Sway { get; }
 
-    public Granny2ModelInstance(string name, Vector3 position, Vector3 eulerAngles, Vector3 scale)
+    public Granny2ModelInstance(string name, Vector3 position, Vector3 eulerAngles, Vector3 scale, Vector4 sway = default)
     {
       Name = name;
       Position = position;
       EulerAngles = eulerAngles;
       Scale = scale;
+      Sway = sway;
     }
   }
 
+  [ExecuteAlways]
   internal sealed class Granny2GeneratedModelResources : MonoBehaviour
   {
     private readonly List<UnityEngine.Object> generated = new();

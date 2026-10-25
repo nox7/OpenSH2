@@ -1,0 +1,575 @@
+{
+  "source": "C:\\Steam\\steamapps\\common\\Stronghold 2\\maps\\war_chapter8.s2m",
+  "source_sha256": "800895546e6afdbecb2a90984f43fec0534c0e9acf9583148b4c5d760ea05510",
+  "layers": {
+    "NaturalStone": {
+      "count": 176,
+      "record_bytes": 23,
+      "trailing_bytes": 0,
+      "payload_sha256": "839a02d95d9579c8d113f637e6453576b686627acd884dacefe183045517c102"
+    },
+    "Forest": {
+      "count": 1012,
+      "record_bytes": 65,
+      "trailing_bytes": 32772,
+      "payload_sha256": "fbf1b0a1438811a48926bfe7e5ef3aa0efd73d17a40f0bb7a157dfe95acaa236"
+    },
+    "Rocks": {
+      "count": 638,
+      "record_bytes": 31,
+      "trailing_bytes": 0,
+      "payload_sha256": "76dbf575d6088547831acec839a83e95ea1c3ac093c4ae8c84a4022a908948bb"
+    },
+    "Grass": {
+      "count": 2430,
+      "record_bytes": 27,
+      "trailing_bytes": 0,
+      "payload_sha256": "685dbb3c43ec40ad07d23049417ec670f4025b375c09cbda65015955251e42a5"
+    },
+    "Shrubs": {
+      "count": 51,
+      "record_bytes": 27,
+      "trailing_bytes": 0,
+      "payload_sha256": "bcaaab9418a7b51e00f09372ad60b853a162c4fa8820cfb59ccc191b829d1cf0"
+    }
+  },
+  "landscape_records": 4307,
+  "catalog_supported": 859,
+  "catalog_unsupported": 3448,
+  "unresolved_asset_records": 0,
+  "crop_actors": {
+    "AppleTree": 121,
+    "Wheat": 14,
+    "Hops": 12
+  },
+  "groups": [
+    {
+      "layer": "Forest",
+      "family": 0,
+      "variant": 0,
+      "asset": "meshes/landscape/forest_tree_1.gr2",
+      "catalog_supported": true,
+      "count": 45
+    },
+    {
+      "layer": "Forest",
+      "family": 0,
+      "variant": 1,
+      "asset": "meshes/landscape/forest_tree_2.gr2",
+      "catalog_supported": true,
+      "count": 51
+    },
+    {
+      "layer": "Forest",
+      "family": 0,
+      "variant": 2,
+      "asset": "meshes/landscape/forest_tree_3.gr2",
+      "catalog_supported": true,
+      "count": 51
+    },
+    {
+      "layer": "Forest",
+      "family": 0,
+      "variant": 3,
+      "asset": "meshes/landscape/forest_tree_4.gr2",
+      "catalog_supported": true,
+      "count": 68
+    },
+    {
+      "layer": "Forest",
+      "family": 1,
+      "variant": 0,
+      "asset": "meshes/landscape/winter_tree_1.gr2",
+      "catalog_supported": true,
+      "count": 160
+    },
+    {
+      "layer": "Forest",
+      "family": 1,
+      "variant": 1,
+      "asset": "meshes/landscape/winter_tree_2.gr2",
+      "catalog_supported": true,
+      "count": 161
+    },
+    {
+      "layer": "Forest",
+      "family": 1,
+      "variant": 2,
+      "asset": "meshes/landscape/winter_tree_3.gr2",
+      "catalog_supported": true,
+      "count": 169
+    },
+    {
+      "layer": "Forest",
+      "family": 1,
+      "variant": 3,
+      "asset": "meshes/landscape/winter_tree_4.gr2",
+      "catalog_supported": true,
+      "count": 149
+    },
+    {
+      "layer": "Forest",
+      "family": 2,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_1.gr2",
+      "catalog_supported": true,
+      "count": 2
+    },
+    {
+      "layer": "Forest",
+      "family": 2,
+      "variant": 1,
+      "asset": "meshes/landscape/tree_1b.gr2",
+      "catalog_supported": true,
+      "count": 2
+    },
+    {
+      "layer": "Forest",
+      "family": 2,
+      "variant": 2,
+      "asset": "meshes/landscape/tree_1c.gr2",
+      "catalog_supported": true,
+      "count": 1
+    },
+    {
+      "layer": "Forest",
+      "family": 3,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_2.gr2",
+      "catalog_supported": false,
+      "count": 1
+    },
+    {
+      "layer": "Forest",
+      "family": 3,
+      "variant": 1,
+      "asset": "meshes/landscape/tree_2b.gr2",
+      "catalog_supported": false,
+      "count": 2
+    },
+    {
+      "layer": "Forest",
+      "family": 4,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_3.gr2",
+      "catalog_supported": false,
+      "count": 1
+    },
+    {
+      "layer": "Forest",
+      "family": 4,
+      "variant": 1,
+      "asset": "meshes/landscape/tree_3b.gr2",
+      "catalog_supported": false,
+      "count": 2
+    },
+    {
+      "layer": "Forest",
+      "family": 5,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_4.gr2",
+      "catalog_supported": false,
+      "count": 3
+    },
+    {
+      "layer": "Forest",
+      "family": 5,
+      "variant": 1,
+      "asset": "meshes/landscape/tree_4b.gr2",
+      "catalog_supported": false,
+      "count": 2
+    },
+    {
+      "layer": "Forest",
+      "family": 6,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_5.gr2",
+      "catalog_supported": false,
+      "count": 2
+    },
+    {
+      "layer": "Forest",
+      "family": 7,
+      "variant": 1,
+      "asset": "meshes/landscape/tree_6b.gr2",
+      "catalog_supported": false,
+      "count": 4
+    },
+    {
+      "layer": "Forest",
+      "family": 8,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_7.gr2",
+      "catalog_supported": false,
+      "count": 17
+    },
+    {
+      "layer": "Forest",
+      "family": 8,
+      "variant": 1,
+      "asset": "meshes/landscape/tree_7b.gr2",
+      "catalog_supported": false,
+      "count": 10
+    },
+    {
+      "layer": "Forest",
+      "family": 8,
+      "variant": 2,
+      "asset": "meshes/landscape/tree_7c.gr2",
+      "catalog_supported": false,
+      "count": 16
+    },
+    {
+      "layer": "Forest",
+      "family": 8,
+      "variant": 3,
+      "asset": "meshes/landscape/tree_7d.gr2",
+      "catalog_supported": false,
+      "count": 18
+    },
+    {
+      "layer": "Forest",
+      "family": 9,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_8.gr2",
+      "catalog_supported": false,
+      "count": 15
+    },
+    {
+      "layer": "Forest",
+      "family": 11,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_10.gr2",
+      "catalog_supported": false,
+      "count": 3
+    },
+    {
+      "layer": "Forest",
+      "family": 12,
+      "variant": 0,
+      "asset": "meshes/landscape/tree_11.gr2",
+      "catalog_supported": false,
+      "count": 57
+    },
+    {
+      "layer": "Grass",
+      "family": 0,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 353
+    },
+    {
+      "layer": "Grass",
+      "family": 1,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 358
+    },
+    {
+      "layer": "Grass",
+      "family": 2,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 380
+    },
+    {
+      "layer": "Grass",
+      "family": 3,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 350
+    },
+    {
+      "layer": "Grass",
+      "family": 4,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 379
+    },
+    {
+      "layer": "Grass",
+      "family": 5,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 369
+    },
+    {
+      "layer": "Grass",
+      "family": 6,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 17
+    },
+    {
+      "layer": "Grass",
+      "family": 7,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 17
+    },
+    {
+      "layer": "Grass",
+      "family": 8,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 96
+    },
+    {
+      "layer": "Grass",
+      "family": 9,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 38
+    },
+    {
+      "layer": "Grass",
+      "family": 10,
+      "variant": 0,
+      "asset": "terrain/grass_bb.dds",
+      "catalog_supported": false,
+      "count": 73
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 0,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_A1.gr2",
+      "catalog_supported": false,
+      "count": 11
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 1,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_A2.gr2",
+      "catalog_supported": false,
+      "count": 22
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 2,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_B1.gr2",
+      "catalog_supported": false,
+      "count": 14
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 3,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_B2.gr2",
+      "catalog_supported": false,
+      "count": 19
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 4,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_C1.gr2",
+      "catalog_supported": false,
+      "count": 12
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 5,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_C2.gr2",
+      "catalog_supported": false,
+      "count": 18
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 6,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_D1.gr2",
+      "catalog_supported": false,
+      "count": 9
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 7,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_D2.gr2",
+      "catalog_supported": false,
+      "count": 13
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 8,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_E1.gr2",
+      "catalog_supported": false,
+      "count": 14
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 9,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_E2.gr2",
+      "catalog_supported": false,
+      "count": 16
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 10,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_F1.gr2",
+      "catalog_supported": false,
+      "count": 14
+    },
+    {
+      "layer": "NaturalStone",
+      "family": 11,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_natural_stone_F2.gr2",
+      "catalog_supported": false,
+      "count": 14
+    },
+    {
+      "layer": "Rocks",
+      "family": 0,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_4.gr2",
+      "catalog_supported": false,
+      "count": 20
+    },
+    {
+      "layer": "Rocks",
+      "family": 0,
+      "variant": 1,
+      "asset": "meshes/landscape/rock_5.gr2",
+      "catalog_supported": false,
+      "count": 20
+    },
+    {
+      "layer": "Rocks",
+      "family": 0,
+      "variant": 2,
+      "asset": "meshes/landscape/rock_6.gr2",
+      "catalog_supported": false,
+      "count": 22
+    },
+    {
+      "layer": "Rocks",
+      "family": 0,
+      "variant": 3,
+      "asset": "meshes/landscape/rock_9.gr2",
+      "catalog_supported": false,
+      "count": 19
+    },
+    {
+      "layer": "Rocks",
+      "family": 0,
+      "variant": 4,
+      "asset": "meshes/landscape/rock_12.gr2",
+      "catalog_supported": false,
+      "count": 21
+    },
+    {
+      "layer": "Rocks",
+      "family": 1,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_2.gr2",
+      "catalog_supported": false,
+      "count": 43
+    },
+    {
+      "layer": "Rocks",
+      "family": 1,
+      "variant": 1,
+      "asset": "meshes/landscape/rock_8.gr2",
+      "catalog_supported": false,
+      "count": 29
+    },
+    {
+      "layer": "Rocks",
+      "family": 1,
+      "variant": 2,
+      "asset": "meshes/landscape/rock_14.gr2",
+      "catalog_supported": false,
+      "count": 40
+    },
+    {
+      "layer": "Rocks",
+      "family": 2,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_1.gr2",
+      "catalog_supported": false,
+      "count": 95
+    },
+    {
+      "layer": "Rocks",
+      "family": 2,
+      "variant": 1,
+      "asset": "meshes/landscape/rock_3.gr2",
+      "catalog_supported": false,
+      "count": 80
+    },
+    {
+      "layer": "Rocks",
+      "family": 3,
+      "variant": 0,
+      "asset": "meshes/landscape/rock_7.gr2",
+      "catalog_supported": false,
+      "count": 89
+    },
+    {
+      "layer": "Rocks",
+      "family": 3,
+      "variant": 1,
+      "asset": "meshes/landscape/rock_10.gr2",
+      "catalog_supported": false,
+      "count": 78
+    },
+    {
+      "layer": "Rocks",
+      "family": 3,
+      "variant": 2,
+      "asset": "meshes/landscape/rock_13.gr2",
+      "catalog_supported": false,
+      "count": 82
+    },
+    {
+      "layer": "Shrubs",
+      "family": 0,
+      "variant": 0,
+      "asset": "meshes/landscape/shrub_1.gr2",
+      "catalog_supported": false,
+      "count": 14
+    },
+    {
+      "layer": "Shrubs",
+      "family": 1,
+      "variant": 0,
+      "asset": "meshes/landscape/shrub_2.gr2",
+      "catalog_supported": false,
+      "count": 18
+    },
+    {
+      "layer": "Shrubs",
+      "family": 2,
+      "variant": 0,
+      "asset": "meshes/landscape/shrub_3.gr2",
+      "catalog_supported": false,
+      "count": 15
+    },
+    {
+      "layer": "Shrubs",
+      "family": 3,
+      "variant": 0,
+      "asset": "meshes/landscape/shrub_4.gr2",
+      "catalog_supported": false,
+      "count": 4
+    }
+  ]
+}

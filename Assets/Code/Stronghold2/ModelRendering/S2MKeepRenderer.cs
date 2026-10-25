@@ -20,6 +20,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       settings ??= new S2MBuildingRenderSettings();
       var root = new GameObject("S2M Keeps");
       if (parent != null) root.transform.SetParent(parent, false);
+      S2MSceneryOcclusion.GetOrCreate(parent != null ? parent : root.transform, data.Map);
       root.transform.localPosition = new Vector3(
         terrainSettings.FlipX ? data.Map.MapSize * terrainSettings.HorizontalCellSize : 0f, 0f,
         terrainSettings.FlipZ ? data.Map.MapSize * terrainSettings.HorizontalCellSize : 0f);
@@ -31,6 +32,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       };
       foreach (S2MKeepBatch batch in data.Batches)
       {
+        Transform[] buildingRoots = S2MBuildingRenderer.CreateBuildingRoots(batch.Keeps, root.transform, data.Map);
         var instances = new List<Granny2ModelInstance>();
         foreach (Keep keep in batch.Keeps) instances.Add(S2MBuildingRenderer.CreateInstance(keep, terrainSettings));
         GameObject closed = Granny2ModelRenderer.RenderInstances(batch.Closed, instances,
@@ -44,7 +46,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         {
           Granny2ModelInstance placement = instances[i];
           var view = new GameObject($"{placement.Name} View");
-          view.transform.SetParent(root.transform, false);
+          view.transform.SetParent(buildingRoots[i], false);
           view.transform.localPosition = placement.Position;
           view.transform.localRotation = Quaternion.Euler(placement.EulerAngles);
           view.transform.localScale = placement.Scale;
@@ -59,7 +61,11 @@ namespace Assets.Code.Stronghold2.ModelRendering
           foreach (MeshRenderer renderer in collision.GetComponentsInChildren<MeshRenderer>()) renderer.enabled = false;
           foreach (MeshFilter filter in collision.GetComponentsInChildren<MeshFilter>())
             filter.gameObject.AddComponent<MeshCollider>().sharedMesh = filter.sharedMesh;
+          S2MBuildingRenderer.ParentInstances(collision, buildingRoots);
         }
+        S2MBuildingRenderer.ParentInstances(closed, buildingRoots);
+        S2MBuildingRenderer.ParentInstances(open, buildingRoots);
+        S2MBuildingRenderer.ParentInstances(tables, buildingRoots);
       }
       return root;
     }

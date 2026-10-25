@@ -72,6 +72,16 @@ namespace Assets.Code.Stronghold2.S2MReader
           if (i == 1 && parsed is EstateLayer radarEstateLayer) MapFile.RadarEstateLayer = radarEstateLayer;
           if (parsed is Landscape landscape) MapFile.Landscape = landscape;
           if (parsed is Forest forest) MapFile.Forest = forest;
+          if (i == 2 && parsed is SceneryLayer scenery)
+          {
+            switch (scenery.Kind)
+            {
+              case SceneryKind.Grass: MapFile.Grass = scenery; break;
+              case SceneryKind.Shrubs: MapFile.Shrubs = scenery; break;
+              case SceneryKind.Rocks: MapFile.Rocks = scenery; break;
+              case SceneryKind.NaturalStone: MapFile.NaturalStone = scenery; break;
+            }
+          }
           if (parsed is Bridges bridges) MapFile.Bridges = bridges;
           if (i == 2 && parsed is RawS2Object mapObject && parsed.Type == "Map")
             MapFile.WallLayer = WallLayerReader.Read(mapObject.Payload);
@@ -90,6 +100,7 @@ namespace Assets.Code.Stronghold2.S2MReader
       }
 
       MapFile.Keeps = keeps;
+      MapFile.PlantActors = PlantActorReader.ReadAll(MapFile.S2GameObjects);
       MapFile.BuildingPlacements = BuildingPlacementReader.ReadAll(MapFile.S2GameObjects);
       MapFile.ApplyPlayableTerrainSize();
       return MapFile;
@@ -257,6 +268,7 @@ namespace Assets.Code.Stronghold2.S2MReader
         "HeightLayer" => new HeightLayerReader(obj),
         "Landscape" => new LandscapeReader(obj),
         "Forest" => new ForestReader(obj),
+        "Grass" or "Shrubs" or "Rocks" or "NaturalStone" => new SceneryLayerReader(obj),
         "Bridges" => new BridgesReader(obj),
         "Keep1" or "Keep2" or "Keep3" or "Keep4" => new KeepReader(obj),
 

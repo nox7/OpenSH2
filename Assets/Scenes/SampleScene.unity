@@ -415,6 +415,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Main
   gameScale: 1
   treeModelScale: 0.5
+  vegetationModelScale: 0.5
+  rockModelScale: 0.5
+  naturalStoneModelScale: 0.5
+  naturalStoneTextureBrightness: 3
+  grassModelScale: 0.5
+  cropModelScale: 0.5
   vegetationRenderSettings:
     HorizontalCellSize: 1
     HeightUnitScale: 0.0009765625
@@ -427,13 +433,27 @@ MonoBehaviour:
       ConvertZUpToUnityYUp: 1
       DoubleSided: 1
       UseFoliageMaterials: 1
+      OpaqueShader: {fileID: 0}
+      TextureBrightness: 1
       AlphaCutoff: 0.53333336
       FallbackMaterial: {fileID: 0}
-  keepRenderSettings:
+    GrassSize: 1
+    GrassAlphaCutoff: 0.35
+  buildingRenderSettings:
     ViewMode: 0
     ViewCamera: {fileID: 0}
     InteriorOpenDistance: 12
     InteriorCloseHysteresis: 2
+  wallRenderSettings:
+    RenderBattlements: 1
+    StoneWalkRise: 0.08
+    StoneParapetHeight: 0.22
+    StoneMerlonHeight: 0.28
+    ParapetWidth: 0.18
+    StoneCapSlope: 0.035
+    WoodParapetWidth: 0.25
+    WoodParapetHeight: 0.18
+    WoodSpikeHeight: 0.5
 --- !u!4 &742588518
 Transform:
   m_ObjectHideFlags: 0

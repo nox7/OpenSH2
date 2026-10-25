@@ -13,8 +13,6 @@ namespace Assets.Code.Stronghold2.ModelRendering
   {
     [Tooltip("Generate parapets and merlons along the saved top-edge mask. Dimensions are preliminary visual calibration.")]
     public bool RenderBattlements = true;
-    [Tooltip("Raised stone walking course above the saved wall-body top, in map-cell height units.")]
-    [Min(0f)] public float StoneWalkRise = 0.08f;
     [Min(0f)] public float StoneParapetHeight = 0.22f;
     [Min(0f)] public float StoneMerlonHeight = 0.35f;
     [Tooltip("Stone parapet thickness across the wall edge, in cells.")]
@@ -61,7 +59,6 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if (!Positive(terrainSettings.HorizontalCellSize) || !Positive(terrainSettings.HeightUnitScale)
         || terrainSettings.CellsPerChunk <= 0 || !Positive(settings.ParapetWidth)
         || !Positive(settings.WoodParapetWidth)
-        || !Nonnegative(settings.StoneWalkRise)
         || !Nonnegative(settings.StoneCapSlope) || !Nonnegative(settings.WoodSpikeHeight)
         || !Nonnegative(settings.WoodParapetHeight)
         || !Nonnegative(settings.StoneParapetHeight) || !Nonnegative(settings.StoneMerlonHeight))
@@ -87,6 +84,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
 
         var resources = root.AddComponent<Granny2GeneratedModelResources>();
         Material[] materials = CreateMaterials(gameInstallPath, resources);
+        var parapets = settings.RenderBattlements ? new ParapetLayout(map.WallLayer, heights, terrainSettings, settings) : null;
         for (int z = 0; z < heights.Height; z += terrainSettings.CellsPerChunk)
           for (int x = 0; x < heights.Width; x += terrainSettings.CellsPerChunk)
           {
@@ -95,7 +93,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
               for (int cx = x; cx < Math.Min(x + terrainSettings.CellsPerChunk, heights.Width); cx++)
               {
                 WallCell cell = map.WallLayer.GetCell(cx, cz);
-                if (cell.HasWall) AddCell(mesh, cell, map.WallLayer, heights, cx, cz, terrainSettings, settings);
+                if (cell.HasWall) AddCell(mesh, cell, map.WallLayer, heights, cx, cz, terrainSettings, settings, parapets);
               }
             if (mesh.Vertices.Count == 0) continue;
             Mesh generated = mesh.Build($"Wall chunk {x},{z}");
@@ -145,22 +143,22 @@ namespace Assets.Code.Stronghold2.ModelRendering
     }
 
     private static void AddCell(WallMesh mesh, WallCell cell, WallLayer walls, HeightLayer ground, int x, int z,
-      S2MTerrainSettings terrain, S2MWallRenderSettings settings)
+      S2MTerrainSettings terrain, S2MWallRenderSettings settings, ParapetLayout parapets)
     {
       float pitch = terrain.HorizontalCellSize;
       float vertical = terrain.HeightUnitScale * 1024f;
       var top = new Vector3[4];
-      var bodyTop = new Vector3[4];
       var bottom = new Vector3[4];
       for (int c = 0; c < 4; c++)
       {
         int vx = x + (int)Corners[c].x, vz = z + (int)Corners[c].y;
-        bodyTop[c] = new Vector3(vx * pitch, cell.GetHeight(c) * terrain.HeightUnitScale, vz * pitch);
-        top[c] = bodyTop[c] + Vector3.up * (cell.IsWood ? 0f : settings.StoneWalkRise * vertical);
+        // Saved heights are already the walking surface, including building
+        // joins. An extra slab/rise floats above their existing model decks.
+        top[c] = new Vector3(vx * pitch, cell.GetHeight(c) * terrain.HeightUnitScale, vz * pitch);
         // The primary grid is the ground under the wall; secondary planes can
         // contain the wall's own walking surface and must not be used as a base.
         float baseHeight = ground.Heights[Math.Min(vz, ground.Height - 1) * ground.Width + Math.Min(vx, ground.Width - 1)];
-        bottom[c] = new Vector3(top[c].x, Math.Min(bodyTop[c].y, baseHeight * terrain.HeightUnitScale), top[c].z);
+        bottom[c] = new Vector3(top[c].x, Math.Min(top[c].y, baseHeight * terrain.HeightUnitScale), top[c].z);
       }
       int sideMaterial = cell.IsWood ? 3 : 0, topMaterial = cell.IsWood ? 4 : 1;
       int[] polygon = Polygons[cell.Shape];
@@ -174,9 +172,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
         if (!IsEdge(polygon, a, b)) continue;
         if ((cell.SideEdges & (1 << e)) != 0)
         {
-          mesh.Side(bottom[a], bodyTop[a], bodyTop[b], bottom[b], sideMaterial, pitch, vertical);
-          if (!cell.IsWood && settings.StoneWalkRise > 0f)
-            mesh.Side(bodyTop[a], top[a], top[b], bodyTop[b], topMaterial, pitch, vertical);
+          // Masonry/timber runs directly to the saved walk. Walkway textures
+          // belong only on horizontal tops, never on an exterior riser band.
+          mesh.Side(bottom[a], top[a], top[b], bottom[b], sideMaterial, pitch, vertical);
         }
         else if (e < 4)
         {
@@ -191,19 +189,18 @@ namespace Assets.Code.Stronghold2.ModelRendering
             int opposite = (e + 2) % 4;
             if (neighbor.HasWall && IsEdge(Polygons[neighbor.Shape], EdgeStart[opposite], EdgeEnd[opposite]))
             {
-              float rise = neighbor.IsWood ? 0f : settings.StoneWalkRise * vertical;
               Vector3 lowerA = top[a], lowerB = top[b];
               // Follow the neighbor's actual linear profile. Clamping each end
               // to ground would create an artificial ramp between endpoints and
               // can leave a hole where a sloping wall crosses the ground plane.
-              lowerA.y = neighbor.GetHeight(EdgeEnd[opposite]) * terrain.HeightUnitScale + rise;
-              lowerB.y = neighbor.GetHeight(EdgeStart[opposite]) * terrain.HeightUnitScale + rise;
+              lowerA.y = neighbor.GetHeight(EdgeEnd[opposite]) * terrain.HeightUnitScale;
+              lowerB.y = neighbor.GetHeight(EdgeStart[opposite]) * terrain.HeightUnitScale;
               mesh.HeightDifference(lowerA, top[a], top[b], lowerB, sideMaterial, pitch, vertical);
             }
           }
         }
         if (settings.RenderBattlements && (cell.TopEdges & (1 << e)) != 0)
-          AddBattlements(mesh, top[a], top[b], cell.IsWood, pitch, vertical, settings);
+          AddBattlements(mesh, top[a], top[b], cell.IsWood, pitch, vertical, settings, parapets.Get(x, z, e));
       }
     }
 
@@ -215,7 +212,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     }
 
     private static void AddBattlements(WallMesh mesh, Vector3 a, Vector3 b, bool wood,
-      float pitch, float vertical, S2MWallRenderSettings settings)
+      float pitch, float vertical, S2MWallRenderSettings settings, ParapetEdge edge)
     {
       Vector3 along = b - a;
       Vector3 inwardDirection = Vector3.Cross(Vector3.up, along).normalized;
@@ -239,13 +236,137 @@ namespace Assets.Code.Stronghold2.ModelRendering
         {
           Vector3 courseA = Vector3.Lerp(a, b, (float)i / pieces);
           Vector3 courseB = Vector3.Lerp(a, b, (float)(i + 1) / pieces);
-          mesh.Prism(courseA, courseB, inward, low, 0, 2, pitch, vertical, levelTop: true);
           float courseHeight = Math.Max(courseA.y, courseB.y) + low;
-          Vector3 start = Vector3.Lerp(a, b, (i + 0.05f) / pieces);
-          Vector3 end = Vector3.Lerp(a, b, (i + 0.75f) / pieces);
+          bool startCorner = i == 0 && edge?.StartCorner != null;
+          bool endCorner = i == pieces - 1 && edge?.EndCorner != null;
+          if (startCorner) courseHeight = edge.StartCorner.CourseHeight;
+          if (endCorner) courseHeight = edge.EndCorner.CourseHeight;
+          if (low > 0f)
+            mesh.Ribbon(courseA, courseB,
+              courseA + InnerOffset((float)i / pieces), courseB + InnerOffset((float)(i + 1) / pieces),
+              courseHeight, 0f, 0, 2, pitch, vertical, !startCorner, !endCorner);
+          if (settings.StoneMerlonHeight <= 0f) continue;
+
+          // Keep the regular merlon's inward endpoint on each run. Extend only
+          // toward the corner, so joining the cap does not enlarge its next gap.
+          float startT = startCorner ? 0f : (i + 0.05f) / pieces;
+          float endT = endCorner ? 1f : (i + 0.75f) / pieces;
+          Vector3 start = Vector3.Lerp(a, b, startT);
+          Vector3 end = Vector3.Lerp(a, b, endT);
           start.y = end.y = courseHeight;
-          mesh.Prism(start, end, inward, settings.StoneMerlonHeight * vertical, 0, 2, pitch, vertical,
-            settings.StoneCapSlope * vertical);
+          mesh.Ribbon(start, end, start + InnerOffset(startT), end + InnerOffset(endT),
+            courseHeight + settings.StoneMerlonHeight * vertical, settings.StoneCapSlope * vertical,
+            0, 2, pitch, vertical, !startCorner, !endCorner);
+        }
+      }
+
+      Vector3 InnerOffset(float t)
+      {
+        Vector3 offset = inward;
+        if (edge?.StartCorner != null)
+        {
+          Vector3 delta = edge.StartCorner.InnerPoint - new Vector3(a.x, 0f, a.z) - inward;
+          offset += delta * Mathf.Clamp01(1f - t * edge.Length / inward.magnitude);
+        }
+        if (edge?.EndCorner != null)
+        {
+          Vector3 delta = edge.EndCorner.InnerPoint - new Vector3(b.x, 0f, b.z) - inward;
+          offset += delta * Mathf.Clamp01(1f - (1f - t) * edge.Length / inward.magnitude);
+        }
+        return offset;
+      }
+    }
+
+    private sealed class ParapetCorner
+    {
+      public Vector3 InnerPoint;
+      public float CourseHeight;
+    }
+
+    private sealed class ParapetEdge
+    {
+      public Vector3 A, B, Direction, Inward;
+      public float Length;
+      public ParapetCorner StartCorner, EndCorner;
+    }
+
+    /// <summary>Global endpoint connectivity keeps joints consistent across cell/chunk boundaries.</summary>
+    private sealed class ParapetLayout
+    {
+      private readonly Dictionary<(int, int, int), ParapetEdge> edges = new();
+      public ParapetEdge Get(int x, int z, int e) => edges.TryGetValue((x, z, e), out var edge) ? edge : null;
+
+      public ParapetLayout(WallLayer walls, HeightLayer ground, S2MTerrainSettings terrain, S2MWallRenderSettings settings)
+      {
+        // Corner blocks must fit inside one half-cell merlon interval.
+        if (settings.ParapetWidth >= 0.5f) return;
+        float pitch = terrain.HorizontalCellSize, width = settings.ParapetWidth * pitch;
+        float low = settings.StoneParapetHeight * terrain.HeightUnitScale * 1024f;
+        var nodes = new Dictionary<(int, int), List<(ParapetEdge Edge, bool Start)>>();
+        for (int z = 0; z < ground.Height; z++)
+          for (int x = 0; x < ground.Width; x++)
+          {
+            WallCell cell = walls.GetCell(x, z);
+            if (!cell.HasWall || cell.IsWood) continue;
+            for (int e = 0; e < 8; e++)
+            {
+              int a = EdgeStart[e], b = EdgeEnd[e];
+              if ((cell.TopEdges & (1 << e)) == 0 || !IsEdge(Polygons[cell.Shape], a, b)) continue;
+              var edge = new ParapetEdge
+              {
+                A = new Vector3((x + Corners[a].x) * pitch, cell.GetHeight(a) * terrain.HeightUnitScale, (z + Corners[a].y) * pitch),
+                B = new Vector3((x + Corners[b].x) * pitch, cell.GetHeight(b) * terrain.HeightUnitScale, (z + Corners[b].y) * pitch)
+              };
+              Vector3 delta = edge.B - edge.A; delta.y = 0f;
+              edge.Length = delta.magnitude; edge.Direction = delta.normalized;
+              edge.Inward = Vector3.Cross(Vector3.up, edge.Direction);
+              edges.Add((x, z, e), edge);
+              Add((x + (int)Corners[a].x, z + (int)Corners[a].y), edge, true);
+              Add((x + (int)Corners[b].x, z + (int)Corners[b].y), edge, false);
+            }
+          }
+        foreach (var entries in nodes.Values)
+        {
+          // Do not fuse touching-but-independent boundaries or ambiguous branches.
+          if (entries.Count != 2 || entries[0].Start == entries[1].Start) continue;
+          var incoming = entries[0].Start ? entries[1].Edge : entries[0].Edge;
+          var outgoing = entries[0].Start ? entries[0].Edge : entries[1].Edge;
+          if (Math.Abs(incoming.B.y - outgoing.A.y) > terrain.HeightUnitScale
+            || Math.Abs(Vector3.Dot(incoming.Direction, outgoing.Direction)) > 0.001f) continue;
+          Vector3 vertex = incoming.B; vertex.y = 0f;
+          float IncomingCourse(ParapetEdge edge, bool start)
+          {
+            int pieces = Math.Max(1, Mathf.RoundToInt(edge.Length / (pitch * 0.5f)));
+            return start ? Math.Max(edge.A.y, Vector3.Lerp(edge.A, edge.B, 1f / pieces).y)
+              : Math.Max(edge.B.y, Vector3.Lerp(edge.A, edge.B, 1f - 1f / pieces).y);
+          }
+          var corner = new ParapetCorner
+          {
+            InnerPoint = vertex + (incoming.Inward + outgoing.Inward) * width,
+            CourseHeight = Math.Max(IncomingCourse(incoming, false), IncomingCourse(outgoing, true)) + low
+          };
+          // A concave turn needs supporting wall in its inner quadrant. Two
+          // independent walls touching only at a vertex must not grow a bridge.
+          int ix = Mathf.FloorToInt(corner.InnerPoint.x / pitch), iz = Mathf.FloorToInt(corner.InnerPoint.z / pitch);
+          if (ix < 0 || iz < 0 || ix >= ground.Width || iz >= ground.Height) continue;
+          WallCell support = walls.GetCell(ix, iz);
+          if (!support.HasWall) continue;
+          Vector2 point = new(corner.InnerPoint.x / pitch - ix, corner.InnerPoint.z / pitch - iz);
+          int[] polygon = Polygons[support.Shape];
+          bool inside = true;
+          for (int i = 0; i < polygon.Length; i++)
+          {
+            Vector2 a = Corners[polygon[i]], b = Corners[polygon[(i + 1) % polygon.Length]];
+            if ((b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x) > 0.0001f) inside = false;
+          }
+          if (!inside) continue;
+          incoming.EndCorner = outgoing.StartCorner = corner;
+        }
+
+        void Add((int, int) key, ParapetEdge edge, bool start)
+        {
+          if (!nodes.TryGetValue(key, out var entries)) nodes.Add(key, entries = new());
+          entries.Add((edge, start));
         }
       }
     }
@@ -324,6 +445,21 @@ namespace Assets.Code.Stronghold2.ModelRendering
           upperB = Vector3.Lerp(upperA, upperB, t);
         }
         Side(lowerA, upperA, upperB, lowerB, material, pitch, vertical);
+      }
+
+      public void Ribbon(Vector3 a, Vector3 b, Vector3 d, Vector3 c, float topY, float capRise,
+        int side, int cap, float pitch, float vertical, bool startFace, bool endFace)
+      {
+        // Inner endpoints are mitered at turns. Two corner halves share their
+        // diagonal and cap heights, without overlapping blocks or internal faces.
+        Vector3 ta = a, tb = b, tc = c, td = d;
+        ta.y = tb.y = topY; tc.y = td.y = topY + capRise;
+        Triangle(ta, tb, tc, cap, pitch);
+        Triangle(ta, tc, td, cap, pitch);
+        Side(a, ta, tb, b, side, pitch, vertical);
+        if (endFace) Side(b, tb, tc, c, side, pitch, vertical);
+        Side(c, tc, td, d, side, pitch, vertical);
+        if (startFace) Side(d, td, ta, a, side, pitch, vertical);
       }
 
       public void Spike(Vector3 center, float radius, float height, Vector3 along)

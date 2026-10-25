@@ -28,6 +28,11 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public WaterLayer WaterLayer => Landscape?.Water;
     public HeightLayer HeightLayer { get; internal set; }
     public Forest Forest { get; internal set; }
+    public SceneryLayer Grass { get; internal set; }
+    public SceneryLayer Shrubs { get; internal set; }
+    public SceneryLayer Rocks { get; internal set; }
+    public SceneryLayer NaturalStone { get; internal set; }
+    public IReadOnlyList<PlantActor> PlantActors { get; internal set; } = Array.Empty<PlantActor>();
     public Bridges Bridges { get; internal set; }
     /// <summary>Decoded Map tag 14; retains backing stride independently of playable map size.</summary>
     public WallLayer WallLayer { get; internal set; }
