@@ -28,7 +28,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       var modelSettings = new Granny2ModelRenderSettings
       {
         UnitScale = terrainSettings.HorizontalCellSize / ModelUnitsPerCell,
-        UseFoliageMaterials = false
+        UseFoliageMaterials = false, Livery = S2MLiveryContext.Find(parent)
       };
       foreach (S2MKeepBatch batch in data.Batches)
       {
@@ -63,10 +63,17 @@ namespace Assets.Code.Stronghold2.ModelRendering
             filter.gameObject.AddComponent<MeshCollider>().sharedMesh = filter.sharedMesh;
           S2MBuildingRenderer.ParentInstances(collision, buildingRoots);
         }
+        if (modelSettings.Livery != null)
+        {
+          modelSettings.Livery.ApplyBuildings(closed, batch.Keeps);
+          modelSettings.Livery.ApplyBuildings(open, batch.Keeps);
+          modelSettings.Livery.ApplyBuildings(tables, batch.Keeps);
+        }
         S2MBuildingRenderer.ParentInstances(closed, buildingRoots);
         S2MBuildingRenderer.ParentInstances(open, buildingRoots);
         S2MBuildingRenderer.ParentInstances(tables, buildingRoots);
       }
+      if (data.Campfire != null) S2MCampfireRenderer.Render(data, root.transform, terrainSettings);
       return root;
     }
 

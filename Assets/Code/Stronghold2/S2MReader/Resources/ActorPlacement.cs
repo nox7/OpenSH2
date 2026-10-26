@@ -1,6 +1,6 @@
 namespace Assets.Code.Stronghold2.S2MReader.Resources
 {
-  /// <summary>Saved actors only. No population or gameplay spawning is performed.</summary>
+  /// <summary>Render-placement data for saved actors and synthetic adapters; live gameplay state belongs to Simulation.</summary>
   public sealed class ActorPlacement
   {
     public int Id { get; internal set; }
@@ -21,6 +21,9 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     /// <summary>Low byte of the serialized ContextLayer entry; 255 means unavailable.</summary>
     public byte SavedWalkingClass { get; internal set; } = byte.MaxValue;
     public int PendingPlayer { get; internal set; }
+    public int EstateId { get; internal set; } = -1;
+    /// <summary>Low word: clothing color choice; high word: crest choice. -1 is unassigned.</summary>
+    public int SavedLivery { get; internal set; } = -1;
     public bool HasKnightState { get; internal set; }
     public bool SavedMounted { get; internal set; }
     public uint SavedHorseReference { get; internal set; }

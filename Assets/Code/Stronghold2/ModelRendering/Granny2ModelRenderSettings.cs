@@ -21,5 +21,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     [Tooltip("Stronghold 2's tree shader uses an alpha-test reference of 136/255.")]
     [Range(0f, 1f)] public float AlphaCutoff = 136f / 255f;
     public Material FallbackMaterial;
+    [NonSerialized] public S2MLiveryContext Livery;
+    [NonSerialized] public int TeamGroup = -1;
   }
 }

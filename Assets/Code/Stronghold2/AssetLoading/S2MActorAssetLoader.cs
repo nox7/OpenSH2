@@ -38,6 +38,15 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public float[] Matrices { get; private set; }
     public List<string> BoneNames { get; } = new();
 
+    public Granny2ActorMotion CreateBindPose()
+    {
+      var result=new Granny2ActorMotion { Duration=1,Bones=Bones,Frames=2,Matrices=new float[Bones*2*16] };
+      result.BoneNames.AddRange(BoneNames);result.BoneIndices.AddRange(BoneIndices);result.BoneWeights.AddRange(BoneWeights);
+      for(int frame=0;frame<2;frame++)for(int bone=0;bone<Bones;bone++)for(int axis=0;axis<4;axis++)
+        result.Matrices[(frame*Bones+bone)*16+axis*5]=1;
+      return result;
+    }
+
     public static Granny2ActorMotion Read(string path)
     {
       using var r = new BinaryReader(File.OpenRead(path));
@@ -86,23 +95,25 @@ namespace Assets.Code.Stronghold2.AssetLoading
   {
     // Capture Unity paths on the caller thread; all file I/O/conversion can run on a worker.
     public Task<S2MActorData> LoadAsync(S2MFile map, string installation, IEnumerable<S2MActorOverride> overrides = null,
-      int samplesPerSecond = 15, string converterPath = null, string cacheDirectory = null)
+      int samplesPerSecond = 15, string converterPath = null, string cacheDirectory = null,
+      IReadOnlyList<ActorPlacement> placements = null,HorseCartAssemblySettings assembly=null)
     {
       converterPath ??= Granny2AssetConverter.DefaultConverterPath;
       cacheDirectory ??= Path.Combine(Application.persistentDataPath, "OpenSH2", "Cache", "Actors");
       string converter = converterPath, cache = cacheDirectory;
-      return Task.Run(() => Load(map, installation, overrides, samplesPerSecond, converter, cache));
+      return Task.Run(() => Load(map, installation, overrides, samplesPerSecond, converter, cache, placements,assembly));
     }
 
     public S2MActorData Load(S2MFile map, string installation, IEnumerable<S2MActorOverride> overrides = null,
-      int samplesPerSecond = 15, string converterPath = null, string cacheDirectory = null)
+      int samplesPerSecond = 15, string converterPath = null, string cacheDirectory = null,
+      IReadOnlyList<ActorPlacement> placements = null,HorseCartAssemblySettings assembly=null)
     {
       // Prevent concurrent loaders from writing the same native cache temporary file.
-      lock (Granny2AnimationAssetLoader.ConversionGate) return LoadCore(map, installation, overrides, samplesPerSecond, converterPath, cacheDirectory);
+      lock (Granny2AnimationAssetLoader.ConversionGate) return LoadCore(map, installation, overrides, samplesPerSecond, converterPath, cacheDirectory, placements,assembly);
     }
 
     private S2MActorData LoadCore(S2MFile map, string installation, IEnumerable<S2MActorOverride> overrides,
-      int samplesPerSecond, string converterPath, string cacheDirectory)
+      int samplesPerSecond, string converterPath, string cacheDirectory, IReadOnlyList<ActorPlacement> placements,HorseCartAssemblySettings assembly)
     {
       if (map == null) throw new ArgumentNullException(nameof(map));
       if (samplesPerSecond < 1 || samplesPerSecond > 60) throw new ArgumentOutOfRangeException(nameof(samplesPerSecond));
@@ -110,10 +121,10 @@ namespace Assets.Code.Stronghold2.AssetLoading
       cacheDirectory ??= Path.Combine(Application.persistentDataPath, "OpenSH2", "Cache", "Actors");
       Directory.CreateDirectory(cacheDirectory);
       var result = new S2MActorData { Map = map };
-      var catalog = new S2MActorCatalog(installation, overrides);
+      var catalog = new S2MActorCatalog(installation, overrides,assembly);
       var batches = new Dictionary<string, S2MActorBatchData>(StringComparer.OrdinalIgnoreCase);
       var issues = new HashSet<string>();
-      foreach (var actor in map.Actors)
+      foreach (var actor in placements ?? map.Actors)
       {
         if (!actor.OnMap) { result.InactiveCount++; continue; }
         try
@@ -151,7 +162,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
           if (modelResult.Error != null) throw new InvalidDataException(modelResult.Error.Message, modelResult.Error);
           var animation = motions[new Granny2AnimationRequest(batch.Asset.ModelPath, batch.Asset.AnimationPath).Key];
           if (animation.Error != null) throw new InvalidDataException(animation.Error.Message, animation.Error);
-          batch.Model = modelResult.Model; batch.Motion = animation.Motion;
+          batch.Model = modelResult.Model; batch.Motion = batch.Asset.UseBindPose ? animation.Motion.CreateBindPose() : animation.Motion;
           foreach (var attachment in batch.Asset.Attachments)
           {
             var model = models[attachment.ModelPath];

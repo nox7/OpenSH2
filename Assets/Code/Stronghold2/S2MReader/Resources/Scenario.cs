@@ -5,6 +5,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
 {
   internal class Scenario : S2Object
   {
+    public byte[] RawPayload { get; internal set; }
     public List<int> MissionObjectIds { get; set; } = new();
     public int StartingYear { get; set; }
     public int StartingMonth { get; set; }

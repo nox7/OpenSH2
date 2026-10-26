@@ -21,7 +21,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
         if (b.Length < 67 || I(b, 0) != 0 || I(b, 4) != 59) continue;
         var actor = new ActorPlacement { Id = obj.Id, Type = obj.Type,
           RawX = F(b, 29), RawY = F(b, 33), RawZ = F(b, 37), OnMap = b[20] != 0,
-          PlacedType = I(b, 8), NavigationLayer = b[21],
+          PlacedType = I(b, 8), NavigationLayer = b[21], EstateId = I(b, 61),
           TileX = BitConverter.ToInt16(b, 25), TileZ = BitConverter.ToInt16(b, 27) };
         bool hasActor = false;
         int p = 0;
@@ -49,6 +49,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
           }
           if (section == "Soldier" && field == 0 && length >= 65)
             actor.PendingPlayer = I(b, p + 61);
+          if (section == "S2Actor" && field == 0 && length >= 29)
+            actor.SavedLivery = I(b, p + 25);
           if (obj.Type == "Knight" && section == "Knight" && field == 0 && length == 11)
           {
             actor.HasKnightState = true;

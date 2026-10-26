@@ -32,7 +32,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       Material template = Resources.Load<Material>("InstancedActor");
       if (template == null || !template.shader.isSupported) throw new NotSupportedException("Animated model shader is unavailable.");
       var root = Granny2ModelRenderer.RenderInstances(model, placements, parent, new Granny2ModelRenderSettings
-      { UnitScale = modelSettings.UnitScale, UseFoliageMaterials = false, FallbackMaterial = template });
+      { UnitScale = modelSettings.UnitScale, UseFoliageMaterials = false, FallbackMaterial = template, Livery = modelSettings.Livery });
       try
       {
         var resources = root.GetComponent<Granny2GeneratedModelResources>();
@@ -72,6 +72,15 @@ namespace Assets.Code.Stronghold2.ModelRendering
       instance.Playing = playing; Apply(instance); return true;
     }
 
+    internal void RefreshMaterials()
+    {
+      var unique = new HashSet<Material>();
+      foreach (var instance in instances.Values) foreach (var renderer in instance.Renderers)
+        foreach (var material in renderer.sharedMaterials) unique.Add(material);
+      materials = new Material[unique.Count]; unique.CopyTo(materials);
+      SetTime(AnimationTime);
+    }
+
     private void Apply(Instance instance)
     {
       foreach (var renderer in instance.Renderers)
@@ -94,6 +103,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if (!(seconds >= 0) || float.IsInfinity(seconds)) throw new ArgumentOutOfRangeException(nameof(seconds));
       if (settings.Enabled) SetTime(AnimationTime + seconds * settings.PlaybackSpeed);
     }
-    private void LateUpdate() { if (settings != null) Advance(Time.deltaTime); }
+    public Assets.Code.Simulation.SimulationClock Clock { get; set; }
+    private void LateUpdate() { if (settings != null) Advance(Clock?.DeltaTime ?? Time.deltaTime); }
   }
 }

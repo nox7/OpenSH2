@@ -8,6 +8,10 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
   public sealed class Keep : BuildingPlacement
   {
     public KeepSize Size { get; internal set; }
+    public bool HasCampfirePosition { get; internal set; }
+    public float CampfireRawX { get; internal set; }
+    public float CampfireRawY { get; internal set; }
+    public float CampfireRawZ { get; internal set; }
     public byte[] RawPayload { get; internal set; } = Array.Empty<byte>();
   }
 }

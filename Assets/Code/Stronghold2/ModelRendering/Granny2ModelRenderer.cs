@@ -152,6 +152,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         int materialIndex = source.TriangleGroups[i].MaterialIndex;
         Granny2MaterialData materialData = materialIndex < source.Materials.Count ? source.Materials[materialIndex] : null;
         materials[i] = CreateMaterial(materialData, sourcePath, settings, resources);
+        if (settings.Livery != null) settings.Livery.Configure(materials[i], sourcePath, materialData?.TexturePath, i, settings.TeamGroup);
       }
       resources.Add(mesh);
       return new PreparedMesh

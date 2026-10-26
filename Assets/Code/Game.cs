@@ -26,6 +26,8 @@ namespace Assets.Code
     }
 
     public GameState State { get; set; } = GameState.NONE;
+    public Simulation.SimulationClock Simulation { get; } = new();
+    public bool IsPaused { get => Simulation.IsPaused; set => Simulation.IsPaused = value; }
     public CacheManager cacheManager;
     public VideoManager videoManager;
     public MainMenuUI mainMenuUI;

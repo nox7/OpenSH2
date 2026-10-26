@@ -43,6 +43,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
     private Material templateMaterial;
     private float modelScaleMultiplier;
     private float clock;
+    private S2MLiveryContext livery;
+    public Assets.Code.Simulation.SimulationClock Clock { get; set; }
     public int ActorCount => actors.Count;
     public int DrawBatchCount => draws.Count;
 
@@ -60,6 +62,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       var root = new GameObject("S2M Placed Actors"); root.transform.SetParent(parent, false);
       var renderer = root.AddComponent<S2MActorRenderer>(); renderer.settings = settings; renderer.templateMaterial = material;
       renderer.modelScaleMultiplier = modelScaleMultiplier;
+      renderer.livery = S2MLiveryContext.Find(parent);
       try
       {
         foreach (var batch in data.Batches) renderer.Prepare(batch, data.Map, terrain, shader);
@@ -72,7 +75,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
     {
       var motion = batch.Motion;
       var template = Granny2ModelRenderer.Render(batch.Model, transform, new Granny2ModelRenderSettings
-      { UnitScale = settings.ModelUnitScale, UseFoliageMaterials = false, OpaqueShader = shader, FallbackMaterial = templateMaterial }, "Shared " + batch.Asset.ModelPath);
+      { UnitScale = settings.ModelUnitScale, UseFoliageMaterials = false, OpaqueShader = shader, FallbackMaterial = templateMaterial,
+        Livery = livery, TeamGroup = batch.Asset.TeamGroup }, "Shared " + batch.Asset.ModelPath);
       template.SetActive(false);
       var resources = template.GetComponent<Granny2GeneratedModelResources>();
       var texture = Granny2AnimationRendering.CreatePoseTexture(motion, resources, batch.Asset.Action);
@@ -89,7 +93,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
           if (bone < 0) throw new InvalidOperationException("Actor attachment bone not found: " + attachment.boneName);
         }
         GameObject part = Granny2ModelRenderer.Render(attachment.model, template.transform,
-          new Granny2ModelRenderSettings { UnitScale = settings.ModelUnitScale, UseFoliageMaterials = false, OpaqueShader = shader, FallbackMaterial = templateMaterial });
+          new Granny2ModelRenderSettings { UnitScale = settings.ModelUnitScale, UseFoliageMaterials = false, OpaqueShader = shader, FallbackMaterial = templateMaterial, Livery = livery });
         foreach (var filter in part.GetComponentsInChildren<MeshFilter>(true))
         {
           int count = filter.sharedMesh.vertexCount;
@@ -107,7 +111,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       var materials = template.GetComponentsInChildren<MeshRenderer>(true);
       foreach (var r in materials) foreach (var material in r.sharedMaterials)
       {
-        if (material.GetTexture("_BaseMap") is Texture2D diffuse
+        if (livery == null && material.GetTexture("_BaseMap") is Texture2D diffuse
           && string.Equals(diffuse.name, "crest", StringComparison.OrdinalIgnoreCase))
         {
           // crest.dds is exporter placeholder text, not the player's heraldry.
@@ -127,15 +131,20 @@ namespace Assets.Code.Stronghold2.ModelRendering
       Mesh[] sharedMeshes = filters.ConvertAll(f => f.sharedMesh).ToArray();
       Material[][] sharedMaterials = Array.ConvertAll(materials, r => r.sharedMaterials);
       foreach (var group in groups.Values)
-        for (int start = 0; start < group.Count; start += 1023)
+        // Match shader forcemaxcount; transforms plus both instanced vectors fit within 64 KiB.
+        for (int start = 0; start < group.Count; start += 256)
         {
-          int count = Math.Min(1023, group.Count - start);
-          var draw = new DrawBatch { Local = new Matrix4x4[count], World = new Matrix4x4[count], Playback = new Vector4[count],
+          int count = Math.Min(256, group.Count - start);
+          var draw = new DrawBatch { Local = new Matrix4x4[count], World = new Matrix4x4[count], Playback = new Vector4[count], VisiblePlayback = new Vector4[count],
+            Livery = new Vector4[count], VisibleLivery = new Vector4[count],
+            Visible = new bool[count], AnimationPath = batch.Asset.AnimationPath, Variant = batch.Asset.Variant, HoldPose = batch.Asset.HoldPose,
             PartTransform = Matrix4x4.TRS(batch.Asset.LocalOffset, Quaternion.Euler(batch.Asset.LocalEulerAngles), Vector3.one),
             Meshes = sharedMeshes, Materials = sharedMaterials, Properties = new MaterialPropertyBlock() };
           for (int j = 0; j < count; j++)
           {
             int index = group[start + j]; var p = batch.Placements[index];
+            draw.Visible[j] = true;
+            draw.Livery[j] = livery != null ? livery.ResolveActor(p).Data : new Vector4(1, 1, 1, 13);
             float x = p.RawX / 1024, z = p.RawZ / 1024, yaw = p.HeadingDegrees;
             if (terrain.FlipX) { x = map.MapSize - x; yaw = 180 - yaw; }
             if (terrain.FlipZ) { z = map.MapSize - z; yaw = -yaw; }
@@ -159,6 +168,14 @@ namespace Assets.Code.Stronghold2.ModelRendering
       return true;
     }
 
+    /// <summary>Updates every loaded rider, horse, equipment and clip variant without allocating materials.</summary>
+    public bool SetLivery(int id, S2MLivery value)
+    {
+      if (!actors.TryGetValue(id, out var pieces)) return false;
+      foreach (var piece in pieces) piece.batch.Livery[piece.index] = value.Data;
+      return true;
+    }
+
     public bool SetPlayback(int id, float time, float rate = 1, bool loop = true)
     {
       if (float.IsNaN(time) || float.IsInfinity(time) || float.IsNaN(rate) || float.IsInfinity(rate)) throw new ArgumentOutOfRangeException();
@@ -171,26 +188,60 @@ namespace Assets.Code.Stronghold2.ModelRendering
       return true;
     }
 
+    public bool HideActor(int id)
+    {
+      if (!actors.TryGetValue(id, out var pieces)) return false;
+      foreach (var piece in pieces) piece.batch.Visible[piece.index] = false;
+      return true;
+    }
+
+    /// <summary>Selects one preloaded clip variant for an actor without allocating scene objects.</summary>
+    public bool SetAnimation(int id, string animationPath, float time = 0, bool loop = true, float rate = 1)
+      => SelectAnimation(id,animationPath,false,time,loop,rate);
+
+    public bool SetVariant(int id,string variant,float time=0,bool loop=true,float rate=1)
+      => SelectAnimation(id,variant,true,time,loop,rate);
+
+    private bool SelectAnimation(int id,string selection,bool variant,float time,bool loop,float rate)
+    {
+      if (!actors.TryGetValue(id, out var pieces)) return false;
+      if (float.IsNaN(time) || float.IsInfinity(time) || float.IsNaN(rate) || float.IsInfinity(rate)) throw new ArgumentOutOfRangeException();
+      bool Matches(DrawBatch batch) => string.Equals(variant ? batch.Variant : batch.AnimationPath,selection,StringComparison.OrdinalIgnoreCase);
+      bool found = pieces.Exists(p => Matches(p.batch));
+      if (!found) return false;
+      float frameClock = clock + (settings.Animate ? Clock?.DeltaTime ?? Time.deltaTime : 0);
+      foreach (var piece in pieces)
+      {
+        bool active = Matches(piece.batch);
+        piece.batch.Visible[piece.index] = active;
+        if (!active) continue;
+        piece.batch.Playback[piece.index] = piece.batch.HoldPose ? Vector4.zero : new Vector4(time - frameClock * rate, rate, loop ? 1 : 0, 0);
+        piece.batch.PlaybackDirty = true;
+      }
+      return true;
+    }
+
     private void LateUpdate()
     {
       if (settings == null) return;
-      if (settings.Animate) clock += Time.deltaTime;
+      if (settings.Animate) clock += Clock?.DeltaTime ?? Time.deltaTime;
       Matrix4x4 root = transform.localToWorldMatrix;
       foreach (var draw in draws)
       {
-        for (int i = 0; i < draw.Local.Length; i++) draw.World[i] = root * draw.Local[i];
-        if (draw.PlaybackDirty)
-        {
-          draw.Properties.SetVectorArray("_ActorPlayback", draw.Playback);
-          draw.PlaybackDirty = false;
-        }
+        int visible = 0;
+        for (int i = 0; i < draw.Local.Length; i++)
+          if (draw.Visible[i]) { draw.World[visible] = root * draw.Local[i]; draw.VisibleLivery[visible] = draw.Livery[i]; draw.VisiblePlayback[visible++] = draw.Playback[i]; }
+        if (visible == 0) continue;
+        // Visibility compaction changes the playback order as well as the matrix order.
+        draw.Properties.SetVectorArray("_ActorPlayback", draw.VisiblePlayback);
+        draw.Properties.SetVectorArray("_ActorLivery", draw.VisibleLivery);
         draw.Properties.SetFloat("_ActorClock", clock);
         draw.Properties.SetFloat("_ActorReceiveShadows", settings.ReceiveShadows ? 1 : 0);
         for (int m = 0; m < draw.Meshes.Length; m++)
         {
           Mesh mesh = draw.Meshes[m]; Material[] materials = draw.Materials[m];
           for (int s = 0; s < mesh.subMeshCount; s++)
-            Graphics.DrawMeshInstanced(mesh, s, materials[s], draw.World, draw.World.Length, draw.Properties,
+            Graphics.DrawMeshInstanced(mesh, s, materials[s], draw.World, visible, draw.Properties,
               settings.CastShadows ? ShadowCastingMode.On : ShadowCastingMode.Off, settings.ReceiveShadows, gameObject.layer,
               null, LightProbeUsage.Off);
         }
@@ -216,6 +267,12 @@ namespace Assets.Code.Stronghold2.ModelRendering
       public Matrix4x4[] Local, World;
       public Matrix4x4 PartTransform;
       public Vector4[] Playback;
+      public Vector4[] VisiblePlayback;
+      public Vector4[] Livery, VisibleLivery;
+      public bool[] Visible;
+      public string AnimationPath;
+      public string Variant;
+      public bool HoldPose;
       public bool PlaybackDirty;
       public Mesh[] Meshes;
       public Material[][] Materials;

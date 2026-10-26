@@ -12,7 +12,7 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
       byte[] payload = ReadPayloadToTrailer(reader);
       if (BuildingPlacementReader.TryRead(payload, out BuildingPlacement placement))
       {
-        return new Keep
+        var keep = new Keep
         {
           Size = Object.Type switch
           {
@@ -27,8 +27,30 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
           FootprintHeight = placement.FootprintHeight, SavedBuildingReference = placement.SavedBuildingReference,
           RawPayload = payload
         };
+        ReadCampfire(keep, payload);
+        return keep;
       }
       throw new InvalidDataException("Keep has no supported counted Building transform block.");
+    }
+
+    private static void ReadCampfire(Keep keep, byte[] payload)
+    {
+      for (int offset = 0; offset <= payload.Length - 133; offset++)
+      {
+        if (System.BitConverter.ToInt32(payload, offset) != S2MReaderUtils.DataPayloadMarker) continue;
+        int header = offset + 8;
+        if (System.BitConverter.ToInt32(payload, header) == 4
+          && System.Text.Encoding.ASCII.GetString(payload, header + 4, 4) == "Keep") header += 8;
+        if (header + 125 > payload.Length || System.BitConverter.ToInt32(payload, header) != 0
+          || System.BitConverter.ToInt32(payload, header + 4) != 117) continue;
+        int position = header + 8 + 101;
+        float x = System.BitConverter.ToSingle(payload, position), y = System.BitConverter.ToSingle(payload, position + 4),
+          z = System.BitConverter.ToSingle(payload, position + 8);
+        if (float.IsNaN(x) || float.IsInfinity(x) || float.IsNaN(y) || float.IsInfinity(y)
+          || float.IsNaN(z) || float.IsInfinity(z)) throw new InvalidDataException("Non-finite keep campfire position.");
+        keep.HasCampfirePosition = true; keep.CampfireRawX = x; keep.CampfireRawY = y; keep.CampfireRawZ = z;
+        return;
+      }
     }
   }
 }

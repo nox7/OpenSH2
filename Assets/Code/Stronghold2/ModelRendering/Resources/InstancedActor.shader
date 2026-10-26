@@ -4,6 +4,8 @@ Shader "OpenSH2/Instanced Actor"
   {
     _BaseMap("Diffuse", 2D) = "white" {}
     _BaseColor("Tint", Color) = (1,1,1,1)
+    [HideInInspector] _LiveryMode("Livery mode", Float) = 0
+    [HideInInspector] _CrestArray("Lord crests", 2DArray) = "" {}
     _Cutoff("Alpha cutoff", Range(0,1)) = .5
     _AlphaClip("Alpha clip", Float) = 0
     _Cull("Cull", Float) = 2
@@ -20,13 +22,15 @@ Shader "OpenSH2/Instanced Actor"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
     TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
     TEXTURE2D(_ActorPoses);
+    TEXTURE2D_ARRAY(_CrestArray); SAMPLER(sampler_CrestArray);
     CBUFFER_START(UnityPerMaterial)
       float4 _BaseMap_ST, _BaseColor, _ActorClip;
-      float _Cutoff, _AlphaClip;
+      float _Cutoff, _AlphaClip, _LiveryMode;
     CBUFFER_END
     float _ActorClock, _ActorReceiveShadows;
     UNITY_INSTANCING_BUFFER_START(Actor)
       UNITY_DEFINE_INSTANCED_PROP(float4, _ActorPlayback)
+      UNITY_DEFINE_INSTANCED_PROP(float4, _ActorLivery)
     UNITY_INSTANCING_BUFFER_END(Actor)
     struct Attributes
     {
@@ -87,6 +91,13 @@ Shader "OpenSH2/Instanced Actor"
     half4 Diffuse(Varyings input)
     {
       half4 c = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
+      float4 livery = UNITY_ACCESS_INSTANCED_PROP(Actor, _ActorLivery);
+      if (_LiveryMode > 2.5)
+        c = half4(SAMPLE_TEXTURE2D_ARRAY(_CrestArray, sampler_CrestArray, input.uv, livery.w).rgb * _BaseColor.rgb, 1);
+      else if (_LiveryMode > 1.5)
+        c = half4(c.rgb * lerp(half3(1,1,1), livery.rgb, c.a), 1);
+      else if (_LiveryMode > .5)
+        c.rgb *= livery.rgb;
       if (_AlphaClip > .5) clip(c.a - _Cutoff);
       return c;
     }
@@ -100,6 +111,7 @@ Shader "OpenSH2/Instanced Actor"
       #pragma vertex ActorVertex
       #pragma fragment Forward
       #pragma multi_compile_instancing
+      #pragma instancing_options forcemaxcount:256
       #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
       #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
       #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
@@ -125,6 +137,7 @@ Shader "OpenSH2/Instanced Actor"
       #pragma vertex ShadowVertex
       #pragma fragment Depth
       #pragma multi_compile_instancing
+      #pragma instancing_options forcemaxcount:256
       #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
       float3 _LightDirection, _LightPosition;
       Varyings ShadowVertex(Attributes input)
@@ -143,7 +156,7 @@ Shader "OpenSH2/Instanced Actor"
         #endif
         return o;
       }
-      half4 Depth(Varyings input) : SV_Target { Diffuse(input); return 0; }
+      half4 Depth(Varyings input) : SV_Target { UNITY_SETUP_INSTANCE_ID(input); Diffuse(input); return 0; }
       ENDHLSL
     }
     Pass
@@ -156,6 +169,7 @@ Shader "OpenSH2/Instanced Actor"
       #pragma vertex ActorVertex
       #pragma fragment ActorNormals
       #pragma multi_compile_instancing
+      #pragma instancing_options forcemaxcount:256
       #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
       #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
       void ActorNormals(Varyings input, bool frontFace : SV_IsFrontFace, out half4 normalOutput : SV_Target0
@@ -188,8 +202,10 @@ Shader "OpenSH2/Instanced Actor"
       #pragma vertex ActorVertex
       #pragma fragment Depth
       #pragma multi_compile_instancing
+      #pragma instancing_options forcemaxcount:256
       half4 Depth(Varyings input) : SV_Target { Diffuse(input); return input.positionCS.z; }
       ENDHLSL
     }
   }
 }
+

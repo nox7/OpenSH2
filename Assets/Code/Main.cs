@@ -52,12 +52,17 @@ public class Main : MonoBehaviour
   [SerializeField] private S2MBuildingRenderSettings buildingRenderSettings = new();
   [SerializeField] private S2MWallRenderSettings wallRenderSettings = new();
   [SerializeField] private S2MActorRenderSettings actorRenderSettings = new();
+  [SerializeField] private S2MLiverySettings liverySettings = new();
+  [Tooltip("Recruitment timing, movement speed, entrance offsets, and campfire ring spacing in map cells. Applied when the map loads.")]
+  [SerializeField] private Assets.Code.Simulation.Population.PopulationSettings populationSettings = new();
+  [Tooltip("Horse-only alignment within the cart assembly. Rider, body and wheels retain their authored offsets. Reload the map to apply.")]
+  [SerializeField] private HorseCartAssemblySettings horseCartSettings = new();
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
   {
     if (GetComponent<AtmosphereController>() == null) gameObject.AddComponent<AtmosphereController>();
-    // Game.Initialize();
+    if (Game.GetInstance() == null) Game.Initialize();
     RunTests();
   }
 
@@ -65,6 +70,13 @@ public class Main : MonoBehaviour
   void Update()
   {
     var game = Game.GetInstance();
+    if (game == null) return;
+#if ENABLE_INPUT_SYSTEM
+    if (UnityEngine.InputSystem.Keyboard.current?.pKey.wasPressedThisFrame == true) game.IsPaused = !game.IsPaused;
+#else
+    if (Input.GetKeyDown(KeyCode.P)) game.IsPaused = !game.IsPaused;
+#endif
+    game.Simulation.Advance(Time.unscaledDeltaTime);
     return;
 
     if (game.State == GameState.NONE)
@@ -159,6 +171,7 @@ public class Main : MonoBehaviour
       var mapWorld = new GameObject("S2M Map World");
       mapWorld.transform.SetParent(transform, worldPositionStays: false);
       mapWorld.transform.localScale = Vector3.one * gameScale;
+      S2MLiveryContext.Create(mapFile, gameInstallPath, mapWorld.transform, liverySettings);
       var terrainSettings = new S2MTerrainSettings
       {
         UsePerCellCornerHeights = true,
@@ -177,6 +190,10 @@ public class Main : MonoBehaviour
         });
       RecordStage("terrain materials");
       S2MBuildingRenderer.Render(buildingData, mapWorld.transform, terrainSettings, buildingRenderSettings);
+      foreach (var animation in mapWorld.GetComponentsInChildren<S2MBuildingAmbientAnimation>())
+        animation.Clock = Game.GetInstance().Simulation;
+      foreach (var fire in mapWorld.GetComponentsInChildren<S2MCampfireRenderer>())
+        fire.Clock = Game.GetInstance().Simulation;
       RecordStage("building geometry/materials/colliders");
       S2MWallRenderer.Render(mapFile, gameInstallPath, mapWorld.transform, terrainSettings, wallRenderSettings);
       RecordStage("wall geometry/materials/colliders");
@@ -205,10 +222,21 @@ public class Main : MonoBehaviour
         modelScales: sceneryScales,
         naturalStoneTextureBrightness: naturalStoneTextureBrightness);
       RecordStage("vegetation rendering");
+      populationSettings.Validate();
+      horseCartSettings.Validate();
+      var navigation = S2MNavigationBuilder.Build(mapFile, populationSettings, buildingData);
+      var recruitmentPlans = S2MRecruitmentPlan.Create(mapFile, navigation, populationSettings);
+      var laborPlan = S2MLaborPlan.Create(mapFile,navigation);
       S2MActorData actorData = await new S2MActorAssetLoader().LoadAsync(mapFile, gameInstallPath,
-        actorRenderSettings.Overrides, actorRenderSettings.AnimationSamplesPerSecond);
+        actorRenderSettings.Overrides, actorRenderSettings.AnimationSamplesPerSecond, placements:laborPlan.StartupActors,assembly:horseCartSettings);
       if (this == null || mapWorld == null) return;
-      S2MActorRenderer.Render(actorData, mapWorld.transform, terrainSettings, actorRenderSettings, unitModelScale);
+      S2MActorRenderer.Render(actorData, mapWorld.transform, terrainSettings, actorRenderSettings, unitModelScale).Clock = Game.GetInstance().Simulation;
+      var populationData = await S2MCampfirePopulationLoader.LoadRecruitsAsync(mapFile, gameInstallPath,
+        recruitmentPlans, actorRenderSettings.AnimationSamplesPerSecond,jobs:laborPlan.Jobs,assembly:horseCartSettings);
+      if (this == null || mapWorld == null) return;
+      var populationRoot = new GameObject("Estate Population"); populationRoot.transform.SetParent(mapWorld.transform, false);
+      populationRoot.AddComponent<S2MPopulationController>().Initialize(mapFile, navigation, recruitmentPlans,
+        populationData, terrainSettings, actorRenderSettings, populationSettings, Game.GetInstance().Simulation, unitModelScale,laborPlan.Jobs,horseCartSettings);
       RecordStage("placed actors and animations");
       Debug.Log($"Rendered {actorData.PlacedCount}/{mapFile.Actors.Count} placed actors ({actorData.InactiveCount} inactive).");
       foreach (string issue in actorData.Issues) Debug.LogWarning("Actor: " + issue);

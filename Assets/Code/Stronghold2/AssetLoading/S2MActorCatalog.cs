@@ -20,7 +20,11 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public Vector3 LocalOffset;
     public Vector3 LocalEulerAngles;
     public bool HoldPose;
+    public bool UseBindPose;
     public bool DisableDefinitionAttachments;
+    public string Variant;
+    [Tooltip("-2 reads the definition; -1 disables default team tint; otherwise a triangle-group index.")]
+    public int TeamGroup = -2;
     public S2MActorAttachment[] Attachments = Array.Empty<S2MActorAttachment>();
   }
 
@@ -41,11 +45,14 @@ namespace Assets.Code.Stronghold2.AssetLoading
 
   public sealed class S2MActorAsset
   {
+    public int TeamGroup { get; internal set; } = -1;
     public string ModelPath { get; internal set; }
     public string AnimationPath { get; internal set; }
     public string Action { get; internal set; }
+    public string Variant { get; internal set; }
     public float Scale { get; internal set; } = 1;
     public bool HoldPose { get; internal set; }
+    public bool UseBindPose { get; internal set; }
     public bool SynchronizedPlayback { get; internal set; }
     public Vector3 LocalOffset { get; internal set; }
     public Vector3 LocalEulerAngles { get; internal set; }
@@ -75,8 +82,9 @@ namespace Assets.Code.Stronghold2.AssetLoading
       ["WoodCutter"] = "woodcutter", ["FairgroundActor"] = "actor"
     };
 
-    public S2MActorCatalog(string gameRoot, IEnumerable<S2MActorOverride> custom = null)
+    public S2MActorCatalog(string gameRoot, IEnumerable<S2MActorOverride> custom = null,HorseCartAssemblySettings assembly=null)
     {
+      assembly??=new HorseCartAssemblySettings();assembly.Validate();
       root = Path.GetFullPath(gameRoot);
       string folder = Path.Combine(root, "meshes", "units");
       foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
@@ -95,9 +103,9 @@ namespace Assets.Code.Stronghold2.AssetLoading
         AnimationPath = "meshes/units/animations/worker/woodcutter_riding_cart.GR2",
         LocalOffset = new Vector3(0,0,-.7f), LocalEulerAngles = new Vector3(0,180,0), HoldPose = true,
         Parts = new[] {
-          new S2MActorPart { DefinitionPath = "meshes/units/animals/cart_horse.aml", LocalOffset = new Vector3(0,0,1), LocalEulerAngles = new Vector3(0,180,0), HoldPose = true },
-          new S2MActorPart { ModelPath = "meshes/units/animals/cart_horse_cart.GR2", LocalOffset = new Vector3(0,0,-.7f), LocalEulerAngles = new Vector3(0,180,0), HoldPose = true },
-          new S2MActorPart { ModelPath = "meshes/units/animals/cart_horse_wheels.GR2", LocalOffset = new Vector3(0,.5f,-.7f), LocalEulerAngles = new Vector3(0,180,0), HoldPose = true }
+          new S2MActorPart { DefinitionPath = "meshes/units/animals/cart_horse.aml", LocalOffset = new Vector3(0,0,assembly.HorseForwardOffset), LocalEulerAngles = new Vector3(0,180,0), HoldPose = true },
+          S2MWoodcutterAssets.CartBody(),
+          S2MWoodcutterAssets.CartWheels()
         }
       };
     }
@@ -219,15 +227,17 @@ namespace Assets.Code.Stronghold2.AssetLoading
       SafePath(model); SafePath(clip);
       float scale = custom?.Scale ?? 1;
       if (!(scale > 0) || float.IsInfinity(scale)) throw new InvalidDataException("Actor scale must be finite and positive.");
-      var asset = new S2MActorAsset { ModelPath = model, AnimationPath = clip, Action = action, Scale = scale,
+      var asset = new S2MActorAsset { ModelPath = model, AnimationPath = clip, Action = action, Scale = scale, Variant = custom?.Variant,
+        TeamGroup = custom != null && custom.TeamGroup != -2 ? custom.TeamGroup : definition?.TeamGroup ?? -1,
         SynchronizedPlayback = custom?.SynchronizedPlayback ?? false,
         HoldPose = (custom?.HoldPose ?? false) || (siege && string.IsNullOrWhiteSpace(custom?.AnimationPath)),
+        UseBindPose = custom?.UseBindPose ?? false,
         LocalOffset = custom?.LocalOffset ?? Vector3.zero, LocalEulerAngles = custom?.LocalEulerAngles ?? Vector3.zero };
       for (int axis = 0; axis < 3; axis++)
         if (float.IsNaN(asset.LocalOffset[axis]) || float.IsInfinity(asset.LocalOffset[axis])
           || float.IsNaN(asset.LocalEulerAngles[axis]) || float.IsInfinity(asset.LocalEulerAngles[axis]))
           throw new InvalidDataException("Actor part transforms must be finite.");
-      var key = new StringBuilder(model + "|" + clip);
+      var key = new StringBuilder(model + "|" + clip + "|team=" + asset.TeamGroup);
       if (selected != null && definition != null && !(custom?.DisableDefinitionAttachments ?? false))
         for (int i = 0; i < definition.Attachments.Count && i < selected.Points.Length; i++)
         {
@@ -243,7 +253,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
         SafePath(attachment.ModelPath); asset.Attachments.Add(attachment);
         key.Append('|').Append(attachment.ModelPath).Append(':').Append(attachment.Point).Append(':').Append(attachment.BoneName);
       }
-      key.Append("|sync:").Append(asset.SynchronizedPlayback).Append("|pose:").Append(asset.HoldPose).Append('|').Append(asset.LocalOffset.ToString("R", CultureInfo.InvariantCulture))
+      key.Append("|variant:").Append(asset.Variant).Append("|sync:").Append(asset.SynchronizedPlayback).Append("|bind:").Append(asset.UseBindPose).Append("|pose:").Append(asset.HoldPose).Append('|').Append(asset.LocalOffset.ToString("R", CultureInfo.InvariantCulture))
         .Append('|').Append(asset.LocalEulerAngles.ToString("R", CultureInfo.InvariantCulture));
       asset.Key = key.ToString();
       return asset;
@@ -299,6 +309,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
         }
         else result.Clips.Add(entry ?? new ClipEntry { Action = action });
       }
+      if (!animal) result.TeamGroup = r.ReadInt32();
       return result;
     }
 
@@ -343,6 +354,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
     }
     private sealed class Definition
     {
+      public int TeamGroup = -1;
       public int Family;
       public string Model;
       public string Prefix;

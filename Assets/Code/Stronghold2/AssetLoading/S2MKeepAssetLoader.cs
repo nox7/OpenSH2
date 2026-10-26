@@ -7,6 +7,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
   public sealed class S2MKeepData
   {
     public S2MFile Map { get; internal set; }
+    public Granny2ModelData Campfire { get; internal set; }
+    public string GameInstallPath { get; internal set; }
     public IReadOnlyList<S2MKeepBatch> Batches { get; internal set; } = Array.Empty<S2MKeepBatch>();
   }
 
@@ -35,6 +37,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
         placements.Add(keep);
       }
       var paths = new List<string>();
+      if (groups.Count > 0) paths.Add("meshes/buildings/camp_fire.GR2");
       foreach (KeepSize size in groups.Keys)
         foreach (string part in new[] { "closed", "open", "table", "collision" })
           paths.Add($"meshes/buildings/{GetStem(size)}_{part}.GR2");
@@ -60,7 +63,14 @@ namespace Assets.Code.Stronghold2.AssetLoading
           return model;
         }
       }
-      return new S2MKeepData { Map = map, Batches = batches };
+      Granny2ModelData campfire = null;
+      if (groups.Count > 0)
+      {
+        var result = models["meshes/buildings/camp_fire.GR2"];
+        if (result.Error != null) throw result.Error;
+        campfire = result.Model;
+      }
+      return new S2MKeepData { Map = map, Batches = batches, Campfire = campfire, GameInstallPath = gameInstallPath };
     }
 
     private static string GetStem(KeepSize size) => size switch

@@ -100,6 +100,7 @@ namespace Assets.Code.Stronghold2.S2MReader
       }
 
       MapFile.Keeps = keeps;
+      MapFile.WalkingLayer = WalkingLayerReader.Read(MapFile.S2GameObjects);
       MapFile.PlantActors = PlantActorReader.ReadAll(MapFile.S2GameObjects);
       MapFile.Actors = ActorPlacementReader.ReadAll(MapFile.S2GameObjects);
       foreach (ActorPlacement actor in MapFile.Actors)
@@ -405,6 +406,7 @@ namespace Assets.Code.Stronghold2.S2MReader
       parsedObject.Id = obj.Id;
       parsedObject.TypeIndex = obj.TypeIndex;
       parsedObject.Type = obj.Type;
+      if (parsedObject is Scenario scenario) scenario.RawPayload = serializedPayload;
       Objects[obj.Id] = parsedObject;
       return parsedObject;
     }

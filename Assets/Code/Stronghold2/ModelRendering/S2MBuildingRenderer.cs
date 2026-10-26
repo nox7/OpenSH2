@@ -32,7 +32,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
       placed.transform.localScale = new Vector3(terrainSettings.FlipX ? -1f : 1f, 1f, terrainSettings.FlipZ ? -1f : 1f);
       var modelSettings = new Granny2ModelRenderSettings
       {
-        UnitScale = terrainSettings.HorizontalCellSize / ModelUnitsPerCell, UseFoliageMaterials = false
+        UnitScale = terrainSettings.HorizontalCellSize / ModelUnitsPerCell, UseFoliageMaterials = false,
+        Livery = S2MLiveryContext.Find(parent)
       };
       foreach (S2MPlacedBuildingBatch batch in data.Batches)
       {
@@ -64,15 +65,26 @@ namespace Assets.Code.Stronghold2.ModelRendering
         }
         foreach (Granny2ModelData part in batch.StaticParts)
         {
+          var partInstances=new List<Granny2ModelInstance>(instances.Count);
+          var partStates=new List<Assets.Code.Stronghold2.MapLoading.S2MGatePartState>(instances.Count);
+          for(int i=0;i<instances.Count;i++)
+          {
+            var state=Assets.Code.Stronghold2.MapLoading.S2MGatePartState.Resolve(data.Map,batch.Placements[i],part);
+            var instance=instances[i];partStates.Add(state);
+            partInstances.Add(new Granny2ModelInstance(instance.Name,instance.Position+Vector3.up*state.Lift*terrainSettings.HorizontalCellSize,
+              instance.EulerAngles,instance.Scale,instance.Sway));
+          }
           GameObject rendered = null;
           if (settings.AmbientAnimations.Enabled && batch.AmbientAnimations.TryGetValue(part.SourcePath, out var animation))
           {
-            try { rendered = S2MBuildingAmbientAnimation.Render(part, animation, instances, batch.Placements,
+            try { rendered = S2MBuildingAmbientAnimation.Render(part, animation, partInstances, batch.Placements,
               placed.transform, modelSettings, settings.AmbientAnimations); }
             catch (Exception e) when (e is NotSupportedException || e is InvalidOperationException)
             { Debug.LogWarning($"Building animation {part.SourcePath}: {e.Message}; using static geometry."); }
           }
-          modelBatches.Add(rendered != null ? rendered : Granny2ModelRenderer.RenderInstances(part, instances, placed.transform, modelSettings));
+          rendered ??= Granny2ModelRenderer.RenderInstances(part, partInstances, placed.transform, modelSettings);
+          for(int i=0;i<partStates.Count;i++)if(!partStates[i].Visible)rendered.transform.GetChild(i).gameObject.SetActive(false);
+          modelBatches.Add(rendered);
         }
         if (terrainSettings.GenerateMeshColliders)
         {
@@ -101,7 +113,11 @@ namespace Assets.Code.Stronghold2.ModelRendering
             }
           }
         }
-        foreach (GameObject modelBatch in modelBatches) ParentInstances(modelBatch, buildingRoots);
+        foreach (GameObject modelBatch in modelBatches)
+        {
+          if (modelSettings.Livery != null) modelSettings.Livery.ApplyBuildings(modelBatch, batch.Placements);
+          ParentInstances(modelBatch, buildingRoots);
+        }
       }
       return root;
     }

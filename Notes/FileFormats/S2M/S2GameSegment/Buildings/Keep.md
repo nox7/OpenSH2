@@ -1,5 +1,22 @@
 # Castle keeps
 
+## Campfire anchor
+
+The inherited `Keep` section has a counted field 0 with a 117-byte body.
+Body offsets 101, 105 and 109 contain float32 campfire X, height and Z in raw
+map units. Offset 113 is preserved without interpretation. This block can
+follow an inline `Keep` type registration or reference an earlier registration;
+it precedes the concrete Keep1/Keep2/Keep3/Keep4 section. `KeepReader` exposes
+the position separately from the building origin.
+
+Chapter 8's five campfires are at map X/Z `(60,187)`, `(33,32)`, `(211,34)`,
+`(185,221)` and `(177,88)`. The second has raw height 1706, matching its elevated
+keep. These serialized anchors already account for keep rotation; do not rotate
+them again. Maps without a recognized anchor use an initial fallback two cells
+outside the local entrance. `S2MKeepAssetLoader` loads `camp_fire.GR2`, and
+`S2MCampfireRenderer` draws its base and animated fire texture independently of
+the keep's interior/exterior visibility.
+
 ## Types and assets
 
 The S2Game object types are numbered from the wooden keep, not the small stone keep.
