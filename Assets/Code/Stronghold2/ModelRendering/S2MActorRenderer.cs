@@ -19,7 +19,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public bool CastShadows = true;
     public bool ReceiveShadows = true;
     public bool RandomizeLoopPhase = true;
-    [Tooltip("Replacement for the game's crest placeholder. Null uses plain cloth until player heraldry is resolved.")]
+    [Tooltip("Standalone-rendering fallback when there is no map livery context. Map ownership uses Main's Livery Settings.")]
     public Texture2D CrestTexture;
     public Color CrestColor = new(.6f, .6f, .65f, 1);
     public S2MActorOverride[] Overrides = Array.Empty<S2MActorOverride>();

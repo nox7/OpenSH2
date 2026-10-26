@@ -20,7 +20,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public short TileZ { get; internal set; }
     /// <summary>Low byte of the serialized ContextLayer entry; 255 means unavailable.</summary>
     public byte SavedWalkingClass { get; internal set; } = byte.MaxValue;
-    public int PendingPlayer { get; internal set; }
+    public int PendingPlayer { get; internal set; } = -1;
     public int EstateId { get; internal set; } = -1;
     /// <summary>Low word: clothing color choice; high word: crest choice. -1 is unassigned.</summary>
     public int SavedLivery { get; internal set; } = -1;

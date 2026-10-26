@@ -27,6 +27,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
 
     internal static void ConfigureMaterial(Material material, Granny2ActorMotion motion, Texture2D texture, float scale)
     {
+      material.SetFloat("_ActorSkinning", 1);
       material.SetTexture("_ActorPoses", texture);
       material.SetVector("_ActorClip", new Vector4(motion.Bones, motion.Frames, motion.Duration, scale));
     }

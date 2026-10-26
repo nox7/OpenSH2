@@ -28,7 +28,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
       var modelSettings = new Granny2ModelRenderSettings
       {
         UnitScale = terrainSettings.HorizontalCellSize / ModelUnitsPerCell,
-        UseFoliageMaterials = false, Livery = S2MLiveryContext.Find(parent)
+        UseFoliageMaterials = false, Livery = S2MLiveryContext.Find(parent),
+        FallbackMaterial = Resources.Load<Material>("StaticOriginalModel")
       };
       foreach (S2MKeepBatch batch in data.Batches)
       {

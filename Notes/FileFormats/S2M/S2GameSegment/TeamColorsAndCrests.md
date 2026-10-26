@@ -1,6 +1,6 @@
 # Team colors and crests
 
-Research date: 2026-10-25. This documents asset and livery behavior; it does not implement rendering changes.
+Research and implementation date: 2026-10-25. The findings below are implemented by `S2MLiveryContext`, `S2MLiveryOwnership`, and the actor/building renderer integrations.
 
 ## Native palette and default identities
 
@@ -72,4 +72,22 @@ Reference sources examined: `Source/OpenSH2.Formats/MaterialLibrary.cs`, `Source
 5. Apply the same classification/resolver to building and attachment renderers. Horses, shields, capes, and flags must inherit their owning actor/estate's resolved livery.
 6. Validate normal and lowest LOD units, mounted knights, all ten identities, saved overrides, player-zero/player-one conventions, and building crests in Unity. Check fog, sunlight, shadows, alpha, and crest orientation.
 
-Current renderer gaps: `S2MActorCatalog.ReadDefinition` stops before the trailing group settings; `InstancedActor.shader` has no per-instance team-color property. Existing `CrestTexture`/`CrestColor` settings provide a global placeholder replacement rather than per-owner heraldry. Current converted mesh data retains triangle groups, which is sufficient to preserve the required coloring boundary when the metadata is added.
+## Implemented behavior and customization
+
+`Main` exposes **Livery Settings**. Palette overrides replace native RGB values and optionally supply a readable 128×128 crest for a choice. Estate overrides change the fallback lord assignment. The switches control saved actor/estate liveries, saved color-order remapping, local-player red, and native PNG orientation. Native PNG rows are flipped to match the top-first DDS loader and original GR2 UVs; custom crest textures should already use this orientation. Settings are consumed when the map context is created; changing them requires recreating/reloading that context.
+
+`S2MActorCatalog` now retains the `.uni` team-group integer. Custom actor parts can set `TeamGroup`: -2 inherits the definition, -1 disables fallback tinting, and nonnegative values select a group. Explicit original XML material mappings still take precedence. All original source meshes and converted skinning/animation caches remain shared.
+
+The actor shader carries one per-instance RGB/crest vector alongside playback data. It supports normal group tinting, lowest-LOD alpha masks, and a shared 14-slice crest texture array (eleven numbered choices, white/black knight, and neutral cloth). Rider, horse, and equipment receive the same resolved data. `S2MActorRenderer.SetLivery(id, value)` updates every loaded part and animation variant without material allocation. `S2MLivery.Color` is in the active rendering color space; values returned by the resolver are ready for this API. Visibility compaction preserves the order of playback and livery vectors together. Batches are capped at 256 instances to match the shader constant-buffer capacity.
+
+Buildings replace only mapped crest/color materials and cache variants per source material/livery. Animated building parts refresh their material clock targets after variant assignment, preserving ambient animation. Generated textures, array, and material variants are owned by the map context and released with it. Legacy actor `CrestTexture`/`CrestColor` settings remain a fallback for standalone rendering without a map livery context.
+
+Static buildings use the `StaticOriginalModel` resource material, whose shader reuses the actor shader's opaque lighting, shadow, depth, and normal passes with GPU skinning disabled. This keeps sunlight and atmosphere behavior consistent across original assets and avoids the incorrect color output observed with runtime-created standard Lit materials in the isolated deferred-rendering preview. Both static and animated materials retain instancing; no per-building texture copies are created.
+
+## Chapter 8 verification
+
+`war_chapter8.s2m` has 792 decoded actors. Its 278 archers carry these valid saved color choices: 1→21, 3→79, 4→24, 7→13, 9→110, 10→31. Its 60 knights also have matching saved color and pending-player choices. These choices must not be replaced by the lord associated with the same-numbered territory.
+
+The initial game segment has no saved players and its estate player references are unassigned. Scenario field 3 provides 21 estate-to-lord entries, including estate 1→player, 2→Hawk, 3→Edwin, 8→Grey, 10→William, and 11→Barclay. Building footprints are sampled in the estate grid, then resolved through this table. The five keeps resolve to estate/crest-choice pairs 10/9, 2/4, 3/7, 11/3, and 1/1. For example, estate 3 buildings are yellow/Edwin, while actor color choice 3 is green/Barclay.
+
+`Notes/tools/LiveryValidation.cs` exercises the installed map, independent serialized fixtures for local player #0 and Olaf #1, separate packed color/crest words, unset crest fallback, native definition groups, rendered unit colors and mounted equipment, building placeholder removal, and resource cleanup. A dense 5,000-archer fixture with all ten colors shares three materials and uses 20 spatial draw batches; it does not create per-unit GameObjects. Validation images and reports are written under ignored `Temp/LiveryValidation`.

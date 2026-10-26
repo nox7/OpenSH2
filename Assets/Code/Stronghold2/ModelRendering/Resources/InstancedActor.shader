@@ -11,6 +11,9 @@ Shader "OpenSH2/Instanced Actor"
     _Cull("Cull", Float) = 2
     [HideInInspector] _ActorPoses("Bone poses", 2D) = "white" {}
     [HideInInspector] _ActorClip("Clip", Vector) = (1,2,1,.01)
+    [HideInInspector] _ActorSkinning("GPU skinning", Float) = 1
+    [HideInInspector] _ActorReceiveShadows("Receive shadows", Float) = 1
+    [HideInInspector] _ActorClock("Animation clock", Float) = 0
   }
   SubShader
   {
@@ -25,9 +28,9 @@ Shader "OpenSH2/Instanced Actor"
     TEXTURE2D_ARRAY(_CrestArray); SAMPLER(sampler_CrestArray);
     CBUFFER_START(UnityPerMaterial)
       float4 _BaseMap_ST, _BaseColor, _ActorClip;
-      float _Cutoff, _AlphaClip, _LiveryMode;
+      float _Cutoff, _AlphaClip, _LiveryMode, _ActorSkinning;
+      float _ActorClock, _ActorReceiveShadows;
     CBUFFER_END
-    float _ActorClock, _ActorReceiveShadows;
     UNITY_INSTANCING_BUFFER_START(Actor)
       UNITY_DEFINE_INSTANCED_PROP(float4, _ActorPlayback)
       UNITY_DEFINE_INSTANCED_PROP(float4, _ActorLivery)
@@ -52,6 +55,12 @@ Shader "OpenSH2/Instanced Actor"
     };
     void Skin(Attributes input, out float3 position, out float3 normal)
     {
+      if (_ActorSkinning < .5)
+      {
+        position = input.positionOS.xyz;
+        normal = input.normalOS;
+        return;
+      }
       float4 playback = UNITY_ACCESS_INSTANCED_PROP(Actor, _ActorPlayback);
       float seconds = playback.x + _ActorClock * playback.y;
       float t = seconds / _ActorClip.z;

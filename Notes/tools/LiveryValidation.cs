@@ -27,6 +27,7 @@ public static class LiveryValidation
     try
     {
       QualitySettings.SetQualityLevel(Array.IndexOf(QualitySettings.names, "PC"), true);
+      ShaderUtil.allowAsyncCompilation = false;
       var map = S2MFileLoader.Load("C:/Users/garet/Documents/Stronghold 2/Maps/war_chapter8.s2m");
       Check(map.Actors.Count == 792, "Actor count changed");
       var ownership = S2MLiveryOwnership.Read(map);
@@ -41,6 +42,9 @@ public static class LiveryValidation
       var context = S2MLiveryContext.Create(map, Install, world.transform);
       CheckSavedPlayerNumbering(world.transform);
       Check(context.CrestArray.depth == 14, "Crest array dimensions");
+      var classify = typeof(S2MLiveryContext).GetMethod("Classify",BindingFlags.Instance|BindingFlags.NonPublic);
+      Check(classify.Invoke(context,new object[] {"meshes/units/models/archer.low1.gr2","uber_low.dds",0,-1}).ToString()=="AlphaMask","Lowest LOD mask classification");
+      Check(classify.Invoke(context,new object[] {"meshes/units/animals/horse_knight.gr2","crest.dds",0,-1}).ToString()=="Crest","Horse heraldry classification");
       var red = map.Actors.First(a => a.Type == "Archer" && a.SavedLivery == 1);
       var green = map.Actors.First(a => a.Type == "Archer" && a.SavedLivery == 3);
       Check(context.ResolveActor(red).Crest == 1 && context.ResolveActor(green).Crest == 3, "Actor crest fallback");
@@ -87,7 +91,7 @@ public static class LiveryValidation
       sun.transform.rotation = Quaternion.Euler(40,-30,0); RenderSettings.sun = sun;
       RenderSettings.ambientMode = AmbientMode.Flat; RenderSettings.ambientLight = Color.gray;
       var target = new RenderTexture(1200,640,24); var image = new Texture2D(1200,640,TextureFormat.RGB24,false);
-      actors.SendMessage("LateUpdate");
+      typeof(S2MActorRenderer).GetMethod("LateUpdate",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(actors,null);
       RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest { destination = target });
       RenderTexture.active = target; image.ReadPixels(new Rect(0,0,1200,640),0,0); image.Apply();
       File.WriteAllBytes(Output + "/units.png", image.EncodeToPNG());
@@ -102,13 +106,19 @@ public static class LiveryValidation
       var buildings = S2MBuildingRenderer.Render(buildingData, world.transform, new S2MTerrainSettings { GenerateMeshColliders = false });
       var buildingMaterials = buildings.GetComponentsInChildren<MeshRenderer>(true).SelectMany(r => r.sharedMaterials).ToArray();
       Check(context.BuildingMaterialVariantCount > 0, "No building crest/color variants");
-      Check(!buildingMaterials.Any(m => m.GetTexture("_BaseMap")?.name.Equals("crest", StringComparison.OrdinalIgnoreCase) == true), "Unreplaced building crest placeholder");
+      Check(!buildingMaterials.Any(m => m.HasProperty("_BaseMap") && m.GetTexture("_BaseMap")?.name.Equals("crest", StringComparison.OrdinalIgnoreCase) == true), "Unreplaced building crest placeholder");
+      File.WriteAllLines(Output + "/building-materials.txt", buildingMaterials.Distinct().Select(m =>
+        $"{m.name}: {m.shader.name}; color={(m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor").ToString() : "none")}; texture={(m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap")?.name : "none")}"));
       var playerKeep = map.Keeps.First(k => S2MCampfireLayout.EstateAtBuilding(map,k) == 1);
       foreach (var t in buildings.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 30;
       var center = new Vector3(playerKeep.MapX, playerKeep.RawY / 1024, playerKeep.MapZ);
       camera.transform.position = center + new Vector3(15,12,-18); camera.transform.LookAt(center + Vector3.up * 2);
       RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest { destination = target });
+      RenderTexture.active = target;
       image.ReadPixels(new Rect(0,0,1200,640),0,0); image.Apply(); File.WriteAllBytes(Output + "/buildings.png",image.EncodeToPNG());
+      Check(image.GetPixels().Count(c => c.r>.35f && Mathf.Max(c.r,Mathf.Max(c.g,c.b))-Mathf.Min(c.r,Mathf.Min(c.g,c.b))<.2f)>10000,"Static masonry received a scene-wide color cast");
+      var staticShader=Shader.Find("OpenSH2/Original Model");
+      Check(staticShader!=null && !ShaderUtil.ShaderHasError(staticShader),"Static original-model shader errors");
       File.WriteAllText(Output + "/owners.txt", string.Join("\n", map.Keeps.Select(k =>
         $"Keep {k.Id} estate {S2MCampfireLayout.EstateAtBuilding(map,k)} crest {context.ResolveBuilding(k).Crest}")));
       int variants = context.BuildingMaterialVariantCount;
@@ -126,7 +136,7 @@ public static class LiveryValidation
       Check(dense.ActorCount == 5000 && dense.DrawBatchCount == 20, "Dense mixed-livery batch split failed");
       Check(dense.GetComponentsInChildren<Transform>(true).Length < 20, "Per-unit scene objects allocated");
       Check(dense.SetLivery(-10000, context.ResolveActor(red)) && dense.HideActor(-10001), "Dynamic livery/visibility API");
-      dense.SendMessage("LateUpdate");
+      typeof(S2MActorRenderer).GetMethod("LateUpdate",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(dense,null);
       int materialCount = dense.GetComponentsInChildren<MeshRenderer>(true).SelectMany(r => r.sharedMaterials).Distinct().Count();
       Check(materialCount == crowdBatch.Model.Meshes.Sum(m => m.TriangleGroups.Count) + crowdBatch.Attachments.Sum(a => a.model.Meshes.Sum(m => m.TriangleGroups.Count)), "Per-unit materials allocated");
       var crests = context.CrestArray;
@@ -168,7 +178,9 @@ public static class LiveryValidation
     var context = S2MLiveryContext.Create(map,Install,parent);
     Check(context.Ownership.Players[0].LocalHuman && context.Ownership.Players[1].Lord==2,"Saved player identity decoding");
     Check(context.ResolveEstate(1).Crest==1 && context.ResolveEstate(2).Crest==2,"Saved estate object references/color order");
-    var actor=new ActorPlacement();Set(actor,"SavedLivery",0);
+    var actor=new ActorPlacement();
+    Check(context.ResolveActor(actor).Crest==13,"An unassigned actor must not inherit default player zero");
+    Set(actor,"SavedLivery",0);
     Check(context.ResolveActor(actor).Crest==1,"Player-zero must remain red/player crest");
     Set(actor,"SavedLivery",1);Check(context.ResolveActor(actor).Crest==2,"Olaf player-one must remain orange");
     UnityEngine.Object.DestroyImmediate(context.gameObject);

@@ -16,7 +16,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     [Range(0, 31)] public int Choice = 1;
     public bool OverrideColor = true;
     public Color Color = Color.red;
-    [Tooltip("Optional readable 128×128 crest, using original DDS/GR2 UV orientation.")]
+    [Tooltip("Optional readable 128×128 crest for choices 0–12, using original DDS/GR2 UV orientation.")]
     public Texture2D Crest;
   }
 
@@ -44,10 +44,17 @@ namespace Assets.Code.Stronghold2.ModelRendering
 
   public readonly struct S2MLivery
   {
+    /// <summary>RGB in the active rendering color space, suitable for per-instance shader vectors.</summary>
     public readonly Color Color;
     public readonly int Crest;
-    public S2MLivery(Color color, int crest) { Color = color; Crest = crest; }
+    public S2MLivery(Color color, int crest)
+    {
+      if (crest < 0 || crest > 13 || !Finite(color.r) || !Finite(color.g) || !Finite(color.b))
+        throw new ArgumentOutOfRangeException(nameof(crest), "Livery requires finite RGB and a crest slice from 0 to 13.");
+      color.a = 1; Color = color; Crest = crest;
+    }
     public Vector4 Data => new(Color.r, Color.g, Color.b, Crest);
+    private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
   }
 
   internal enum S2MLiveryMaterial { None, Color, AlphaMask, Crest }
@@ -274,8 +281,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
           var key = (source, livery.Color, kind == S2MLiveryMaterial.Crest ? livery.Crest : -1);
           if (!variants.TryGetValue(key, out var variant))
           {
-            variant = new Material(source) { name = source.name + " Livery", enableInstancing = true };
-            // Standard building Lit materials use shared variants, independent of the actor shader.
+            variant = new Material(source) { name = source.name + " Livery", enableInstancing = source.enableInstancing };
+            // Static building variants hold tint/crest directly and share materials across matching owners.
             if (variant.HasProperty("_LiveryMode")) variant.SetFloat("_LiveryMode", 0);
             if (kind == S2MLiveryMaterial.Crest)
             { variant.SetTexture("_BaseMap", crestTextures[livery.Crest]); variant.SetColor("_BaseColor", Color.white); }

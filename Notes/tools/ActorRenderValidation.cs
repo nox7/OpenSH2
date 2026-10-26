@@ -99,7 +99,7 @@ public static class ActorRenderValidation
       Check(generatedMesh == null && generatedMaterial == null && generatedPose == null, "Generated actor GPU resources leaked");
       UnityEngine.Object.DestroyImmediate(cameraObject); UnityEngine.Object.DestroyImmediate(light.gameObject);
       UnityEngine.Object.DestroyImmediate(image); UnityEngine.Object.DestroyImmediate(target);
-      // A dense 5,000-actor crowd must split at the instancing API's 1,023 limit.
+      // Match the shader's 256-instance constant-buffer capacity, including livery vectors.
       var crowdData = new S2MActorData(); Set(crowdData, "Map", map);
       var crowdBatch = data.Batches.First(b => b.Placements[0].Type == "Archer");
       crowdBatch.Placements.Clear(); crowdBatch.Scales.Clear();
@@ -111,7 +111,7 @@ public static class ActorRenderValidation
       }
       crowdData.Batches.Add(crowdBatch);
       var crowd = S2MActorRenderer.Render(crowdData);
-      Check(crowd.ActorCount == 5000 && crowd.DrawBatchCount == 5, "Instancing limit/count failed");
+      Check(crowd.ActorCount == 5000 && crowd.DrawBatchCount == 20, "Instancing limit/count failed");
       Check(crowd.GetComponentsInChildren<Transform>(true).Length < 10, "Crowd allocated individual scene objects");
       var tick = (Action)Delegate.CreateDelegate(typeof(Action), crowd, typeof(S2MActorRenderer).GetMethod("LateUpdate", BindingFlags.NonPublic | BindingFlags.Instance));
       // Exercise deferred playback uploads for many changes in the same population batch.
