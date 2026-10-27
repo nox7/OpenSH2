@@ -82,14 +82,15 @@ backing stride. Its low byte identifies the walking surface: observed classes
 this ground module. Stockpile goods cells (class 1) remain blocked while class-0
 aisles remain open, including underneath projected roof/building geometry. Upper
 bytes and the other two walking layers remain preserved for later interpretation.
-Terrain height comes from interpolated walking corners; gate passages sample
-primary ground rather than the roof surface. Saved classes identify candidate
-surfaces; they cannot reopen solid map walls or building walls. A separate
-`S2MBuildingObstacleRasterizer` samples visible walls and parts at character-body
-heights with 0.18-cell clearance. Roofs over passages, walking ramps and short
-stair risers are not wall barriers. Visible geometry is used because some
-collision proxies seal genuine openings. Fire centers and steep steps still
-block travel. Dynamic changes to goods or walkability are not yet simulated.
+Saved walking classes are authoritative for ordinary buildings, including decorative
+open door leaves. `Prefer Saved Walking Surfaces` in Main's Population Settings is
+true by default; false restores the previous geometry overlay for diagnostics.
+Map walls, blocked classes, water, dynamic foliage and steep steps remain barriers.
+Resolved shut gate parts remain explicit blockers. Terrain height comes from
+interpolated walking corners, with ground heights used through gate passages.
+Without saved walking data, `S2MBuildingObstacleRasterizer` supplies geometry
+barriers; roof overhangs and short stair risers are excluded. Dynamic changes to
+stockpile goods or saved walking classifications are not yet simulated.
 
 `S2MGatePartState` keeps initial presentation and navigation consistent for saved
 class-10 passages. Such gates start open: grilles retract above their openings;
@@ -204,11 +205,113 @@ startup placeholder suppression, same-estate staffing, worker travel/instant arr
 grouped cart visibility, custom polling intervals, pause, duplicate-assignment
 protection and rejection of unreachable jobs. Chapter 8's eight saw pits all
 reach occupied state with distinct workers.
-Wall regressions additionally check that a roofed treasury doorway stays open,
-its rear wall blocks direct and smoothed paths, and a floor class cannot reopen
-a map wall. All 83 chapter 8 worker-route segments were checked against actual
-treasury mesh colliders, including backfaces. Stockpile access, 200 recruit
-routes and eight staffed saw pits remain valid with the structural barriers.
+Regressions exercise authored open cells through decorative building walls,
+saved blocked cells and map walls, plus geometry fallback doorway/rear-wall
+handling. Chapter 8 blacksmith cells previously blocked by render geometry are
+recorded in `Temp/LaborValidation/saved-building-surfaces.txt`.
+Stockpile access, recruitment routes and eight staffed saw pits remain covered.
 Component regressions also verify polymorphic arrival/work hooks, exact-step
 instant mounting, independent walk/run distances, occupied-job rejection, and
 horse-only assembly changes with a fixed rider transform.
+
+
+## Woodcutting trip
+
+`Main` initializes one `FoliageResources` registry from rendered forest trees and
+shrubs before recruitment and staffing. Crops, orchard trees, rocks and inactive
+or unsupported scenery are excluded. Stable resource IDs do not depend on model
+batching. Eight-cell spatial buckets and distance ordering select the nearest
+available foliage with a complete cart/foot/return route. Search radius zero means
+the whole map. Reservations remain exclusive until the resulting log pile is
+exhausted or the worker is removed; return and delivery do not release the claim.
+Unreachable foliage is skipped, with retries measured in simulation time.
+
+`WoodcutterJob` owns these stages:
+
+1. Wait on the cart and reserve a reachable tree or bush.
+2. Drive to parking near the foliage, dismount to the side and walk to the tree.
+3. Play `woodcutter_fell.GR2` with its definition-selected axe.
+4. Stop that tree's wind sway and rotate its static model down around its base.
+   Falling uses simulation time; the landscape tree has no invented skeletal clip.
+5. Replace it with `tree_chopped_1.GR2` through `tree_chopped_6.GR2`, arranged in
+   their native three/two/one stack. Chop and remove exactly one log from the top.
+6. Walk back, mount the `cart_horse_wood_1.GR2` cart and return to the saw pit.
+7. Instantly switch to `SAW TOP` with the native saw attachment. Show the original
+   `saw_pit_wood.GR2` log and loop the action for `SawingSeconds` (default 18).
+   The worker kneels on the log, facing the cut. Horse Cart Settings exposes
+   `Sawing Seat Offset` and `Sawing Seat Euler Angles` to customize alignment.
+8. Instantly mount the `cart_horse_planks.GR2` variant and choose the shortest
+   reachable route to a stockpile in the saw pit's exact estate. Destinations use
+   walkable aisle cells. Missing or unreachable stockpiles retain cargo in
+   `WaitingForStockpile` and retry in simulation time.
+9. Stop loaded in `AtStockpile`. Inventory credit and unloading are the next
+   stage. `ResumeAfterUnloading(worker)` starts another trip only after an
+   external system unloads the goods; the assigned pile is consumed first.
+
+`ConfigureProduction` supplies work anchors and same-estate delivery points.
+Jobs without production configuration retain the `Returned` integration hook.
+The work log uses a shared GPU equipment batch with building scale independent
+of unit scaling. There are no per-worker behavior objects or material instances.
+
+Cart speed is independently adjustable live through Main / Woodcutting Settings /
+Cart Speed Cells Per Second (default 0.75 map cells per simulation second).
+`cart_horse_walk.GR2` supplies locomotion; horse and rider playback follow speed.
+Wheels retain bind-pose assembly and turn around their axle using actual traveled
+distance, with native radius approximately 1.03 actor units. Distance also drives
+locomotion phase, preserving accumulated motion when speed changes. Empty, log
+and plank loads, with moving and parked variants, share cached meshes and poses.
+The log load uses the cart's native origin at local Z -0.7; Horse Cart Settings /
+Log Load Offset and Horse Forward Offset customize assembly placement.
+
+`WoodcuttingSettings` controls search/retry, cart speed, parking/dismount/chop
+spacing, trunk/bush radii, falling time, felling/chopping cycle counts, sawing
+duration, logs per tree/bush (up to six), pile scale and wheel radius. Unit scale
+applies to interaction dimensions. Native action durations come from loaded clips
+through the presentation's `ConfigureJob` hook. Indexed equipment access avoids
+allocating per-worker iterators each frame.
+
+Carts and pedestrians share the same logical ground grid. Actor model size does
+not constrain corners, gateways, or stockpile aisles. Navigation separates base
+walkability from reference-counted dynamic foliage blockers. Opening cells merges
+connectivity incrementally; it does not flood the map per harvested trunk.
+`dynamicFoliage` enables known native class-1 scenery ground outside reserved
+buildings, walls, water, cutouts and rocks. Register foliage blockers immediately
+after constructing that grid. Standalone navigation retains conservative scenery
+handling unless this mode is requested. Removal never opens hard walls or an
+overlapping blocker. Workers validate remaining routes when navigation changes
+and retry blocked paths. Cancellation releases the claim without deleting logs.
+
+`S2MFoliageHarvestView` is one map-level adapter. Only falling resources receive
+transform updates; property blocks stop sway for that instance only. Felling
+disables the standing placement and updates its runtime forest/shrub record.
+Six log template meshes/materials are shared by all piles; individual logs are
+hidden in order 6 to 1. The empty pile and its blocker disappear after the final
+pickup. Installed assets and map files on disk are never rewritten.
+
+`WorkerComponent.Remove()` releases employment and preserves remaining logs as
+an unclaimed pile. `S2MPopulationController.RemoveActor(id)` also hides worker and
+equipment variants. Death during a fall completes an unclaimed pile instead of
+losing the resource. Removed workers cannot be scheduled again. Another worker
+can claim an abandoned pile without felling a new tree.
+
+`Notes/tools/WoodcuttingValidation.cs` checks reachable selection, exclusive
+claims, bushes, cancellation, dynamic retries, overlapping blockers, hard walls,
+large ticks, pause, native assets, falling/sway, removal and same-pile depletion.
+It also checks exact 18-second production, live cart speed, synchronized playback,
+and same-estate shortest-route delivery. Chapter 8 has 1,061 registered resources:
+eight workers harvest distinct targets; six deliver planks, while the two in
+estate 3 wait because their estate has no stockpile. Repeated external unloads
+consume the assigned pile top to bottom. Reports and previews are under ignored
+`Temp/WoodcuttingValidation`.
+
+## Game speed
+
+Main's live Game Speed setting (public `Main.GameSpeed`) sets
+`Game.Simulation.Speed`: 1 is normal, 2 is double speed, 0 freezes simulation.
+Main advances the clock before simulation/presentation using unscaled real time.
+`SimulationClock.DeltaTime` is already scaled; do not multiply speed twice.
+Durations stay in simulation seconds: 18 takes 9 real seconds at speed 2.
+Movement, recruitment, retries, production, falling, actor/equipment/building
+animations, campfires and optional day/night progression use the clock. P pause
+overrides speed. Camera, UI and menu videos remain on real time; cosmetic shader
+foliage wind retains its existing shader time.

@@ -6,7 +6,7 @@ using Assets.Code.Simulation.Movement;
 
 namespace Assets.Code.Simulation.Population
 {
-  public enum PeasantState { Unspawned, HovelSeated, StandingUp, LeavingHovel, Running, WaitingForPath, Seated, WalkingToJob, Working }
+  public enum PeasantState { Unspawned, HovelSeated, StandingUp, LeavingHovel, Running, WaitingForPath, Seated, WalkingToJob, Working, Removed }
 
   public sealed class Peasant
   {
@@ -27,7 +27,7 @@ namespace Assets.Code.Simulation.Population
     private float recruitmentTime;
     public PeasantState State
     {
-      get => Worker.State switch { WorkerState.Traveling=>PeasantState.WalkingToJob,WorkerState.Working=>PeasantState.Working,_=>recruitmentState };
+      get => Worker.State switch { WorkerState.Traveling=>PeasantState.WalkingToJob,WorkerState.Working=>PeasantState.Working,WorkerState.Removed=>PeasantState.Removed,_=>recruitmentState };
       internal set => recruitmentState=value;
     }
     public float StateTime { get => Job==null ? recruitmentTime : Worker.StateTime; internal set => recruitmentTime=value; }
@@ -74,6 +74,7 @@ namespace Assets.Code.Simulation.Population
     }
     private void Tick(Peasant p,float seconds)
     {
+      if(p.Worker.State==WorkerState.Removed)return;
       if(p.Job!=null) { p.Worker.Advance(seconds,settings.WalkSpeedCellsPerSecond);return; }
       float remaining=seconds;
       while(remaining>0)

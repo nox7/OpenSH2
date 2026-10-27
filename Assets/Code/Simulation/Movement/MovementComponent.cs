@@ -12,6 +12,14 @@ namespace Assets.Code.Simulation.Movement
     public bool IsFollowingPath => path != null && waypoint < path.Count;
     private IReadOnlyList<MapPoint> path;
     private int waypoint;
+    public double DistanceTravelled { get; private set; }
+    public bool CanContinue(NavigationGrid navigation)
+    {
+      var from=Position;
+      for(int i=waypoint;path!=null && i<path.Count;i++)
+      { if(!navigation.CanTravel(from,path[i]))return false;from=path[i]; }
+      return true;
+    }
 
     public MovementComponent(MapPoint position,float heading) { Position=position;Heading=heading; }
     public void Follow(IReadOnlyList<MapPoint> route)
@@ -40,6 +48,7 @@ namespace Assets.Code.Simulation.Movement
       float step=Math.Min(distance,speed*remaining),t=step/distance;
       Heading=(float)(Math.Atan2(goal.X-Position.X,goal.Z-Position.Z)*180/Math.PI);
       Position=new MapPoint(Position.X+(goal.X-Position.X)*t,Position.Z+(goal.Z-Position.Z)*t);
+      DistanceTravelled+=step;
       remaining=Math.Max(0,remaining-step/speed);
       if(step>=distance) { Position=goal;return true; }
       return false;

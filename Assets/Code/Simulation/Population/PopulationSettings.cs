@@ -5,6 +5,8 @@ namespace Assets.Code.Simulation.Population
   [Serializable]
   public sealed class PopulationSettings
   {
+    // Saved ContextLayer cells take precedence over decorative building geometry.
+    public bool PreferSavedWalkingSurfaces = true;
     public float SpawnIntervalSeconds = 5f;
     public float HovelSeatedSeconds = 2f;
     public float RunSpeedCellsPerSecond = 2f;

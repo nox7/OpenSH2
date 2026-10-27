@@ -24,16 +24,20 @@ Other classes remain blocked in this initial ground module; multi-level wall
 walking and teleport/stair transitions are not implemented. This is an observed
 subset, not a complete recovered original-engine walking-class enum.
 
-Saved surfaces take precedence over projected roof geometry and rectangular
-building placement margins, but do not override solid walls. Ground navigation
-combines them with the wall layer and body-height barriers sampled from visible
-building walls/parts. This preserves archways while blocking rear walls and
-excludes opaque collision proxies that seal real doorways. Gate floors use the
-primary ground heights to avoid mistaking a gate roof for its ground passage.
-The initial renderer retracts grilles/omits shut leaves for declared class-10
-passages so routing and presentation agree. Live gate control is not decoded.
-Terrain step-height checks and the campfire obstacle still apply. If a map lacks
-a recognized ContextLayer, navigation uses its geometry/footprint fallback.
+Saved surfaces are now authoritative for ordinary building navigation. Decorative
+mesh triangles, open door leaves, roof overhangs and model bounds do not veto a
+saved open tile. This follows the tile-based evidence in the map rather than
+claiming to reproduce the unrecovered original pathfinding algorithm.
+The wall layer, water/bridge handling, terrain steps and dynamic foliage blockers
+still apply. Declared gate passages use ground heights; resolved shut gate parts
+remain explicit barriers. `PopulationSettings.PreferSavedWalkingSurfaces` defaults
+to true; false retains the previous geometry overlay for diagnostics. Maps without
+a recognized ContextLayer use geometry/footprint fallback.
+
+These are walking classifications, not another elevation heightmap. The stockpile
+stripe is an authored open class inside a blocked goods footprint. Higher walking
+levels, the packed upper-byte flags and the full class enum are still undecoded;
+this change does not claim complete original-engine navigation parity.
 
 Chapter 8's first stockpile has blocked class-1 goods at `(42,28)` and an open
 class-0 aisle at `(42,31)`. The validation route crosses that aisle from

@@ -15,8 +15,16 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     public MapPoint Position { get; }
     public float Heading { get; }
     public float RawHeight { get; }
-    public LaborEquipment(int actorId,string actorType,string variant,MapPoint position,float heading,float rawHeight)
-    { ActorId=actorId;ActorType=actorType;Variant=variant;Position=position;Heading=heading;RawHeight=rawHeight; }
+    public float MotionDegrees { get; }
+    public float AnimationTime { get; }
+    public float AnimationRate { get; }
+    public bool SampleGround { get; }
+    public bool Visible { get; }
+    public bool BuildingScale { get; }
+    public LaborEquipment(int actorId,string actorType,string variant,MapPoint position,float heading,float rawHeight,
+      float motionDegrees=0,float animationTime=0,float animationRate=1,bool sampleGround=false,bool visible=true,bool buildingScale=false)
+    { ActorId=actorId;ActorType=actorType;Variant=variant;Position=position;Heading=heading;RawHeight=rawHeight;
+      MotionDegrees=motionDegrees;AnimationTime=animationTime;AnimationRate=animationRate;SampleGround=sampleGround;Visible=visible;BuildingScale=buildingScale; }
     public ActorPlacement Placement() => new() { Id=ActorId,Type=ActorType,OnMap=true,RawX=Position.X*1024,
       RawZ=Position.Z*1024,RawY=RawHeight,HeadingDegrees=Heading,AnimationLoops=true };
   }
@@ -30,7 +38,12 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     protected abstract string TravelingActorType { get; }
     protected abstract string WorkingActorType { get; }
     public abstract IEnumerable<S2MActorOverride> AssetOverrides();
+    public virtual void ConfigureJob(LaborJob job,S2MActorData data) { }
     public virtual IEnumerable<LaborEquipment> Equipment(LaborJob job) { yield break; }
+    public virtual int EquipmentCount => 0;
+    public virtual LaborEquipment GetEquipment(LaborJob job,int index) => throw new System.ArgumentOutOfRangeException(nameof(index));
+    public virtual IEnumerable<ActorPlacement> EquipmentPlacements(LaborJob job)
+    { foreach(var equipment in Equipment(job))yield return equipment.Placement(); }
     public virtual IEnumerable<ActorPlacement> WorkerPlacements(Peasant actor)
     {
       foreach(string type in new[]{TravelingActorType,WorkingActorType})
@@ -44,5 +57,7 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     public virtual float AnimationRate(WorkerComponent worker,float walkSpeed)
       => worker.State==WorkerState.Traveling ? WalkingAnimationRate(walkSpeed*worker.Job.TravelSpeedMultiplier) : 1;
     public virtual float AnimationTime(WorkerComponent worker,float rate) => worker.StateTime*rate;
+    public virtual float BuildingRawHeight(WorkerComponent worker) => worker.Job.RawHeight;
+    public virtual bool UseBuildingHeight(WorkerComponent worker) => true;
   }
 }

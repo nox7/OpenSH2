@@ -36,7 +36,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
         foreach(var job in jobs)roles.Add(job.Role);
         foreach(var role in roles)foreach(var plan in plans)foreach(var p in plan)
           result.AddRange(catalog.Get(role).WorkerPlacements(p));
-        foreach(var job in jobs)foreach(var equipment in catalog.Get(job.Role).Equipment(job))result.Add(equipment.Placement());
+        foreach(var job in jobs)result.AddRange(catalog.Get(job.Role).EquipmentPlacements(job));
       }
       return result;
     }

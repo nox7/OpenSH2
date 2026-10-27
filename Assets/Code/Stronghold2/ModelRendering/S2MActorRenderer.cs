@@ -130,6 +130,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       }
       Mesh[] sharedMeshes = filters.ConvertAll(f => f.sharedMesh).ToArray();
       Material[][] sharedMaterials = Array.ConvertAll(materials, r => r.sharedMaterials);
+      Vector3 spinPivot=batch.Asset.SpinAxis.sqrMagnitude>0?Granny2ModelRenderer.GetLocalBounds(batch.Model, settings.ModelUnitScale).center:Vector3.zero;
       foreach (var group in groups.Values)
         // Match shader forcemaxcount; transforms plus both instanced vectors fit within 64 KiB.
         for (int start = 0; start < group.Count; start += 256)
@@ -139,6 +140,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
             Livery = new Vector4[count], VisibleLivery = new Vector4[count],
             Visible = new bool[count], AnimationPath = batch.Asset.AnimationPath, Variant = batch.Asset.Variant, HoldPose = batch.Asset.HoldPose,
             PartTransform = Matrix4x4.TRS(batch.Asset.LocalOffset, Quaternion.Euler(batch.Asset.LocalEulerAngles), Vector3.one),
+            SpinAxis = batch.Asset.SpinAxis, SpinPivot = spinPivot,
             Meshes = sharedMeshes, Materials = sharedMaterials, Properties = new MaterialPropertyBlock() };
           for (int j = 0; j < count; j++)
           {
@@ -161,10 +163,16 @@ namespace Assets.Code.Stronghold2.ModelRendering
     }
 
     /// <summary>Changes an existing placed actor without allocating a skeleton or a scene object. Position is local to the map root.</summary>
-    public bool SetTransform(int id, Vector3 position, Quaternion rotation, Vector3 scale)
+    public bool SetTransform(int id, Vector3 position, Quaternion rotation, Vector3 scale, float motionDegrees = 0)
     {
       if (!actors.TryGetValue(id, out var actor)) return false;
-      foreach (var piece in actor) piece.batch.Local[piece.index] = Matrix4x4.TRS(position, rotation, scale) * piece.batch.PartTransform;
+      foreach (var piece in actor)
+      {
+        var draw=piece.batch;var part=draw.PartTransform;
+        if(draw.SpinAxis.sqrMagnitude>0 && motionDegrees!=0)
+          part*=Matrix4x4.TRS(draw.SpinPivot,Quaternion.AngleAxis(motionDegrees,draw.SpinAxis),Vector3.one)*Matrix4x4.Translate(-draw.SpinPivot);
+        draw.Local[piece.index] = Matrix4x4.TRS(position, rotation, scale) * part;
+      }
       return true;
     }
 
@@ -266,6 +274,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     {
       public Matrix4x4[] Local, World;
       public Matrix4x4 PartTransform;
+      public Vector3 SpinAxis, SpinPivot;
       public Vector4[] Playback;
       public Vector4[] VisiblePlayback;
       public Vector4[] Livery, VisibleLivery;

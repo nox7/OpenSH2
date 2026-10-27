@@ -79,7 +79,7 @@ namespace Assets.Code.Lighting
     {
       if (Active != this) return;
       if (Application.isPlaying && advanceTime)
-        timeOfDay = Mathf.Repeat(timeOfDay + Time.deltaTime * 24f / Mathf.Max(1f, dayLengthSeconds), 24f);
+        timeOfDay = Mathf.Repeat(timeOfDay + (Game.GetInstance()?.Simulation.DeltaTime ?? Time.deltaTime) * 24f / Mathf.Max(1f, dayLengthSeconds), 24f);
       Apply();
     }
 

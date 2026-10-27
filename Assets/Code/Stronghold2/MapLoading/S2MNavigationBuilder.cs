@@ -16,9 +16,10 @@ namespace Assets.Code.Stronghold2.MapLoading
       "StockPile", "KillingPit", "ManTrap", "WheatFarm", "HopFarm", "AppleFarm", "PitchRig",
       "FishPond", "ConstructingBridge", "ServantsQuarters", "Signpost" };
 
-    public static NavigationGrid Build(S2MFile map, PopulationSettings settings, S2MBuildingData buildings = null)
+    public static NavigationGrid Build(S2MFile map, PopulationSettings settings, S2MBuildingData buildings = null, bool dynamicFoliage = false)
     {
       settings.Validate(); int size = map.MapSize * Resolution;
+      bool savedSurfaces=settings.PreferSavedWalkingSurfaces && map.WalkingLayer!=null;
       var blocked = new bool[size * size];
       var physicalBarriers = new bool[size * size];
       var models=new Dictionary<int,Granny2ModelData>();
@@ -36,6 +37,18 @@ namespace Assets.Code.Stronghold2.MapLoading
       foreach (var building in map.BuildingPlacements)
       {
         if (GroundBuildings.Contains(building.Type)) continue;
+        if(savedSurfaces)
+        {
+          // ContextLayer is the logical footprint. Decorative walls, open leaves and overhangs
+          // must not overwrite authored walkable cells. Only resolved shut gate parts add barriers.
+          if(building.Type.EndsWith("GateHouse",StringComparison.Ordinal) && barriers.TryGetValue(building.Id,out var gateParts))
+            for(int i=1;i<gateParts.Count;i++)
+            {
+              var state=S2MGatePartState.Resolve(map,building,gateParts[i]);
+              if(state.Visible)S2MBuildingObstacleRasterizer.Rasterize(building,gateParts[i],physicalBarriers,size,Resolution,settings.MaximumStepHeight,state.Lift);
+            }
+          continue;
+        }
         // Collision proxies can seal real doorways. Use the visible walls plus authored parts
         // (including gate parts in their resolved initial state), not an opaque proxy around the whole building.
         if(barriers.TryGetValue(building.Id,out var parts))foreach(var part in parts)
@@ -52,6 +65,19 @@ namespace Assets.Code.Stronghold2.MapLoading
       var walkable = new bool[size*size]; var heights = new float[walkable.Length];
       var gateLanes=new bool[walkable.Length];
       var gateFootprints=new bool[map.MapSize*map.MapSize];
+      // Native class 1 includes scenery occupancy. Retain hard barriers separately so a felled
+      // tree's ground can reopen without clearing walls, water, stockpile goods or reserved buildings.
+      var foliageCells=new bool[map.MapSize*map.MapSize];
+      var reservedCells=new bool[foliageCells.Length];
+      if(dynamicFoliage)foreach(var building in map.BuildingPlacements)S2MBuildingFootprint.FromPlacement(building).AddToMask(reservedCells,map.MapSize,map.MapSize);
+      void MarkFoliage(float x,float z)
+      {int ix=Mathf.FloorToInt(x),iz=Mathf.FloorToInt(z);if(ix>=0 && iz>=0 && ix<map.MapSize && iz<map.MapSize)foliageCells[iz*map.MapSize+ix]=true;}
+      if(dynamicFoliage && map.Forest!=null)foreach(var tree in map.Forest.Instances)
+        if(!tree.IsInactive && S2MVegetationAssetCatalog.TryGetTreeAsset(tree.Family,tree.Variant,false,out _))MarkFoliage(tree.MapX,tree.MapZ);
+      if(dynamicFoliage && map.Shrubs!=null)foreach(var bush in map.Shrubs.Instances)
+        if(bush.Enabled && S2MVegetationAssetCatalog.TryGetSceneryAsset(bush.Kind,bush.Family,bush.Variant,out _))MarkFoliage(bush.MapX,bush.MapZ);
+      if(dynamicFoliage)foreach(var layer in new[]{map.Rocks,map.NaturalStone})if(layer!=null)foreach(var rock in layer.Instances)
+      {int x=Mathf.FloorToInt(rock.MapX),z=Mathf.FloorToInt(rock.MapZ);if(x>=0 && z>=0 && x<map.MapSize && z<map.MapSize)reservedCells[z*map.MapSize+x]=true;}
       foreach(var building in map.BuildingPlacements)
       {
         if(!building.Type.EndsWith("GateHouse",StringComparison.Ordinal))continue;
@@ -80,11 +106,13 @@ namespace Assets.Code.Stronghold2.MapLoading
         var walking=map.WalkingLayer;
         if(walking!=null && cx<walking.Width && cz<walking.Height)
         {
-          // Walking classes identify candidate surfaces, not permission to cross physical walls.
+          // Saved logical surfaces override decorative building geometry; map walls and shut gates remain blocked.
           byte surface=walking.GetClass(cx,cz);
           bool gatePassage=gateFootprints[cz*map.MapSize+cx] && (surface==4 || surface==10);
           bool bridge=buildings?.Bridges?.ReplacedTerrainCells!=null && buildings.Bridges.ReplacedTerrainCells[cz*map.MapSize+cx];
-          walkable[index]=walking.IsGroundSurface(cx,cz) && !physicalBarriers[index]
+          bool foliageGround=dynamicFoliage && surface==1 && foliageCells[cz*map.MapSize+cx] && !reservedCells[cz*map.MapSize+cx]
+            && !blocked[index] && !hasWall && !water && !cutout;
+          walkable[index]=(walking.IsGroundSurface(cx,cz) || foliageGround) && !physicalBarriers[index]
             && (!hasWall || gatePassage) && (!water || bridge);
           if(gateFootprints[cz*map.MapSize+cx] && walkable[index])
             heights[index]=S2MCampfireLayout.GroundHeight(map,(x+.5f)/Resolution,(z+.5f)/Resolution)/1024;

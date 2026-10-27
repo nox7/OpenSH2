@@ -9,8 +9,18 @@ using Assets.Code.Lighting;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+[DefaultExecutionOrder(-1000)]
 public class Main : MonoBehaviour
 {
+  [Min(0)]
+  [Tooltip("Simulation seconds per real second. Applies live to movement, work timers and gameplay animations. Zero freezes simulation; camera/UI remain responsive.")]
+  [SerializeField] private float gameSpeed = 1f;
+  public float GameSpeed
+  {
+    get => gameSpeed;
+    set { if(float.IsNaN(value) || float.IsInfinity(value) || value<0)throw new System.ArgumentOutOfRangeException(nameof(value));gameSpeed=value; }
+  }
+
   [Min(0.0001f)]
   [Tooltip("Uniform scale for all map-rendered objects: terrain, water, and vegetation. Keep all map renderers parented to this root so their coordinates remain aligned.")]
   [SerializeField] private float gameScale = 1f;
@@ -53,9 +63,11 @@ public class Main : MonoBehaviour
   [SerializeField] private S2MWallRenderSettings wallRenderSettings = new();
   [SerializeField] private S2MActorRenderSettings actorRenderSettings = new();
   [SerializeField] private S2MLiverySettings liverySettings = new();
+  [Tooltip("Woodcutting action times and cart speed in map cells per game second. Cart Speed Cells Per Second can be adjusted live.")]
+  [SerializeField] private Assets.Code.Simulation.Labor.WoodcuttingSettings woodcuttingSettings = new();
   [Tooltip("Recruitment timing, movement speed, entrance offsets, and campfire ring spacing in map cells. Applied when the map loads.")]
   [SerializeField] private Assets.Code.Simulation.Population.PopulationSettings populationSettings = new();
-  [Tooltip("Horse-only alignment within the cart assembly. Rider, body and wheels retain their authored offsets. Reload the map to apply.")]
+  [Tooltip("Horse/cart assembly offsets and saw-pit seat alignment. Reload the map to apply.")]
   [SerializeField] private HorseCartAssemblySettings horseCartSettings = new();
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -76,6 +88,7 @@ public class Main : MonoBehaviour
 #else
     if (Input.GetKeyDown(KeyCode.P)) game.IsPaused = !game.IsPaused;
 #endif
+    game.Simulation.Speed = float.IsNaN(gameSpeed) || float.IsInfinity(gameSpeed) ? 1 : Mathf.Max(0,gameSpeed);
     game.Simulation.Advance(Time.unscaledDeltaTime);
     return;
 
@@ -150,7 +163,7 @@ public class Main : MonoBehaviour
         loadStages.Add($"{name} {elapsed - previousStage:F3}s");
         previousStage = elapsed;
       }
-      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
+      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter2.s2m";
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
       RecordStage("map decoding");
@@ -224,9 +237,13 @@ public class Main : MonoBehaviour
       RecordStage("vegetation rendering");
       populationSettings.Validate();
       horseCartSettings.Validate();
-      var navigation = S2MNavigationBuilder.Build(mapFile, populationSettings, buildingData);
+      var navigation = S2MNavigationBuilder.Build(mapFile, populationSettings, buildingData, dynamicFoliage:true);
+      woodcuttingSettings.UnitScale=actorRenderSettings.ModelScale*unitModelScale/terrainSettings.HorizontalCellSize;
+      var harvestResources=vegetation.GetComponent<S2MFoliageHarvestView>().Initialize(navigation,woodcuttingSettings);
       var recruitmentPlans = S2MRecruitmentPlan.Create(mapFile, navigation, populationSettings);
       var laborPlan = S2MLaborPlan.Create(mapFile,navigation);
+      foreach(var job in laborPlan.Jobs)if(job is Assets.Code.Simulation.Labor.WoodcutterJob woodcutter)
+        woodcutter.ConfigureHarvest(harvestResources,woodcuttingSettings);
       S2MActorData actorData = await new S2MActorAssetLoader().LoadAsync(mapFile, gameInstallPath,
         actorRenderSettings.Overrides, actorRenderSettings.AnimationSamplesPerSecond, placements:laborPlan.StartupActors,assembly:horseCartSettings);
       if (this == null || mapWorld == null) return;

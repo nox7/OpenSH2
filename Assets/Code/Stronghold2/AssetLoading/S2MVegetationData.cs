@@ -8,6 +8,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
   public sealed class S2MVegetationData
   {
     public S2MFile Map { get; internal set; }
+    public IReadOnlyList<Granny2ModelData> LogModels { get; internal set; } = Array.Empty<Granny2ModelData>();
     public IReadOnlyList<S2MVegetationBatch> Batches { get; internal set; } = Array.Empty<S2MVegetationBatch>();
     public int SupportedInstanceCount { get; internal set; }
     public int UnsupportedInstanceCount { get; internal set; }

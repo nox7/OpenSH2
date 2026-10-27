@@ -35,6 +35,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
       }
       var root = new GameObject(objectName);
       if (parent != null) root.transform.SetParent(parent, false);
+      var harvesting=root.AddComponent<S2MFoliageHarvestView>();
+      harvesting.PrepareLogs(vegetation.LogModels,settings.HorizontalCellSize);
       S2MNaturalStoneVisibility stoneVisibility = null;
 
       foreach (S2MVegetationBatch batch in vegetation.Batches)
@@ -73,6 +75,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
           root.transform,
           modelSettings,
           batch.AssetRelativePath.Replace('\\', '/'));
+        for(int i=0;i<batch.Instances.Count;i++)
+          harvesting.Register(batch.Instances[i],renderedBatch.transform.GetChild(i),settings.FlipX,settings.FlipZ,modelSettings.UnitScale/settings.HorizontalCellSize);
         if (vegetation.Map != null)
           for (int i = 0; i < batch.Instances.Count; i++)
             if (batch.Instances[i].Kind == SceneryKind.NaturalStone)

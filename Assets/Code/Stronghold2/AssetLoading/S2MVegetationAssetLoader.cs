@@ -34,8 +34,10 @@ namespace Assets.Code.Stronghold2.AssetLoading
 
       if (map.Forest != null)
       {
+        int forestId=0;
         foreach (ForestInstance instance in map.Forest.Instances)
         {
+          int resourceId=++forestId;
           if (instance.IsInactive) { inactive++; continue; }
           if (!InBounds(instance.MapX, instance.MapZ)) continue;
           if (!S2MVegetationAssetCatalog.TryGetTreeAsset(instance.Family, instance.Variant, lowDetail, out string path))
@@ -46,6 +48,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
           }
           Add(path, new SceneryInstance
           {
+            ResourceId=resourceId,ForestSource=instance,
             Kind = SceneryKind.Forest, RawX = instance.RawX, RawY = instance.RawY, RawZ = instance.RawZ,
             RotationDegrees = instance.RotationDegrees, ScaleX = instance.ScaleX, ScaleY = instance.ScaleY,
             AppearanceScale = instance.AppearanceScale, Family = instance.Family, Variant = instance.Variant
@@ -56,8 +59,11 @@ namespace Assets.Code.Stronghold2.AssetLoading
       foreach (SceneryLayer layer in new[] { map.Shrubs, map.Rocks, map.NaturalStone, map.Grass })
       {
         if (layer == null) continue;
+        int sceneryId=0;
         foreach (SceneryInstance instance in layer.Instances)
         {
+          sceneryId++;
+          if(layer.Kind==SceneryKind.Shrubs)instance.ResourceId=1000000+sceneryId;
           if (!instance.Enabled || !InBounds(instance.MapX, instance.MapZ)) continue;
           if (instance.Kind == SceneryKind.Grass && instance.Family < 16 && instance.Variant == 0)
           {
@@ -96,7 +102,15 @@ namespace Assets.Code.Stronghold2.AssetLoading
         });
       }
 
-      var models = Granny2AssetConverter.LoadOrConvertMany(gameInstallPath, grouped.Keys, converterPath, cacheDirectory);
+      var paths=new List<string>(grouped.Keys);
+      for(int i=1;i<=6;i++)paths.Add($"meshes/landscape/tree_chopped_{i}.GR2");
+      var models = Granny2AssetConverter.LoadOrConvertMany(gameInstallPath, paths, converterPath, cacheDirectory);
+      var logs=new List<Granny2ModelData>();
+      for(int i=1;i<=6;i++)
+      {
+        var log=models[$"meshes/landscape/tree_chopped_{i}.GR2"];
+        if(log.Error!=null)throw log.Error;logs.Add(log.Model);
+      }
       var batches = new List<S2MVegetationBatch>(grouped.Count);
       foreach (KeyValuePair<string, List<SceneryInstance>> pair in grouped)
       {
@@ -116,6 +130,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
       return new S2MVegetationData
       {
         Map = map,
+        LogModels = logs,
         Batches = batches,
         SupportedInstanceCount = supported,
         UnsupportedInstanceCount = unsupported,

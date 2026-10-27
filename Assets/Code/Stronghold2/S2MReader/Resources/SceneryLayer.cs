@@ -15,6 +15,8 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
 
   public sealed class SceneryInstance
   {
+    public int ResourceId { get; internal set; } = -1;
+    internal ForestInstance ForestSource { get; set; }
     public SceneryKind Kind { get; internal set; }
     public float RawX { get; internal set; }
     public float RawY { get; internal set; }

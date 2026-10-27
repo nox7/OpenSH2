@@ -19,6 +19,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public float Scale = 1;
     public Vector3 LocalOffset;
     public Vector3 LocalEulerAngles;
+    public Vector3 SpinAxis;
     public bool HoldPose;
     public bool UseBindPose;
     public bool DisableDefinitionAttachments;
@@ -56,6 +57,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
     public bool SynchronizedPlayback { get; internal set; }
     public Vector3 LocalOffset { get; internal set; }
     public Vector3 LocalEulerAngles { get; internal set; }
+    public Vector3 SpinAxis { get; internal set; }
     public List<S2MActorAttachment> Attachments { get; } = new();
     public string Key { get; internal set; }
   }
@@ -232,10 +234,12 @@ namespace Assets.Code.Stronghold2.AssetLoading
         SynchronizedPlayback = custom?.SynchronizedPlayback ?? false,
         HoldPose = (custom?.HoldPose ?? false) || (siege && string.IsNullOrWhiteSpace(custom?.AnimationPath)),
         UseBindPose = custom?.UseBindPose ?? false,
-        LocalOffset = custom?.LocalOffset ?? Vector3.zero, LocalEulerAngles = custom?.LocalEulerAngles ?? Vector3.zero };
+        LocalOffset = custom?.LocalOffset ?? Vector3.zero, LocalEulerAngles = custom?.LocalEulerAngles ?? Vector3.zero,
+        SpinAxis = custom?.SpinAxis ?? Vector3.zero };
       for (int axis = 0; axis < 3; axis++)
         if (float.IsNaN(asset.LocalOffset[axis]) || float.IsInfinity(asset.LocalOffset[axis])
-          || float.IsNaN(asset.LocalEulerAngles[axis]) || float.IsInfinity(asset.LocalEulerAngles[axis]))
+          || float.IsNaN(asset.LocalEulerAngles[axis]) || float.IsInfinity(asset.LocalEulerAngles[axis])
+          || float.IsNaN(asset.SpinAxis[axis]) || float.IsInfinity(asset.SpinAxis[axis]))
           throw new InvalidDataException("Actor part transforms must be finite.");
       var key = new StringBuilder(model + "|" + clip + "|team=" + asset.TeamGroup);
       if (selected != null && definition != null && !(custom?.DisableDefinitionAttachments ?? false))
@@ -254,7 +258,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
         key.Append('|').Append(attachment.ModelPath).Append(':').Append(attachment.Point).Append(':').Append(attachment.BoneName);
       }
       key.Append("|variant:").Append(asset.Variant).Append("|sync:").Append(asset.SynchronizedPlayback).Append("|bind:").Append(asset.UseBindPose).Append("|pose:").Append(asset.HoldPose).Append('|').Append(asset.LocalOffset.ToString("R", CultureInfo.InvariantCulture))
-        .Append('|').Append(asset.LocalEulerAngles.ToString("R", CultureInfo.InvariantCulture));
+        .Append('|').Append(asset.LocalEulerAngles.ToString("R", CultureInfo.InvariantCulture))
+        .Append('|').Append(asset.SpinAxis.ToString("R", CultureInfo.InvariantCulture));
       asset.Key = key.ToString();
       return asset;
     }

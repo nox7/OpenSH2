@@ -78,7 +78,7 @@ public static class LaborValidation
       var workers=controller.Kingdoms.SelectMany(k=>k.Peasants).Where(p=>p.Job!=null).ToArray();
       Check(workers.Length==reachableJobs.Length && workers.Select(p=>p.Id).Distinct().Count()==workers.Length,"Double assignment");
       Check(workers.All(p=>p.State==PeasantState.Working && p.EstateId==p.Job.EstateId),"Cross-estate labor or incomplete boarding");
-      ValidateTreasuryRoutes(map,buildings,nav,workers);
+      ValidateSavedBuildingSurfaces(map,buildings,nav);
       Check(Visible(renderer,woodJobs.Select(j=>j.CartActorId))==reachableJobs.Length*3,"Cart assembly parts not visible together");
       // Render one staffed cart with its worker to inspect axes and assembly alignment.
       foreach(var p in controller.Kingdoms.SelectMany(k=>k.Peasants))renderer.HideActor(p.Id);
@@ -93,7 +93,7 @@ public static class LaborValidation
       var target=new RenderTexture(1000,800,24);camera.targetTexture=target;camera.Render();RenderTexture.active=target;
       var image=new Texture2D(1000,800,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1000,800),0,0);image.Apply();File.WriteAllBytes(Output+"/cart.png",image.EncodeToPNG());RenderTexture.active=null;camera.targetTexture=null;
       UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(camera.gameObject);UnityEngine.Object.DestroyImmediate(light.gameObject);UnityEngine.Object.DestroyImmediate(target);UnityEngine.Object.DestroyImmediate(image);
-      File.WriteAllText(Output+"/pass.txt",$"PASS: generic job/worker/movement components; walk/run speeds and instant arrival; horse-only offset with stationary rider; treasury walls and stockpile passage; {200-routeIssues.Count}/200 recruit routes; {reachableJobs.Length}/8 saw pits staffed; cart bind poses; scheduling and pause.");
+      File.WriteAllText(Output+"/pass.txt",$"PASS: generic job/worker/movement components; walk/run speeds and instant arrival; horse-only offset with stationary rider; authored blacksmith passages, geometry fallback walls and stockpile passage; {200-routeIssues.Count}/200 recruit routes; {reachableJobs.Length}/8 saw pits staffed; cart bind poses; scheduling and pause.");
     }
     catch(Exception e){Debug.unityLogger.logEnabled=true;File.WriteAllText(Output+"/failure.txt",e.ToString());throw;}
   }
@@ -131,38 +131,37 @@ public static class LaborValidation
     var model=new Granny2ModelData();Set(model,"Meshes",new[]{mesh});
     var batch=new S2MPlacedBuildingBatch();Set(batch,"Placements",new[]{building});Set(batch,"Closed",model);Set(batch,"Collision",model);
     var data=new S2MBuildingData();Set(data,"Map",map);Set(data,"Keeps",new S2MKeepData());Set(data,"Batches",new[]{batch});
-    var nav=S2MNavigationBuilder.Build(map,new PopulationSettings(),data);
+    var nav=S2MNavigationBuilder.Build(map,new PopulationSettings{PreferSavedWalkingSurfaces=false},data);
     Check(nav.IsWalkable(new MapPoint(6,6)),"Roof blocked usable treasury interior");
     Check(nav.CanTravel(new MapPoint(6,3),new MapPoint(6,6)),"Treasury doorway blocked");
     Check(!nav.CanTravel(new MapPoint(6,6),new MapPoint(6,8.75f)),"Route crossed treasury rear wall");
     Check(!nav.IsWalkable(new MapPoint(6.5f,9.5f)),"Saved floor class reopened a map wall");
     Check(nav.TryFindPath(new MapPoint(6,6),new MapPoint(6,10.5f),out var path) && path.Any(p=>p.Z<4),"Treasury route failed to return through doorway");
     foreach(var p in path)Check(!(p.X>4.2f && p.X<7.8f && p.Z>7.8f && p.Z<8.2f),"Smoothed route crossed rear wall");
+    // A decorative leaf across an authored doorway may be clipped; saved blocked tiles and map walls may not.
+    for(int x=4;x<8;x++)layers[0][8*size+x]=1;
+    var authored=S2MNavigationBuilder.Build(map,new PopulationSettings(),data);
+    Check(authored.CanTravel(new MapPoint(4.1f,3.5f),new MapPoint(4.1f,5.5f)),"Decorative building wall overrode authored open cells");
+    Check(!authored.IsWalkable(new MapPoint(6.5f,8.5f)),"Saved solid building tile reopened");
+    Check(!authored.IsWalkable(new MapPoint(6.5f,9.5f)),"Saved surface reopened a map wall");
   }
-  static void ValidateTreasuryRoutes(S2MFile map,S2MBuildingData buildings,NavigationGrid nav,Peasant[] workers)
+  static void ValidateSavedBuildingSurfaces(S2MFile map,S2MBuildingData buildings,NavigationGrid nav)
   {
-    var roots=new List<GameObject>();
-    foreach(var batch in buildings.Batches)
+    var legacy=S2MNavigationBuilder.Build(map,new PopulationSettings{PreferSavedWalkingSurfaces=false},buildings);
+    var report=new List<string>();
+    foreach(var building in map.BuildingPlacements.Where(b=>b.Type=="BlacksmithWorkshop"))
     {
-      var placements=batch.Placements.Where(p=>p.Type=="Treasury").ToArray();if(placements.Length==0)continue;
-      var instances=placements.Select(p=>new Granny2ModelInstance("Treasury",new Vector3(p.MapX,p.RawY/1024,p.MapZ),new Vector3(0,p.RotationDegrees,0),Vector3.one)).ToArray();
-      var root=Granny2ModelRenderer.RenderInstances(batch.Closed,instances,settings:new Granny2ModelRenderSettings{UnitScale=1/204.8f,UseFoliageMaterials=false});roots.Add(root);
-      foreach(var filter in root.GetComponentsInChildren<MeshFilter>())filter.gameObject.AddComponent<MeshCollider>().sharedMesh=filter.sharedMesh;
-    }
-    Physics.SyncTransforms();int segments=0;bool hitBackfaces=Physics.queriesHitBackfaces;Physics.queriesHitBackfaces=true;
-    foreach(var worker in workers)
-    {
-      Check(nav.TryFindPath(worker.Seat,worker.Job.Approach,out var path),"Worker job route lost");
-      for(int i=1;i<path.Count;i++)
+      float width=S2MNavigationBuilder.UnrotatedWidth(building);
+      float depth=Math.Abs((int)Math.Round(building.RotationDegrees/90))%2==0?building.FootprintHeight:building.FootprintWidth;
+      for(float z=-1.875f;z<depth+2;z+=.25f)for(float x=-1.875f;x<width+2;x+=.25f)
       {
-        var a=path[i-1];var b=path[i];
-        Vector3 from=new(a.X,S2MNavigationBuilder.SampleHeight(map,a.X,a.Z)/1024+.6f,a.Z),to=new(b.X,S2MNavigationBuilder.SampleHeight(map,b.X,b.Z)/1024+.6f,b.Z);
-        Check(!Physics.Linecast(from,to,out var hit),"Worker route crosses actual treasury collider: "+(hit.collider!=null ? hit.collider.name : ""));segments++;
+        var point=S2MNavigationBuilder.BuildingPoint(building,x,z);
+        if(nav.IsWalkable(point) && !legacy.IsWalkable(point))
+          report.Add($"Blacksmith {building.Id}: {point.X},{point.Z} saved class={map.WalkingLayer.GetClass((int)point.X,(int)point.Z)}; decorative mesh ignored");
       }
     }
-    File.WriteAllText(Output+"/treasury-routes.txt",$"PASS: {segments} route segments checked against chapter 8 treasury MeshColliders.");
-    foreach(var root in roots)UnityEngine.Object.DestroyImmediate(root);
-    Physics.queriesHitBackfaces=hitBackfaces;
+    File.WriteAllLines(Output+"/saved-building-surfaces.txt",report);
+    Check(report.Count>0,"Blacksmith saved surface/mesh conflict was not exercised");
   }
   static void TestLabor()
   {

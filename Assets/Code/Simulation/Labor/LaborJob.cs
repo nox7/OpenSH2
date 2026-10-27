@@ -31,5 +31,11 @@ namespace Assets.Code.Simulation.Labor
       => worker.Movement.Place(WorkPosition,WorkHeading);
     /// <summary>Override in a building job to implement its work cycle. Travel and assignment stay shared.</summary>
     public virtual void AdvanceWork(WorkerComponent worker,float seconds) { }
+    internal void RemoveWorker(WorkerComponent worker)
+    {
+      if(WorkerId!=worker.ActorId)return;
+      OnWorkerRemoved(worker);WorkerId=null;IsOccupied=false;
+    }
+    protected virtual void OnWorkerRemoved(WorkerComponent worker) { }
   }
 }

@@ -5,7 +5,7 @@ using Assets.Code.Simulation.Navigation;
 
 namespace Assets.Code.Simulation.Labor
 {
-  public enum WorkerState { Unassigned, Traveling, Working }
+  public enum WorkerState { Unassigned, Traveling, Working, Removed }
 
   /// <summary>Employment component, independent of recruitment, building type, and rendering.</summary>
   public sealed class WorkerComponent
@@ -15,13 +15,21 @@ namespace Assets.Code.Simulation.Labor
     public LaborJob Job { get; private set; }
     public WorkerState State { get; private set; }
     public float StateTime { get; private set; }
+    public float WalkSpeed { get; private set; }
+    public event Action<WorkerComponent,LaborJob> Removed;
+    public void Remove()
+    {
+      if(State==WorkerState.Removed)return;
+      var former=Job;former?.RemoveWorker(this);Job=null;State=WorkerState.Removed;
+      Movement.Place(Movement.Position,Movement.Heading);Removed?.Invoke(this,former);
+    }
     public WorkerComponent(int actorId,MovementComponent movement)
     { ActorId=actorId;Movement=movement??throw new ArgumentNullException(nameof(movement)); }
 
     public bool TryAssign(LaborJob job,IReadOnlyList<MapPoint> path)
     {
       if(job==null)throw new ArgumentNullException(nameof(job));
-      if(Job!=null || path==null || path.Count==0 || MapPoint.Distance(path[path.Count-1],job.Approach)>.001f)return false;
+      if(State==WorkerState.Removed || Job!=null || path==null || path.Count==0 || MapPoint.Distance(path[path.Count-1],job.Approach)>.001f)return false;
       if(!job.TryReserve(ActorId))return false;
       Job=job;State=WorkerState.Traveling;StateTime=0;Movement.Follow(path);
       if(!Movement.IsFollowingPath)Arrive();
@@ -30,6 +38,7 @@ namespace Assets.Code.Simulation.Labor
     public void Advance(float seconds,float walkSpeed)
     {
       if(!(seconds>=0) || float.IsInfinity(seconds))throw new ArgumentOutOfRangeException(nameof(seconds));
+      WalkSpeed=walkSpeed;
       float remaining=seconds;
       if(State==WorkerState.Traveling)
       {
