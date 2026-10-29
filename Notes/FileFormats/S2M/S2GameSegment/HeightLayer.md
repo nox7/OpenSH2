@@ -1,12 +1,14 @@
 # HeightLayer
 
-`HeightLayer` is present once in each controlled terrain map and the tested campaign maps. Its payload is 3,407,932 bytes and contains a 256x256 primary plane followed by three separately counted planes of four corner heights per cell.
+`HeightLayer` is present once in each controlled terrain map and the tested campaign maps. The usual payload is 3,407,932 bytes and contains a 256x256 primary plane followed by three separately counted planes of four corner heights per cell. The header is variable length: `war_chapter5.s2m` has a 3,407,996-byte payload with 64 extra header bytes.
 
 ## Binary layout
 
 | Relative offset | Size | Meaning |
 | ---: | ---: | --- |
-| 0 | 20 | Five unknown `int32` values |
+| 0 | 4 | Header block tag (`3`) |
+| 4 | 4 | Header payload byte length (usually `12`; chapter 5 uses `76`) |
+| 8 | variable | Header payload; its internal records remain undecoded |
 | 20 | 4 | Data payload marker `A5 C1 FF FF` |
 | 24 | 4 | Segment-local type/registration value |
 | 28 | 4 | Unknown (`1` in tested maps) |
@@ -22,6 +24,18 @@
 | 2,359,352 | 4 | Plane 2 cell count (`65536`) |
 | 2,359,356 | 1,048,576 | Plane 2: four `float32` values per cell |
 | 3,407,932 | 4 | Object trailer `AF 1E FF FF` (not part of the payload) |
+
+Offsets from the data marker onward in this table assume the usual 12-byte header
+payload. The marker is at `8 + headerLength`; in chapter 5 it is at offset 84,
+and subsequent fields shift by 64 bytes. Its height count and three corner planes
+use the same layout. The reader skips the declared header payload rather than a
+fixed number of integers, and rejects negative or out-of-bounds header lengths.
+Chapter 5's stored 256x256 grids are then cropped to its playable 128x128 bounds
+by the existing map-size normalization.
+
+`Notes/tools/HeightLayerHeaderValidation.cs` checks both header sizes, malformed
+lengths, all twelve campaign height/material dimensions, and chapter 5's building
+height mask, texture loading and terrain/water/building geometry.
 
 The corner-height block length is exactly:
 

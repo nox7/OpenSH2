@@ -29,12 +29,12 @@ namespace Assets.Code.Stronghold2.ModelRendering
     private float scale;
     private PopulationSettings settings;
     private LaborPresentationCatalog presentations;
-    private readonly Dictionary<int,(string variant,float rate)> shownEquipment = new();
+    private readonly Dictionary<int,(string variant,float rate,int revision)> shownEquipment = new();
     private S2MFoliageHarvestView foliage;
 
     public void Initialize(S2MFile map,NavigationGrid navigation,IReadOnlyList<IReadOnlyList<Peasant>> plans,
       S2MActorData data,S2MTerrainSettings terrain,S2MActorRenderSettings renderSettings,PopulationSettings settings,
-      SimulationClock clock,float unitScale=1,IReadOnlyList<LaborJob> jobs=null,HorseCartAssemblySettings assembly=null)
+      SimulationClock clock,float unitScale=1,IReadOnlyList<LaborJob> jobs=null,HorseCartAssemblySettings assembly=null,IReadOnlyList<LaborBuilding> laborBuildings=null)
     {
       if(data.Issues.Count>0)throw new InvalidOperationException("Recruitment animation assets failed: "+string.Join("; ",data.Issues));
       this.map=map; this.terrain=terrain; this.clock=clock; buildingEquipmentScale=terrain.HorizontalCellSize/(S2MBuildingRenderer.ModelUnitsPerCell*renderSettings.ModelUnitScale); scale=renderSettings.ModelScale*unitScale;
@@ -54,7 +54,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if(jobs!=null)
       {
         foreach(var job in jobs)presentations.Get(job.Role).ConfigureJob(job,data);
-        Labor=new LaborManager(jobs,kingdoms,navigation,settings);
+        Labor=new LaborManager(jobs,kingdoms,navigation,settings,laborBuildings);
         foreach(var job in jobs)foreach(var equipment in presentations.Get(job.Role).Equipment(job))actors.HideActor(equipment.ActorId);
       }
     }
@@ -97,35 +97,36 @@ namespace Assets.Code.Stronghold2.ModelRendering
           if(p.Worker.State==WorkerState.Working)
           {
             if(presentation.UseBuildingHeight(p.Worker))height=presentation.BuildingRawHeight(p.Worker);
-            ShowEquipment(p.Job);
+            if(!presentation.BuildingEquipment)ShowEquipment(p.Job);
           }
           // Hovel interiors use ground height, rather than the roof/stair navigation surface.
           if(p.State==PeasantState.HovelSeated || p.State==PeasantState.StandingUp || p.State==PeasantState.LeavingHovel)
             height=S2MCampfireLayout.GroundHeight(map,p.Position.X,p.Position.Z);
           actors.SetTransform(p.Id,new Vector3(x*terrain.HorizontalCellSize,height*terrain.HeightUnitScale,z*terrain.HorizontalCellSize),
-            Quaternion.Euler(0,yaw,0),Vector3.one*scale);
+            Quaternion.Euler(0,yaw,0),presentation!=null && presentation.UseBuildingScale(p.Worker)?new Vector3(buildingEquipmentScale,buildingEquipmentScale*terrain.HeightUnitScale*1024/terrain.HorizontalCellSize,buildingEquipmentScale):Vector3.one*scale);
         }
       }
+      if(Labor!=null)for(int i=0;i<Labor.Jobs.Count;i++){var job=Labor.Jobs[i];if(presentations.Get(job.Role).BuildingEquipment)ShowEquipment(job);}
       foliage?.Synchronize();
     }
     private float buildingEquipmentScale;
     private void ShowEquipment(LaborJob job)
     {
       var presentation=presentations.Get(job.Role);
-      for(int i=0;i<presentation.EquipmentCount;i++)
+      for(int i=0;i<presentation.EquipmentCountFor(job);i++)
       {
         var equipment=presentation.GetEquipment(job,i);
         if(!equipment.Visible) {if(shownEquipment.Remove(equipment.ActorId))actors.HideActor(equipment.ActorId);continue;}
-        if(!shownEquipment.TryGetValue(equipment.ActorId,out var previous) || previous!=(equipment.Variant,equipment.AnimationRate))
+        if(!shownEquipment.TryGetValue(equipment.ActorId,out var previous) || previous!=(equipment.Variant,equipment.AnimationRate,equipment.Revision))
         {
-          if(!actors.SetVariant(equipment.ActorId,equipment.Variant,equipment.AnimationTime,true,equipment.AnimationRate))
+          if(!actors.SetVariant(equipment.ActorId,equipment.Variant,equipment.AnimationTime,equipment.AnimationLoops,equipment.AnimationRate))
             throw new InvalidOperationException("Missing labor equipment "+equipment.Variant);
-          shownEquipment[equipment.ActorId]=(equipment.Variant,equipment.AnimationRate);
+          shownEquipment[equipment.ActorId]=(equipment.Variant,equipment.AnimationRate,equipment.Revision);
         }
         float x=equipment.Position.X,z=equipment.Position.Z,yaw=equipment.Heading;
         if(terrain.FlipX){x=map.MapSize-x;yaw=-yaw;}if(terrain.FlipZ){z=map.MapSize-z;yaw=180-yaw;}
         float height=equipment.SampleGround?S2MNavigationBuilder.SampleHeight(map,equipment.Position.X,equipment.Position.Z):equipment.RawHeight;
-        actors.SetTransform(equipment.ActorId,new Vector3(x*terrain.HorizontalCellSize,height*terrain.HeightUnitScale,z*terrain.HorizontalCellSize),Quaternion.Euler(0,yaw,0),(equipment.BuildingScale?new Vector3(buildingEquipmentScale,buildingEquipmentScale*terrain.HeightUnitScale*1024/terrain.HorizontalCellSize,buildingEquipmentScale):Vector3.one*scale),equipment.MotionDegrees);
+        actors.SetTransform(equipment.ActorId,new Vector3(x*terrain.HorizontalCellSize,height*terrain.HeightUnitScale,z*terrain.HorizontalCellSize),Quaternion.Euler(0,yaw,0),(equipment.BuildingScale?new Vector3(buildingEquipmentScale,buildingEquipmentScale*terrain.HeightUnitScale*1024/terrain.HorizontalCellSize,buildingEquipmentScale):Vector3.one*scale)*equipment.ModelScale,equipment.MotionDegrees);
       }
     }
     /// <summary>Shared death/despawn entry point; releases the worker's pile and hides all visual variants.</summary>
@@ -141,7 +142,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if(former!=null)
       {
         var presentation=presentations.Get(former.Role);
-        for(int i=0;i<presentation.EquipmentCount;i++)
+        if(presentation.KeepEquipmentOnRemoval)return;
+        for(int i=0;i<presentation.EquipmentCountFor(former);i++)
         {int id=presentation.GetEquipment(former,i).ActorId;actors.HideActor(id);shownEquipment.Remove(id);}
       }
     }

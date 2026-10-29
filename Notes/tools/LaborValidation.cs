@@ -41,8 +41,8 @@ public static class LaborValidation
         if(!nav.CanReach(p.Exit,p.Seat))routeIssues.Add($"Recruit {p.Id}");
       File.WriteAllLines(Output+"/recruit-routes.txt",routeIssues.Prepend($"{200-routeIssues.Count}/200 reachable"));
       // Lowered rendered portcullises may isolate some hovels. They must wait rather than cross walls.
-      Check(labor.Jobs.Count==8 && labor.Jobs.All(j=>!j.WorkerId.HasValue && !j.IsOccupied),"Jobs not vacant at start");
-      Check(map.Actors.Count-labor.StartupActors.Count==8,"Wrong editor worker/cart suppression");
+      Check(labor.Jobs.Count==20 && labor.Jobs.All(j=>!j.WorkerId.HasValue && !j.IsOccupied),"Jobs not vacant at start");
+      Check(map.Actors.Count-labor.StartupActors.Count==11,"Wrong editor worker/cart suppression");
       Check(labor.StartupActors.Count(a=>a.Type=="HorseCart")==3,"Unrelated carts were removed");
       var data=new S2MActorAssetLoader().Load(map,Install,S2MCampfirePopulationLoader.Overrides(),converterPath:Converter,cacheDirectory:Output+"/Cache",
         placements:S2MCampfirePopulationLoader.CreateRecruitPlacements(plans,labor.Jobs));
@@ -73,17 +73,17 @@ public static class LaborValidation
       controller.Advance(700);
       File.WriteAllLines(Output+"/jobs.txt",labor.Jobs.Select(j=>$"Building={j.BuildingId} estate={j.EstateId} worker={j.WorkerId} occupied={j.IsOccupied}"));
       var reachableJobs=labor.Jobs.Where(j=>plans.SelectMany(p=>p).Any(p=>p.EstateId==j.EstateId && nav.CanReach(p.Seat,j.Approach))).ToArray();
-      Check(reachableJobs.All(j=>j.IsOccupied),"A reachable saw pit was never staffed");
+      Check(reachableJobs.All(j=>j.IsOccupied),"A reachable labor building was never staffed");
       Check(labor.Jobs.Except(reachableJobs).All(j=>!j.WorkerId.HasValue && !j.IsOccupied),"Assigned a worker across a closed gate or wall");
       var workers=controller.Kingdoms.SelectMany(k=>k.Peasants).Where(p=>p.Job!=null).ToArray();
       Check(workers.Length==reachableJobs.Length && workers.Select(p=>p.Id).Distinct().Count()==workers.Length,"Double assignment");
       Check(workers.All(p=>p.State==PeasantState.Working && p.EstateId==p.Job.EstateId),"Cross-estate labor or incomplete boarding");
       ValidateSavedBuildingSurfaces(map,buildings,nav);
-      Check(Visible(renderer,woodJobs.Select(j=>j.CartActorId))==reachableJobs.Length*3,"Cart assembly parts not visible together");
+      Check(Visible(renderer,woodJobs.Select(j=>j.CartActorId))==reachableJobs.Count(j=>j is WoodcutterJob)*3,"Cart assembly parts not visible together");
       // Render one staffed cart with its worker to inspect axes and assembly alignment.
       foreach(var p in controller.Kingdoms.SelectMany(k=>k.Peasants))renderer.HideActor(p.Id);
       foreach(var j in woodJobs)renderer.HideActor(j.CartActorId);
-      var worker=workers[0];renderer.SetVariant(worker.Id,S2MWoodcutterAssets.Riding);renderer.SetTransform(worker.Id,Vector3.zero,Quaternion.identity,Vector3.one);
+      var worker=workers.First(p=>p.Job is WoodcutterJob);renderer.SetVariant(worker.Id,S2MWoodcutterAssets.Riding);renderer.SetTransform(worker.Id,Vector3.zero,Quaternion.identity,Vector3.one);
       var cartJob=(WoodcutterJob)worker.Job;
       renderer.SetVariant(cartJob.CartActorId,S2MWoodcutterAssets.Cart);renderer.SetTransform(cartJob.CartActorId,Vector3.zero,Quaternion.identity,Vector3.one);
       var camera=new GameObject("Cart camera").AddComponent<Camera>();camera.transform.position=new Vector3(6,4,-7);camera.transform.LookAt(new Vector3(0,1,0));
@@ -93,7 +93,7 @@ public static class LaborValidation
       var target=new RenderTexture(1000,800,24);camera.targetTexture=target;camera.Render();RenderTexture.active=target;
       var image=new Texture2D(1000,800,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1000,800),0,0);image.Apply();File.WriteAllBytes(Output+"/cart.png",image.EncodeToPNG());RenderTexture.active=null;camera.targetTexture=null;
       UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(camera.gameObject);UnityEngine.Object.DestroyImmediate(light.gameObject);UnityEngine.Object.DestroyImmediate(target);UnityEngine.Object.DestroyImmediate(image);
-      File.WriteAllText(Output+"/pass.txt",$"PASS: generic job/worker/movement components; walk/run speeds and instant arrival; horse-only offset with stationary rider; authored blacksmith passages, geometry fallback walls and stockpile passage; {200-routeIssues.Count}/200 recruit routes; {reachableJobs.Length}/8 saw pits staffed; cart bind poses; scheduling and pause.");
+      File.WriteAllText(Output+"/pass.txt",$"PASS: generic job/worker/movement components; walk/run speeds and instant arrival; horse-only offset with stationary rider; authored blacksmith passages, geometry fallback walls and stockpile passage; {200-routeIssues.Count}/200 recruit routes; {reachableJobs.Count(j=>j is WoodcutterJob)}/8 saw pits and {reachableJobs.Count(j=>j is QuarryJob)}/9 quarry slots and {reachableJobs.Count(j=>j is OxHandlerJob)}/3 ox tethers staffed; cart bind poses; scheduling and pause.");
     }
     catch(Exception e){Debug.unityLogger.logEnabled=true;File.WriteAllText(Output+"/failure.txt",e.ToString());throw;}
   }

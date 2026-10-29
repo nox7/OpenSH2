@@ -2,17 +2,17 @@ using System.Collections.Generic;
 
 namespace Assets.Code.Stronghold2.AssetLoading
 {
-  /// <summary>Terrain materials from tag 27 and derived cultivated-ground selectors from tag 19.</summary>
+  /// <summary>Terrain materials from tag 27 and iron/cultivated-ground selectors from tag 19.</summary>
   public static class S2MTerrainTextureAssetCatalog
   {
-    public const int TextureArraySliceCount = 27;
+    public const int TextureArraySliceCount = 28;
 
     // Keep the original ground/cliff slice layout stable and append cultivated
     // surfaces. Mirrored by SampleMaterial in Stronghold2Terrain.shader.
     public static byte GetMaterialIdForSlice(int slice) => slice switch
     {
       >= 0 and < 24 => (byte)(slice + 8),
-      24 => 0x27, 25 => 0x25, 26 => 0x26,
+      24 => 0x27, 25 => 0x25, 26 => 0x26, 27 => 0x23,
       _ => throw new System.ArgumentOutOfRangeException(nameof(slice))
     };
     private static readonly IReadOnlyDictionary<byte, string> AssetPaths =
@@ -42,6 +42,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
         [0x1D] = "terrain/rubble.dds",
         [0x1E] = "terrain/rock_1.dds",
         [0x1F] = "terrain/forest_floor.dds",
+        [0x23] = "terrain/iron_raw.dds",
         [0x25] = "terrain/crop_1.dds",
         [0x26] = "terrain/crop_2.dds",
         [0x27] = "terrain/cliff_face.dds"

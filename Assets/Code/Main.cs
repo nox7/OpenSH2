@@ -65,6 +65,20 @@ public class Main : MonoBehaviour
   [SerializeField] private S2MLiverySettings liverySettings = new();
   [Tooltip("Woodcutting action times and cart speed in map cells per game second. Cart Speed Cells Per Second can be adjusted live.")]
   [SerializeField] private Assets.Code.Simulation.Labor.WoodcuttingSettings woodcuttingSettings = new();
+  public Assets.Code.Simulation.Labor.LaborManager Labor { get; private set; }
+  [Tooltip("Quarry local stone capacity, timing, and block layout. Three workers are required. Reload the map to apply.")]
+  [SerializeField] private Assets.Code.Simulation.Labor.QuarrySettings quarrySettings = new();
+  [Tooltip("Iron mine local capacity, cycle timing and output pile position. Two workers are required. Reload the map to apply.")]
+  [SerializeField] private Assets.Code.Simulation.Labor.IronMineSettings ironMineSettings = new();
+  [Tooltip("Ox hauling speed, follow distance, loading interval, stone capacity and model scale. Reload the map to apply.")]
+  [SerializeField] private Assets.Code.Simulation.Labor.OxHaulingSettings oxHaulingSettings = new();
+  public Assets.Code.Simulation.Economy.EstateInventory Inventory => Game.GetInstance()?.Inventory;
+  [Tooltip("Stockpile pallet count and resource capacities. Reload the map to apply.")]
+  [SerializeField] private Assets.Code.Simulation.Economy.StorageSettings storageSettings = new();
+  [Tooltip("Simulation seconds between individual stockpile deposits, shared by woodcutters and ox handlers. Applied live and affected by game speed.")]
+  [SerializeField] private Assets.Code.Simulation.Economy.StockpileDeliverySettings stockpileDeliverySettings = new();
+  [Tooltip("Shared stockpile item models and packing overrides. Reload the map to apply.")]
+  [SerializeField] private S2MStockpileVisualSettings stockpileVisualSettings = new();
   [Tooltip("Recruitment timing, movement speed, entrance offsets, and campfire ring spacing in map cells. Applied when the map loads.")]
   [SerializeField] private Assets.Code.Simulation.Population.PopulationSettings populationSettings = new();
   [Tooltip("Horse/cart assembly offsets and saw-pit seat alignment. Reload the map to apply.")]
@@ -163,7 +177,7 @@ public class Main : MonoBehaviour
         loadStages.Add($"{name} {elapsed - previousStage:F3}s");
         previousStage = elapsed;
       }
-      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter2.s2m";
+      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
       RecordStage("map decoding");
@@ -241,9 +255,14 @@ public class Main : MonoBehaviour
       woodcuttingSettings.UnitScale=actorRenderSettings.ModelScale*unitModelScale/terrainSettings.HorizontalCellSize;
       var harvestResources=vegetation.GetComponent<S2MFoliageHarvestView>().Initialize(navigation,woodcuttingSettings);
       var recruitmentPlans = S2MRecruitmentPlan.Create(mapFile, navigation, populationSettings);
-      var laborPlan = S2MLaborPlan.Create(mapFile,navigation);
+      var laborPlan = S2MLaborPlan.Create(mapFile,navigation,quarrySettings,oxHaulingSettings,ironMineSettings);
+      var inventory=S2MStoragePlan.Create(mapFile,storageSettings,stockpileDeliverySettings);
+      Game.GetInstance().Inventory=inventory;
+      laborPlan.OxHauling.ConfigureStorage(inventory);
+      if(stockpileVisualSettings.Enabled)
+        S2MStockpileRenderer.Create(mapFile,inventory,S2MStockpileAssets.Load(gameInstallPath,settings:stockpileVisualSettings),mapWorld.transform,terrainSettings);
       foreach(var job in laborPlan.Jobs)if(job is Assets.Code.Simulation.Labor.WoodcutterJob woodcutter)
-        woodcutter.ConfigureHarvest(harvestResources,woodcuttingSettings);
+        {woodcutter.ConfigureHarvest(harvestResources,woodcuttingSettings);woodcutter.ConfigureStorage(inventory);}
       S2MActorData actorData = await new S2MActorAssetLoader().LoadAsync(mapFile, gameInstallPath,
         actorRenderSettings.Overrides, actorRenderSettings.AnimationSamplesPerSecond, placements:laborPlan.StartupActors,assembly:horseCartSettings);
       if (this == null || mapWorld == null) return;
@@ -252,8 +271,10 @@ public class Main : MonoBehaviour
         recruitmentPlans, actorRenderSettings.AnimationSamplesPerSecond,jobs:laborPlan.Jobs,assembly:horseCartSettings);
       if (this == null || mapWorld == null) return;
       var populationRoot = new GameObject("Estate Population"); populationRoot.transform.SetParent(mapWorld.transform, false);
-      populationRoot.AddComponent<S2MPopulationController>().Initialize(mapFile, navigation, recruitmentPlans,
-        populationData, terrainSettings, actorRenderSettings, populationSettings, Game.GetInstance().Simulation, unitModelScale,laborPlan.Jobs,horseCartSettings);
+      var populationController=populationRoot.AddComponent<S2MPopulationController>();
+      populationController.Initialize(mapFile, navigation, recruitmentPlans,
+        populationData, terrainSettings, actorRenderSettings, populationSettings, Game.GetInstance().Simulation, unitModelScale,laborPlan.Jobs,horseCartSettings,laborPlan.Buildings);
+      Labor=populationController.Labor;
       RecordStage("placed actors and animations");
       Debug.Log($"Rendered {actorData.PlacedCount}/{mapFile.Actors.Count} placed actors ({actorData.InactiveCount} inactive).");
       foreach (string issue in actorData.Issues) Debug.LogWarning("Actor: " + issue);

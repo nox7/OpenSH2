@@ -20,6 +20,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
       var grass = new List<SceneryInstance>();
       var wheat = new List<PlantActor>();
       var issues = new HashSet<string>();
+      var savedIronCells = new HashSet<(int x, int z)>();
       int unsupported = 0;
       int inactive = 0;
 
@@ -65,6 +66,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
           sceneryId++;
           if(layer.Kind==SceneryKind.Shrubs)instance.ResourceId=1000000+sceneryId;
           if (!instance.Enabled || !InBounds(instance.MapX, instance.MapZ)) continue;
+          if (instance.Kind == SceneryKind.Rocks && instance.Family == 8 && instance.Variant < 12)
+            savedIronCells.Add(((int)Math.Floor(instance.MapX), (int)Math.Floor(instance.MapZ)));
           if (instance.Kind == SceneryKind.Grass && instance.Family < 16 && instance.Variant == 0)
           {
             grass.Add(instance);
@@ -79,6 +82,27 @@ namespace Assets.Code.Stronghold2.AssetLoading
           }
         }
       }
+
+      // Iron deposits are tag-19 terrain cells, not serialized decorative Rocks.
+      WaterLayer ground = map.WaterLayer;
+      if (ground?.LandscapeFeatureValues != null)
+        for (int z = 0; z < ground.Height; z++)
+          for (int x = 0; x < ground.Width; x++)
+          {
+            if (ground.LandscapeFeatureValues[z * ground.Width + x] != S2MTerrainSurfaceMaterialGrid.IronOreMaterialId) continue;
+            if (savedIronCells.Contains((x, z))) continue;
+            // Stable coordinate variation; never consume the simulation's RNG.
+            uint seed = unchecked((uint)x * 73856093u ^ (uint)z * 19349663u);
+            seed ^= seed >> 16; seed *= 0x7feb352du; seed ^= seed >> 15;
+            ushort variant = (ushort)(seed % 12u);
+            S2MVegetationAssetCatalog.TryGetSceneryAsset(SceneryKind.IronOre, 8, variant, out string path);
+            Add(path, new SceneryInstance
+            {
+              Kind = SceneryKind.IronOre, Family = 8, Variant = variant,
+              RawX = (x + .5f) * 1024f, RawZ = (z + .5f) * 1024f,
+              RotationDegrees = ((seed >> 16) & 3u) * 90f, SampleTerrainHeight = true
+            });
+          }
 
       foreach (PlantActor plant in map.PlantActors)
       {

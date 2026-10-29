@@ -2,11 +2,13 @@ using Assets.Code.Simulation.Navigation;
 
 namespace Assets.Code.Simulation.Labor
 {
-  public enum LaborRole { Woodcutter }
+  public enum LaborRole { Woodcutter,Stonemason,OxHandler,IronMiner }
 
   /// <summary>Shared employment contract. Building subclasses own arrival and future work mechanics.</summary>
   public abstract class LaborJob
   {
+    public LaborBuilding Building { get; internal set; }
+    public virtual void CompleteWorkStep() { }
     public abstract LaborRole Role { get; }
     public int BuildingId { get; }
     public int EstateId { get; }
@@ -34,7 +36,7 @@ namespace Assets.Code.Simulation.Labor
     internal void RemoveWorker(WorkerComponent worker)
     {
       if(WorkerId!=worker.ActorId)return;
-      OnWorkerRemoved(worker);WorkerId=null;IsOccupied=false;
+      WorkerId=null;IsOccupied=false;OnWorkerRemoved(worker);
     }
     protected virtual void OnWorkerRemoved(WorkerComponent worker) { }
   }

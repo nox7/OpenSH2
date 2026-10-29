@@ -314,7 +314,9 @@ namespace Assets.Code.Stronghold2.AssetLoading
         }
         else result.Clips.Add(entry ?? new ClipEntry { Action = action });
       }
-      if (!animal) result.TeamGroup = r.ReadInt32();
+      // Version-4 definitions (including ox_handler.uni) end after the action slots.
+      // The team-group trailer was introduced in version 5.
+      if (!animal && version >= 5) result.TeamGroup = r.ReadInt32();
       return result;
     }
 

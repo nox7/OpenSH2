@@ -15,16 +15,19 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     public MapPoint Position { get; }
     public float Heading { get; }
     public float RawHeight { get; }
+    public float ModelScale { get; }
     public float MotionDegrees { get; }
     public float AnimationTime { get; }
     public float AnimationRate { get; }
     public bool SampleGround { get; }
     public bool Visible { get; }
     public bool BuildingScale { get; }
+    public bool AnimationLoops { get; }
+    public int Revision { get; }
     public LaborEquipment(int actorId,string actorType,string variant,MapPoint position,float heading,float rawHeight,
-      float motionDegrees=0,float animationTime=0,float animationRate=1,bool sampleGround=false,bool visible=true,bool buildingScale=false)
+      float motionDegrees=0,float animationTime=0,float animationRate=1,bool sampleGround=false,bool visible=true,bool buildingScale=false,bool animationLoops=true,int revision=0,float modelScale=1)
     { ActorId=actorId;ActorType=actorType;Variant=variant;Position=position;Heading=heading;RawHeight=rawHeight;
-      MotionDegrees=motionDegrees;AnimationTime=animationTime;AnimationRate=animationRate;SampleGround=sampleGround;Visible=visible;BuildingScale=buildingScale; }
+      ModelScale=modelScale;MotionDegrees=motionDegrees;AnimationTime=animationTime;AnimationRate=animationRate;SampleGround=sampleGround;Visible=visible;BuildingScale=buildingScale;AnimationLoops=animationLoops;Revision=revision; }
     public ActorPlacement Placement() => new() { Id=ActorId,Type=ActorType,OnMap=true,RawX=Position.X*1024,
       RawZ=Position.Z*1024,RawY=RawHeight,HeadingDegrees=Heading,AnimationLoops=true };
   }
@@ -41,6 +44,9 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     public virtual void ConfigureJob(LaborJob job,S2MActorData data) { }
     public virtual IEnumerable<LaborEquipment> Equipment(LaborJob job) { yield break; }
     public virtual int EquipmentCount => 0;
+    public virtual int EquipmentCountFor(LaborJob job)=>EquipmentCount;
+    public virtual bool BuildingEquipment=>false;
+    public virtual bool KeepEquipmentOnRemoval=>BuildingEquipment;
     public virtual LaborEquipment GetEquipment(LaborJob job,int index) => throw new System.ArgumentOutOfRangeException(nameof(index));
     public virtual IEnumerable<ActorPlacement> EquipmentPlacements(LaborJob job)
     { foreach(var equipment in Equipment(job))yield return equipment.Placement(); }
@@ -58,6 +64,7 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
       => worker.State==WorkerState.Traveling ? WalkingAnimationRate(walkSpeed*worker.Job.TravelSpeedMultiplier) : 1;
     public virtual float AnimationTime(WorkerComponent worker,float rate) => worker.StateTime*rate;
     public virtual float BuildingRawHeight(WorkerComponent worker) => worker.Job.RawHeight;
+    public virtual bool UseBuildingScale(WorkerComponent worker)=>false;
     public virtual bool UseBuildingHeight(WorkerComponent worker) => true;
   }
 }

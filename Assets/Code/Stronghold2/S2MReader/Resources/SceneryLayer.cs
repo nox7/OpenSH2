@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Assets.Code.Stronghold2.S2MReader.Resources
 {
-  public enum SceneryKind { Forest, Shrubs, Rocks, NaturalStone, Grass, AppleTree, Hops, Wheat }
+  public enum SceneryKind { Forest, Shrubs, Rocks, NaturalStone, Grass, AppleTree, Hops, Wheat, IronOre }
 
   /// <summary>Packed landscape placements; original bytes are retained for undecoded fields.</summary>
   public sealed class SceneryLayer : S2Object

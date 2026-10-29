@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Assets.Code.Simulation;
+using Assets.Code.Simulation.Economy;
 using Assets.Code.Simulation.Labor;
 using Assets.Code.Simulation.Movement;
 using Assets.Code.Simulation.Navigation;
@@ -27,6 +28,8 @@ public static class WoodcuttingValidation
   const string Output=Repo+"/Temp/WoodcuttingValidation";
   const string Converter=Repo+"/Tools/Granny2MeshConverter/bin/Release/net48/OpenSH2.Granny2MeshConverter.exe";
   static void Check(bool condition,string message){if(!condition)throw new Exception(message);}
+  static bool withStorage;
+  public static void RunStorage()=>StorageValidation.Run();
   public static void Run()
   {
     Directory.CreateDirectory(Output);
@@ -51,6 +54,12 @@ public static class WoodcuttingValidation
       var plans=S2MRecruitmentPlan.Create(map,nav,population);var labor=S2MLaborPlan.Create(map,nav);
       File.WriteAllLines(Output+"/ownership.txt",S2MLiveryOwnership.Read(map).Estates.Values.Select(e=>$"estate {e.Number} lord={e.Lord} player={e.PlayerNumber}"));
       var jobs=labor.Jobs.OfType<WoodcutterJob>().ToArray();foreach(var job in jobs)job.ConfigureHarvest(resources,settings);
+      EstateInventory inventory=null;S2MStockpileRenderer storedView=null;
+      if(withStorage)
+      {
+        inventory=S2MStoragePlan.Create(map);foreach(var job in jobs)job.ConfigureStorage(inventory);
+        storedView=S2MStockpileRenderer.Create(map,inventory,S2MStockpileAssets.Load(Install,Converter),root.transform);
+      }
       File.WriteAllLines(Output+"/delivery-paths.txt",jobs.Select(j=> {
         var points=(IReadOnlyList<WoodDeliveryPoint>)typeof(WoodcutterJob).GetField("stockpiles",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(j);
         bool snapped=resources.Carts.TryNearest(j.CartPosition,2,out var start);
@@ -140,7 +149,24 @@ public static class WoodcuttingValidation
       }
       var staffed=jobs.Where(j=>j.WorkerId.HasValue).ToArray();
       File.WriteAllLines(Output+"/jobs.txt",jobs.Select(j=>$"{j.BuildingId}: {j.Phase}, resource={j.Target?.Id}, loaded={j.Loaded}, pos={j.CartPosition.X},{j.CartPosition.Z}"));
-      Check(staffed.Length>0 && staffed.All(j=>(j.Phase==WoodcuttingPhase.AtStockpile || j.Phase==WoodcuttingPhase.WaitingForStockpile) && j.Loaded && j.CarryingPlanks),"Some staffed saw pits did not return loaded");
+      Check(staffed.Length>0 && staffed.All(j=>(j.Phase==WoodcuttingPhase.AtStockpile || j.Phase==WoodcuttingPhase.WaitingForStockpile) && (withStorage && j.Phase==WoodcuttingPhase.AtStockpile?!j.Loaded && !j.CarryingPlanks:j.Loaded && j.CarryingPlanks)),"Some staffed saw pits did not return loaded");
+      if(withStorage)
+      {
+        Check(inventory.Amount(1,Goods.Wood)==32 && inventory.Amount(11,Goods.Wood)==64 && inventory.Amount(3,Goods.Wood)==0,"Chapter 8 estate plank totals are wrong");
+        Check(staffed.Count(j=>j.DeliveredPlanks==16)==6,"Delivery receipts are not exactly 16 per worker");
+        storedView.Synchronize();Check(storedView.OccupiedPallets==3,"Delivered wood did not fill three native pallets");
+        File.WriteAllText(Output+"/storage.txt","estate 1: 32 wood; estate 11: 64 wood; estate 3: 0 wood; 3 occupied pallets; 6 unloaded carts");
+        var stock=map.BuildingPlacements.First(b=>b.Type=="StockPile" && S2MCampfireLayout.EstateAtBuilding(map,b)==11);
+        foreach(var presence in root.GetComponentsInChildren<S2MBuildingPresence>())if(presence.BuildingId==stock.Id)
+        {
+          var interior=presence.GetComponentInChildren<S2MBuildingInteriorView>(true);
+          if(interior!=null)typeof(S2MBuildingInteriorView).GetMethod("SetOpen",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(interior,new object[]{true});
+          foreach(var r in presence.GetComponentsInChildren<MeshRenderer>(true))r.enabled=r.GetComponent<MeshCollider>()==null;
+        }
+        camera.transform.position=new Vector3(stock.MapX+3.5f,stock.RawY/1024+9,stock.MapZ-5);camera.transform.LookAt(new Vector3(stock.MapX+3.5f,stock.RawY/1024,stock.MapZ+2.5f));
+        typeof(S2MStockpileRenderer).GetMethod("LateUpdate",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(storedView,null);
+        camera.targetTexture=target;camera.Render();RenderTexture.active=target;image.ReadPixels(new Rect(0,0,1000,800),0,0);image.Apply();File.WriteAllBytes(Output+"/StoredWood.png",image.EncodeToPNG());RenderTexture.active=null;camera.targetTexture=null;
+      }
       Check(captured.Contains(WoodcuttingPhase.Sawing) && captured.Contains(WoodcuttingPhase.Delivering),"Missing complete visual state coverage: "+string.Join(",",captured));
       int removed=resources.All.Count(r=>r.State==FoliageState.LogPile || r.State==FoliageState.Removed);
       Check(removed==staffed.Length,"Harvested foliage more than once or began extra cycles");

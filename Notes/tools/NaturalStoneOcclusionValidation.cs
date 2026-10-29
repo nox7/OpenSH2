@@ -44,7 +44,8 @@ public static class NaturalStoneOcclusionValidation
         for(int i=0;i<source.Instances.Count;i++)
         {
           SceneryInstance p=source.Instances[i];
-          bool hidden=p.Kind==SceneryKind.NaturalStone && occupancy.IsOccupied(Mathf.FloorToInt(p.MapX),Mathf.FloorToInt(p.MapZ));
+          bool resourceRock=p.Kind==SceneryKind.NaturalStone||p.Kind==SceneryKind.IronOre||(p.Kind==SceneryKind.Rocks&&p.Family==8);
+          bool hidden=resourceRock && occupancy.IsOccupied(Mathf.FloorToInt(p.MapX),Mathf.FloorToInt(p.MapZ));
           foreach(var renderer in batch.GetChild(i).GetComponentsInChildren<MeshRenderer>())
             Check(renderer.forceRenderingOff==hidden,"Wrong stone/category coverage");
         }

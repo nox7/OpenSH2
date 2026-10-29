@@ -27,6 +27,7 @@ namespace Assets.Code
 
     public GameState State { get; set; } = GameState.NONE;
     public Simulation.SimulationClock Simulation { get; } = new();
+    public Simulation.Economy.EstateInventory Inventory { get; internal set; }
     public bool IsPaused { get => Simulation.IsPaused; set => Simulation.IsPaused = value; }
     public CacheManager cacheManager;
     public VideoManager videoManager;

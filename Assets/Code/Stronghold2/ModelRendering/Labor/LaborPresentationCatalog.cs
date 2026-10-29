@@ -11,7 +11,7 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     private readonly Dictionary<LaborRole,LaborPresentation> definitions=new();
     public IEnumerable<LaborPresentation> Definitions => definitions.Values;
     public LaborPresentationCatalog(HorseCartAssemblySettings assembly=null)
-    { Register(new WoodcutterPresentation(assembly??new HorseCartAssemblySettings())); }
+    { Register(new WoodcutterPresentation(assembly??new HorseCartAssemblySettings()));Register(new QuarryPresentation());Register(new OxHandlerPresentation());Register(new IronMinerPresentation()); }
     public void Register(LaborPresentation definition)
     {
       if(definition==null)throw new ArgumentNullException(nameof(definition));

@@ -72,6 +72,10 @@ namespace Assets.Code.Stronghold2.AssetLoading
       path = null;
       switch (kind)
       {
+        case SceneryKind.IronOre:
+          if (variant >= 12) return false;
+          path = "meshes/landscape/rock_iron_" + (variant + 1) + ".gr2";
+          return true;
         case SceneryKind.Shrubs:
           if (family >= 9 || variant != 0) return false;
           path = "meshes/landscape/shrub_" + (family + 1) + ".gr2";

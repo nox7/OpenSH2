@@ -98,6 +98,27 @@ namespace OpenSH2.Granny2MeshConverter
           var mesh = Marshal.PtrToStructure<GrannyMesh32>(Marshal.ReadIntPtr(info.Meshes, i * 4));
           report.AppendFormat("; mesh[{0}]={1}, boneBindings={2}, morphTargets={3}", i, ReadString(mesh.Name), mesh.BoneBindingCount, mesh.MorphTargetCount);
         }
+        for (int i = 0; i < info.AnimationCount; i++)
+        {
+          var clip = Marshal.PtrToStructure<AnimationHeader>(Marshal.ReadIntPtr(info.Animations, i * 4));
+          report.AppendFormat("; clip[{0}]={1}, duration={2:R}", i, ReadString(clip.Name), clip.Duration);
+        }
+        for (int i = 0; i < info.TrackGroupCount; i++)
+        {
+          // Native x86 track-group prefix: name, vector tracks, transform tracks, text tracks.
+          var group = Marshal.PtrToStructure<TrackGroupPrefix>(Marshal.ReadIntPtr(info.TrackGroups, i * 4));
+          ValidateCount(group.TextCount, "text track");
+          report.AppendFormat("; group[{0}]={1}, textTracks={2}", i, ReadString(group.Name), group.TextCount);
+          for (int t = 0; t < group.TextCount; t++)
+          {
+            IntPtr track = IntPtr.Add(group.Texts, t * 12);
+            int count = Marshal.ReadInt32(track, 4); ValidateCount(count, "text entry");
+            report.AppendFormat("; text={0}", ReadString(Marshal.ReadIntPtr(track)));
+            IntPtr entries = Marshal.ReadIntPtr(track, 8);
+            for (int e = 0; e < count; e++)
+              report.AppendFormat(" [{0:R}:{1}]", Marshal.PtrToStructure<float>(IntPtr.Add(entries, e * 8)), ReadString(Marshal.ReadIntPtr(entries, e * 8 + 4)));
+          }
+        }
         return report.ToString();
       }
       finally { freeFile(file); }
@@ -236,6 +257,15 @@ namespace OpenSH2.Granny2MeshConverter
     public void Dispose()
     {
       if (library != IntPtr.Zero) FreeLibrary(library);
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    private struct TrackGroupPrefix
+    {
+      public IntPtr Name;
+      public int VectorCount; public IntPtr Vectors;
+      public int TransformCount; public IntPtr Transforms;
+      public int TextCount; public IntPtr Texts;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]

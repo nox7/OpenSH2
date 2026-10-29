@@ -46,6 +46,7 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public const byte ForestFloorMaterialId = 0x1F;
     public const byte RockSlopeMaterialId = 0x1E;
     public const byte CliffFaceMaterialId = 0x27;
+    public const byte IronOreMaterialId = 0x23;
     // The controlled probe produced 905.3849 raw height units for the first
     // rock-producing slope. Cliff cells are selected explicitly by material 0x27;
     // deriving that selector from height incorrectly converts diagonal corner
@@ -81,6 +82,12 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
           }
         }
       }
+      // Resource selectors live in tag 19, independently of tag 27's base ground.
+      byte[] features = water.LandscapeFeatureValues;
+      if (features != null && features.Length == materialIds.Length)
+        for (int i = 0; i < materialIds.Length; i++)
+          if (features[i] == IronOreMaterialId && materialIds[i] != CliffFaceMaterialId)
+            materialIds[i] = IronOreMaterialId;
       // Cultivated ground wins over ordinary slope/forest appearance while its
       // building exists. Preserve explicit cliff topology and all source grids.
       if (surfaceOverrides != null)

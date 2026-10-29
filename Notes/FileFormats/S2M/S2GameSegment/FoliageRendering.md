@@ -14,9 +14,10 @@ use the same implementation.
 | Shrubs | 51 |
 | Decorative rocks | 638 |
 | Natural stone | 176 |
+| Iron deposit cells (generated cover) | 30 |
 | Grass sprites | 2,430 |
 | Hops, saved stage 0 | 12 |
-| Total | 4,317 |
+| Total | 4,347 |
 
 There are zero unsupported active selectors in the test map. Two Forest records
 have inactive graphical variant 255. Another 153 AppleTree and 42 Wheat actors
@@ -34,6 +35,10 @@ identified decorative/flat/iron rock groups, and all twelve natural-stone models
 Asset names/selectors are listed in the [original inventory](FoliageRenderingAudit.md).
 Later tree families without `.low.gr2` files use full-detail meshes when low detail
 is requested. No names are synthesized for nonexistent low-detail models.
+
+Iron deposits additionally use Landscape tag 19, feature 35, independently of
+serialized rock placements. Their ground texture and generated model cover are
+documented in [Iron deposits](./IronDeposits.md).
 
 ## Decoding and loading
 

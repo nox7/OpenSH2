@@ -10,7 +10,13 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
 
     public override S2Object Read(BinaryReader reader)
     {
-      for (int i = 0; i < 5; i++) reader.ReadInt32();
+      // Tag 3 is a counted header, not five fixed integers. Most maps use
+      // 12 payload bytes, but war_chapter5 stores 76 (including extra records).
+      int headerTag = reader.ReadInt32();
+      int headerLength = reader.ReadInt32();
+      if (headerTag != 3 || headerLength < 0 || headerLength > reader.BaseStream.Length - reader.BaseStream.Position)
+        throw new InvalidDataException($"Invalid HeightLayer header (tag {headerTag}, length {headerLength}).");
+      reader.BaseStream.Seek(headerLength, SeekOrigin.Current);
       ReadDataPayloadMarker(reader, isEmpty: false);
 
       int valueCount = reader.ReadInt32();

@@ -48,7 +48,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
           transforms.Add(ToUnityInstance(source, vegetation.Map, settings, i, treeModelScale, modelScales));
         }
         bool rocks = batch.Instances.Count > 0 && (batch.Instances[0].Kind == SceneryKind.Rocks
-          || batch.Instances[0].Kind == SceneryKind.NaturalStone);
+          || batch.Instances[0].Kind == SceneryKind.NaturalStone || batch.Instances[0].Kind == SceneryKind.IronOre);
         Granny2ModelRenderSettings modelSettings = rocks ? new Granny2ModelRenderSettings
         {
           UnitScale = settings.Model.UnitScale, ConvertZUpToUnityYUp = settings.Model.ConvertZUpToUnityYUp,
@@ -79,7 +79,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
           harvesting.Register(batch.Instances[i],renderedBatch.transform.GetChild(i),settings.FlipX,settings.FlipZ,modelSettings.UnitScale/settings.HorizontalCellSize);
         if (vegetation.Map != null)
           for (int i = 0; i < batch.Instances.Count; i++)
-            if (batch.Instances[i].Kind == SceneryKind.NaturalStone)
+            if (batch.Instances[i].Kind == SceneryKind.NaturalStone || batch.Instances[i].Kind == SceneryKind.IronOre
+              || (batch.Instances[i].Kind == SceneryKind.Rocks && batch.Instances[i].Family == 8))
             {
               if (stoneVisibility == null)
               {

@@ -28,6 +28,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     {
       SceneryKind.Shrubs => Vegetation,
       SceneryKind.Rocks => Rocks,
+      SceneryKind.IronOre => Rocks,
       SceneryKind.NaturalStone => NaturalStone,
       SceneryKind.AppleTree or SceneryKind.Hops or SceneryKind.Wheat => Crops,
       SceneryKind.Grass => Grass,

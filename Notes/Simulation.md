@@ -244,9 +244,11 @@ Unreachable foliage is skipped, with retries measured in simulation time.
    reachable route to a stockpile in the saw pit's exact estate. Destinations use
    walkable aisle cells. Missing or unreachable stockpiles retain cargo in
    `WaitingForStockpile` and retry in simulation time.
-9. Stop loaded in `AtStockpile`. Inventory credit and unloading are the next
-   stage. `ResumeAfterUnloading(worker)` starts another trip only after an
-   external system unloads the goods; the assigned pile is consumed first.
+9. Enter `Unloading` and deposit one `Goods.Wood` per shared `StockpileDeliverySettings.SecondsPerItem`
+   (default 0.15 game seconds) until all 16 planks are delivered. Full stores
+   retain the remaining cargo and retry other same-estate destinations.
+10. Automatically leave on the empty cart, revisiting the assigned pile until
+    exhausted, then reserving fresh foliage. Repeat hauling, sawing and delivery.
 
 `ConfigureProduction` supplies work anchors and same-estate delivery points.
 Jobs without production configuration retain the `Returned` integration hook.
@@ -298,10 +300,11 @@ can claim an abandoned pile without felling a new tree.
 claims, bushes, cancellation, dynamic retries, overlapping blockers, hard walls,
 large ticks, pause, native assets, falling/sway, removal and same-pile depletion.
 It also checks exact 18-second production, live cart speed, synchronized playback,
-and same-estate shortest-route delivery. Chapter 8 has 1,061 registered resources:
-eight workers harvest distinct targets; six deliver planks, while the two in
-estate 3 wait because their estate has no stockpile. Repeated external unloads
-consume the assigned pile top to bottom. Reports and previews are under ignored
+and same-estate shortest-route delivery. Timed incremental unloading and repeating
+cycles are exercised by `Notes/tools/IncrementalDeliveryValidation.cs`. Chapter 8 has 1,061 registered resources:
+eight workers harvest distinct targets; six repeat delivery cycles automatically,
+while the two in estate 3 wait because their estate has no stockpile. Automatic
+return trips consume assigned piles top to bottom before selecting new foliage. Reports and previews are under ignored
 `Temp/WoodcuttingValidation`.
 
 ## Game speed
@@ -315,3 +318,20 @@ Movement, recruitment, retries, production, falling, actor/equipment/building
 animations, campfires and optional day/night progression use the clock. P pause
 overrides speed. Camera, UI and menu videos remain on real time; cosmetic shader
 foliage wind retains its existing shader time.
+
+
+Estate inventory, building storage, pallet capacities and 16-plank woodcutter
+unloading are documented in [Storage.md](Storage.md).
+
+
+## Building staffing and quarry production
+
+Building-level worker counts and quarry labor are documented in [Quarry.md](Quarry.md).
+`Main.Labor.TryGetBuilding` exposes assigned/arrived/max counts and explicit
+configured/unimplemented status. Stone quarries require three fixed worker slots,
+a shared production clock, synchronized native work clips/mechanism, and a local
+48-block output buffer. Capacity stops work; removal triggers replacement recruiting.
+Output remains at the quarry until an ox handler collects it and delivers it to storage.
+Ox tether staffing, following and deliveries are documented in [OxHauling.md](OxHauling.md).
+
+Iron mine staffing, staged production and shared ox collection are documented in [IronMine.md](IronMine.md).

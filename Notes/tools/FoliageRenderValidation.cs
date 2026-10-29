@@ -35,7 +35,7 @@ public static class FoliageRenderValidation
         var before = (Granny2ModelInstance)method.Invoke(null,args);
         args[5]=scales;
         var after = (Granny2ModelInstance)method.Invoke(null,args);
-        float expected=kind==SceneryKind.Shrubs?2:kind==SceneryKind.Rocks?3:kind==SceneryKind.NaturalStone?4:
+        float expected=kind==SceneryKind.Shrubs?2:kind==SceneryKind.Rocks||kind==SceneryKind.IronOre?3:kind==SceneryKind.NaturalStone?4:
           kind==SceneryKind.Grass?5:kind==SceneryKind.Forest?1:6;
         Check(after.Position==before.Position,"Model scaling moved " + kind);
         Check(after.Scale==before.Scale*expected,"Wrong category scale: " + kind);
@@ -80,9 +80,9 @@ public static class FoliageRenderValidation
         && map.Rocks.Instances.Count == 638 && map.NaturalStone.Instances.Count == 176, "Typed scenery counts");
       Check(map.PlantActors.Count == 207 && map.PlantActors.Count(p => p.Stage < 0) == 195, "Saved plant stages");
       var data = new S2MVegetationAssetLoader().Load(map, Install, Converter, Output + "/Cache");
-      Check(data.SupportedInstanceCount == 4317 && data.UnsupportedInstanceCount == 0
+      Check(data.SupportedInstanceCount == 4347 && data.UnsupportedInstanceCount == 0
         && data.InactiveInstanceCount == 197, "Active/inactive coverage");
-      Check(data.Batches.Sum(b => b.Instances.Count) == 1887, "Model placement total");
+      Check(data.Batches.Sum(b => b.Instances.Count) == 1917, "Model placement total");
       for (ushort f = 0; f < 14; f++)
         for (ushort v = 0; v < 8; v++)
           if (S2MVegetationAssetCatalog.TryGetTreeAsset(f, v, true, out string path))
@@ -147,7 +147,7 @@ public static class FoliageRenderValidation
       UnityEngine.Object.DestroyImmediate(galleryRoot);
       Check(Resources.FindObjectsOfTypeAll<Material>().All(m => m.name != "S2M Grass Atlas"),"Generated grass material leaked");
       CropChecks(galleryMap,camera);
-      File.WriteAllText(Output + "/validation.txt", "PASS: 4317 active placements, 197 inactive states, zero unsupported; 1887 model instances, 2430 grass cards; installed textures, shader compilation, low-detail fallbacks, malformed arrays, cleanup and URP previews.\n");
+      File.WriteAllText(Output + "/validation.txt", "PASS: 4347 active placements, 197 inactive states, zero unsupported; 1917 model instances, 2430 grass cards; installed textures, shader compilation, low-detail fallbacks, malformed arrays, cleanup and URP previews.\n");
       Debug.Log("FOLIAGE_VALIDATION_PASS");
     }
     catch (Exception e) { File.WriteAllText(Output + "/validation.txt", "FAIL: " + e); Debug.LogException(e); EditorApplication.Exit(1); }

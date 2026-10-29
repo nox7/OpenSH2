@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Assets.Code.Stronghold2.ModelRendering
 {
-  /// <summary>Reversible, cell-indexed render suppression. Source placements remain unchanged.</summary>
+  /// <summary>Reversible natural-stone/iron-rock suppression. Source placements remain unchanged.</summary>
   [ExecuteAlways]
   internal sealed class S2MNaturalStoneVisibility : MonoBehaviour
   {

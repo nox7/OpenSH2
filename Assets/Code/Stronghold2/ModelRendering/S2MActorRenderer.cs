@@ -140,7 +140,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
             Livery = new Vector4[count], VisibleLivery = new Vector4[count],
             Visible = new bool[count], AnimationPath = batch.Asset.AnimationPath, Variant = batch.Asset.Variant, HoldPose = batch.Asset.HoldPose,
             PartTransform = Matrix4x4.TRS(batch.Asset.LocalOffset, Quaternion.Euler(batch.Asset.LocalEulerAngles), Vector3.one),
-            SpinAxis = batch.Asset.SpinAxis, SpinPivot = spinPivot,
+            SpinAxis = batch.Asset.SpinAxis, SpinPivot = spinPivot, AssetScale = batch.Asset.Scale,
             Meshes = sharedMeshes, Materials = sharedMaterials, Properties = new MaterialPropertyBlock() };
           for (int j = 0; j < count; j++)
           {
@@ -171,7 +171,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         var draw=piece.batch;var part=draw.PartTransform;
         if(draw.SpinAxis.sqrMagnitude>0 && motionDegrees!=0)
           part*=Matrix4x4.TRS(draw.SpinPivot,Quaternion.AngleAxis(motionDegrees,draw.SpinAxis),Vector3.one)*Matrix4x4.Translate(-draw.SpinPivot);
-        draw.Local[piece.index] = Matrix4x4.TRS(position, rotation, scale) * part;
+        draw.Local[piece.index] = Matrix4x4.TRS(position, rotation, scale * draw.AssetScale) * part;
       }
       return true;
     }
@@ -275,6 +275,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       public Matrix4x4[] Local, World;
       public Matrix4x4 PartTransform;
       public Vector3 SpinAxis, SpinPivot;
+      public float AssetScale;
       public Vector4[] Playback;
       public Vector4[] VisiblePlayback;
       public Vector4[] Livery, VisibleLivery;

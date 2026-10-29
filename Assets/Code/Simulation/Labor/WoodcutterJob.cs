@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Assets.Code.Simulation.Navigation;
+using Assets.Code.Simulation.Economy;
 
 namespace Assets.Code.Simulation.Labor
 {
-  public enum WoodcuttingPhase { WaitingForResource,DrivingOut,WalkingToTree,Felling,Falling,Chopping,WalkingToCart,Returning,Returned,Sawing,WaitingForStockpile,Delivering,AtStockpile }
+  public enum WoodcuttingPhase { WaitingForResource,DrivingOut,WalkingToTree,Felling,Falling,Chopping,WalkingToCart,Returning,Returned,Sawing,WaitingForStockpile,Delivering,AtStockpile,Unloading }
   public sealed class WoodcutterJob : LaborJob
   {
     public override LaborRole Role => LaborRole.Woodcutter;
@@ -15,7 +16,10 @@ namespace Assets.Code.Simulation.Labor
     public float PhaseTime { get; private set; }
     public int Revision { get; private set; }
     public bool Loaded { get; private set; }
-    public bool CarryingPlanks { get; private set; }
+    public int RemainingPlanks { get; private set; }
+    public bool CarryingPlanks => RemainingPlanks>0;
+    public long CompletedDeliveries { get; private set; }
+    private double unloadProgress;
     public int SawLogActorId => CartActorId ^ (1<<30);
     public MapPoint BuildingPosition { get; private set; }
     public MapPoint SawPosition { get; private set; }
@@ -28,7 +32,7 @@ namespace Assets.Code.Simulation.Labor
     public bool CarryingLog { get; private set; }
     public bool WaitingForPath { get; private set; }
     public bool IsCartMoving => !WaitingForPath && (Phase==WoodcuttingPhase.DrivingOut || Phase==WoodcuttingPhase.Returning || Phase==WoodcuttingPhase.Delivering);
-    public bool WorkerOnCart => Phase==WoodcuttingPhase.WaitingForResource || Phase==WoodcuttingPhase.DrivingOut || Phase==WoodcuttingPhase.Returning || Phase==WoodcuttingPhase.Returned || Phase==WoodcuttingPhase.WaitingForStockpile || Phase==WoodcuttingPhase.Delivering || Phase==WoodcuttingPhase.AtStockpile;
+    public bool WorkerOnCart => Phase==WoodcuttingPhase.WaitingForResource || Phase==WoodcuttingPhase.DrivingOut || Phase==WoodcuttingPhase.Returning || Phase==WoodcuttingPhase.Returned || Phase==WoodcuttingPhase.WaitingForStockpile || Phase==WoodcuttingPhase.Delivering || Phase==WoodcuttingPhase.AtStockpile || Phase==WoodcuttingPhase.Unloading;
     public float CartAnimationTime { get; private set; }
     public float WheelDegrees { get; private set; }
     public bool HarvestEnabled => resources!=null;
@@ -37,6 +41,10 @@ namespace Assets.Code.Simulation.Labor
     public WoodcuttingRoute Route => route;
     public float FellClipSeconds { get; private set; }=2;
     public float ChopClipSeconds { get; private set; }=2;
+    public const int PlanksPerDelivery=16;
+    public long DeliveredPlanks { get; private set; }
+    private EstateInventory inventory;
+    public void ConfigureStorage(EstateInventory inventory) => this.inventory=inventory??throw new ArgumentNullException(nameof(inventory));
     private FoliageResources resources;
     private WoodcuttingSettings settings;
     private WoodcuttingRoute route;
@@ -59,7 +67,7 @@ namespace Assets.Code.Simulation.Labor
       if(resources==null || Phase==WoodcuttingPhase.Returned || Phase==WoodcuttingPhase.AtStockpile)return;
       float remaining=seconds;
       // Every movement/timer consumes exactly its portion, including terminal steps in large simulation ticks.
-      for(int transition=0;transition<32;transition++)
+      while(true)
       {
         switch(Phase)
         {
@@ -101,7 +109,7 @@ namespace Assets.Code.Simulation.Labor
             Loaded=false;worker.Movement.Place(SawPosition,SawHeading);Change(WoodcuttingPhase.Sawing);break;
           case WoodcuttingPhase.Sawing:
             if(!Wait(settings.SawingSeconds,ref remaining))return;
-            Loaded=true;CarryingPlanks=true;worker.Movement.Place(CartPosition,CartHeading);
+            Loaded=true;RemainingPlanks=PlanksPerDelivery;worker.Movement.Place(CartPosition,CartHeading);
             Change(WoodcuttingPhase.WaitingForStockpile);break;
           case WoodcuttingPhase.WaitingForStockpile:
             if(retry>0) {float step=Math.Min(retry,remaining);retry-=step;remaining-=step;if(retry>0 || remaining<=0)return;}
@@ -109,7 +117,29 @@ namespace Assets.Code.Simulation.Labor
             break;
           case WoodcuttingPhase.Delivering:
             if(!Travel(worker,resources.Carts,ref remaining,true))return;
-            Change(WoodcuttingPhase.AtStockpile);return;
+            if(inventory==null){Change(WoodcuttingPhase.AtStockpile);return;}
+            Change(WoodcuttingPhase.Unloading);break;
+          case WoodcuttingPhase.Unloading:
+            // Each plank is its own transaction. Full stores may accept part of a cart;
+            // competition cannot overfill a pallet or consume undelivered cargo.
+            if(!StockpileId.HasValue || !inventory.CanDeposit(StockpileId.Value,EstateId,Goods.Wood,1))
+            {StockpileId=null;Change(WoodcuttingPhase.WaitingForStockpile);break;}
+            double interval=inventory.DeliverySettings.IntervalSeconds;
+            if(!(interval>0) || double.IsInfinity(interval))throw new InvalidOperationException("Plank unload interval must be finite and positive.");
+            float unloadStep=(float)Math.Min(remaining,Math.Max(0,interval-unloadProgress));
+            remaining-=unloadStep;PhaseTime+=unloadStep;unloadProgress+=unloadStep;
+            if(unloadProgress+interval*1e-6<interval)return;
+            if(!inventory.TryDeposit(StockpileId.Value,EstateId,Goods.Wood,1))
+            {StockpileId=null;Change(WoodcuttingPhase.WaitingForStockpile);break;}
+            unloadProgress=0;RemainingPlanks--;DeliveredPlanks++;
+            if(RemainingPlanks==0)
+            {
+              Loaded=false;CompletedDeliveries++;StockpileId=null;
+              // Start at the stockpile; the resource registry keeps the original pile assigned
+              // until empty, then chooses new foliage and still routes the log home for sawing.
+              Change(WoodcuttingPhase.WaitingForResource);
+            }
+            break;
           default:return;
         }
         if(remaining<=0)return;
@@ -122,6 +152,7 @@ namespace Assets.Code.Simulation.Labor
       IReadOnlyList<MapPoint> best=null;float bestDistance=float.PositiveInfinity;int id=0;var visited=new HashSet<(float,float)>();
       foreach(var destination in stockpiles)
       {
+        if(inventory!=null && !inventory.CanDeposit(destination.BuildingId,EstateId,Goods.Wood,1))continue;
         if(MapPoint.Distance(CartPosition,destination.Position)-2>=bestDistance)continue;
         if(!resources.Carts.TryNearest(destination.Position,2,out var point)
           || !visited.Add((point.X,point.Z))
@@ -176,7 +207,7 @@ namespace Assets.Code.Simulation.Labor
     }
     private bool Wait(float duration,ref float remaining)
     { float step=Math.Min(remaining,Math.Max(0,duration-PhaseTime));PhaseTime+=step;remaining-=step;return PhaseTime>=duration; }
-    private void Change(WoodcuttingPhase phase) {Phase=phase;PhaseTime=0;CartAnimationTime=0;Revision++;WaitingForPath=false;retry=0;}
+    private void Change(WoodcuttingPhase phase) {Phase=phase;PhaseTime=0;CartAnimationTime=0;unloadProgress=0;Revision++;WaitingForPath=false;retry=0;}
     /// <summary>Explicitly abandon this harvest and return safely, preserving any remaining ground logs.</summary>
     public void CancelHarvest(WorkerComponent worker)
     {
@@ -187,16 +218,17 @@ namespace Assets.Code.Simulation.Labor
       {worker.Movement.Place(CartPosition,CartHeading);resources.Carts.TryFindPath(CartPosition,route.Home,out var path);Begin(worker,WoodcuttingPhase.Returning,resources.Carts,path,route.Home);}
       else BeginReturnWalk(worker);
     }
-    /// <summary>Called by the next delivery stage only after the carried goods have actually been unloaded.</summary>
+    /// <summary>Legacy integration hook; storage-backed jobs restart automatically after timed unloading.</summary>
     public bool ResumeAfterUnloading(WorkerComponent worker)
     {
+      if(inventory!=null && RemainingPlanks>0)return false;
       if(worker.Job!=this || (Phase!=WoodcuttingPhase.Returned && Phase!=WoodcuttingPhase.AtStockpile && Phase!=WoodcuttingPhase.WaitingForStockpile) || cancelled)return false;
-      Loaded=false;CarryingPlanks=false;CarryingLog=false;Change(WoodcuttingPhase.WaitingForResource);return true;
+      Loaded=false;RemainingPlanks=0;CarryingLog=false;Change(WoodcuttingPhase.WaitingForResource);return true;
     }
     protected override void OnWorkerRemoved(WorkerComponent worker)
     {
       resources?.ReleaseWorker(worker.ActorId);
-      route=null;Loaded=false;CarryingPlanks=false;StockpileId=null;CarryingLog=false;cancelled=false;CartPosition=WorkPosition;CartHeading=WorkHeading;
+      route=null;Loaded=false;RemainingPlanks=0;StockpileId=null;CarryingLog=false;cancelled=false;CartPosition=WorkPosition;CartHeading=WorkHeading;
       Change(WoodcuttingPhase.WaitingForResource);
     }
     private static float Heading(MapPoint from,MapPoint to)=>(float)(Math.Atan2(to.X-from.X,to.Z-from.Z)*180/Math.PI);
