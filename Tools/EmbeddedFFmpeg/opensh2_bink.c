@@ -6,6 +6,8 @@
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
+#include <libavutil/audio_fifo.h>
 
 #define API __declspec(dllexport)
 typedef struct {
@@ -49,13 +51,7 @@ API Bink *osh2_bink_open(const char *path, int *width, int *height, double *fram
     if (result < 0) goto fail;
     b->stream = result;
     AVStream *stream = b->format->streams[b->stream];
-    /* This prototype intentionally supports silent Bink 1 assets only. */
     if (stream->codecpar->codec_id != AV_CODEC_ID_BINKVIDEO) { result = AVERROR(ENOSYS); goto fail; }
-    for (unsigned i = 0; i < b->format->nb_streams; ++i)
-        if (b->format->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            if (error && capacity > 0) snprintf(error, capacity, "Audio is outside the silent-menu Bink prototype.");
-            osh2_bink_close(b); return NULL;
-        }
     b->codec = avcodec_alloc_context3(decoder);
     if (!b->codec) { result = AVERROR(ENOMEM); goto fail; }
     result = avcodec_parameters_to_context(b->codec, stream->codecpar);
@@ -134,4 +130,121 @@ API int osh2_bink_rewind(Bink *b, char *error, int capacity) {
     b->draining = 0;
     b->frame_index = 0;
     return 0;
+}
+
+/* Audio uses an independent demuxer/worker so bounded video buffering cannot starve
+   the audio callback. The ABI produces interleaved stereo float PCM at 48000 Hz. */
+typedef struct {
+    AVFormatContext *format;
+    AVCodecContext *codec;
+    AVPacket *packet;
+    AVFrame *frame;
+    SwrContext *resampler;
+    AVAudioFifo *fifo;
+    uint8_t *converted;
+    unsigned converted_capacity;
+    int stream, draining, ended;
+} BinkAudio;
+
+API void osh2_bink_audio_close(BinkAudio *a) {
+    if (!a) return;
+    av_free(a->converted);
+    av_audio_fifo_free(a->fifo);
+    swr_free(&a->resampler);
+    av_frame_free(&a->frame);
+    av_packet_free(&a->packet);
+    avcodec_free_context(&a->codec);
+    avformat_close_input(&a->format);
+    free(a);
+}
+
+/* NULL plus empty error means the asset has no audio stream; otherwise NULL is an error. */
+API BinkAudio *osh2_bink_audio_open(const char *path, char *error, int capacity) {
+    if (error && capacity > 0) error[0] = 0;
+    BinkAudio *a = calloc(1, sizeof(BinkAudio));
+    if (!a) { error_text(AVERROR(ENOMEM), error, capacity); return NULL; }
+    int result = avformat_open_input(&a->format, path, NULL, NULL);
+    if (result < 0) goto fail;
+    result = avformat_find_stream_info(a->format, NULL);
+    if (result < 0) goto fail;
+    const AVCodec *decoder = NULL;
+    result = av_find_best_stream(a->format, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
+    if (result == AVERROR_STREAM_NOT_FOUND) { osh2_bink_audio_close(a); return NULL; }
+    if (result < 0) goto fail;
+    a->stream = result;
+    AVCodecParameters *parameters = a->format->streams[a->stream]->codecpar;
+    if (parameters->codec_id != AV_CODEC_ID_BINKAUDIO_DCT && parameters->codec_id != AV_CODEC_ID_BINKAUDIO_RDFT)
+    { result = AVERROR(ENOSYS); goto fail; }
+    a->codec = avcodec_alloc_context3(decoder);
+    if (!a->codec) { result = AVERROR(ENOMEM); goto fail; }
+    result = avcodec_parameters_to_context(a->codec, parameters);
+    if (result < 0) goto fail;
+    result = avcodec_open2(a->codec, decoder, NULL);
+    if (result < 0) goto fail;
+    AVChannelLayout stereo = AV_CHANNEL_LAYOUT_STEREO;
+    result = swr_alloc_set_opts2(&a->resampler, &stereo, AV_SAMPLE_FMT_FLT, 48000,
+        &a->codec->ch_layout, a->codec->sample_fmt, a->codec->sample_rate, 0, NULL);
+    if (result < 0) goto fail;
+    result = swr_init(a->resampler);
+    if (result < 0) goto fail;
+    a->packet = av_packet_alloc(); a->frame = av_frame_alloc();
+    a->fifo = av_audio_fifo_alloc(AV_SAMPLE_FMT_FLT, 2, 8192);
+    if (!a->packet || !a->frame || !a->fifo) { result = AVERROR(ENOMEM); goto fail; }
+    return a;
+fail:
+    error_text(result, error, capacity);
+    osh2_bink_audio_close(a);
+    return NULL;
+}
+
+static int audio_frame(BinkAudio *a) {
+    for (;;) {
+        int result = avcodec_receive_frame(a->codec, a->frame);
+        if (result == 0) return 1;
+        if (result == AVERROR_EOF) return 0;
+        if (result != AVERROR(EAGAIN)) return result;
+        if (a->draining) return AVERROR_INVALIDDATA;
+        do {
+            av_packet_unref(a->packet);
+            result = av_read_frame(a->format, a->packet);
+        } while (result >= 0 && a->packet->stream_index != a->stream);
+        if (result < 0 && result != AVERROR_EOF) return result;
+        a->draining = result == AVERROR_EOF;
+        result = avcodec_send_packet(a->codec, a->draining ? NULL : a->packet);
+        av_packet_unref(a->packet);
+        if (result < 0) return result;
+    }
+}
+
+/* Capacity and return value are stereo sample FRAMES, not individual floats. */
+API int osh2_bink_audio_read(BinkAudio *a, float *pcm, int capacity, char *error, int error_capacity) {
+    if (!a || !pcm || capacity <= 0) return error_text(AVERROR(EINVAL), error, error_capacity);
+    while (av_audio_fifo_size(a->fifo) == 0 && !a->ended) {
+        int result = audio_frame(a);
+        if (result < 0) return error_text(result, error, error_capacity);
+        int input_count = result == 1 ? a->frame->nb_samples : 0;
+        int output_count = swr_get_out_samples(a->resampler, input_count);
+        if (output_count < 0 || output_count > 480000) return error_text(AVERROR_INVALIDDATA, error, error_capacity);
+        if (output_count < 2048) output_count = 2048;
+        av_fast_malloc(&a->converted, &a->converted_capacity, (size_t)output_count * 2 * sizeof(float));
+        if (!a->converted) return error_text(AVERROR(ENOMEM), error, error_capacity);
+        uint8_t *outputs[1] = {a->converted};
+        int count = swr_convert(a->resampler, outputs, output_count,
+            result == 1 ? (const uint8_t **)a->frame->extended_data : NULL, input_count);
+        av_frame_unref(a->frame);
+        if (count < 0) return error_text(count, error, error_capacity);
+        if (count > 0) {
+            int allocation = av_audio_fifo_realloc(a->fifo, av_audio_fifo_size(a->fifo) + count);
+            if (allocation < 0) return error_text(allocation, error, error_capacity);
+            if (av_audio_fifo_write(a->fifo, (void **)outputs, count) != count)
+                return error_text(AVERROR_INVALIDDATA, error, error_capacity);
+        }
+        if (result == 0 && count == 0) a->ended = 1;
+    }
+    int count = av_audio_fifo_size(a->fifo);
+    if (count > capacity) count = capacity;
+    if (count == 0) return 0;
+    void *outputs[1] = {pcm};
+    int result = av_audio_fifo_read(a->fifo, outputs, count);
+    return result < 0 ? error_text(result, error, error_capacity) : result;
 }

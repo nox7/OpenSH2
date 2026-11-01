@@ -10,7 +10,10 @@ import subprocess
 repo = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser()
 parser.add_argument('--game', type=Path, default=Path('C:/Steam/steamapps/common/Stronghold 2'))
+parser.add_argument('--ffmpeg', type=Path, help='Independent test oracle; defaults to the pinned SDK executable in Temp.')
 args = parser.parse_args()
+ffmpeg = args.ffmpeg or next((repo/'Temp/EmbeddedFFmpeg/pinned-sdk').glob('*/bin/ffmpeg.exe'), None)
+if ffmpeg is None: raise SystemExit('Run Tools/EmbeddedFFmpeg/Setup.ps1 first, or pass --ffmpeg.')
 runtime = repo / 'Assets/Plugins/x86_64/EmbeddedFFmpeg'
 search = os.add_dll_directory(str(runtime))
 lib = C.CDLL(str(runtime / 'OpenSH2.Bink.dll'))
@@ -23,8 +26,9 @@ lib.osh2_bink_rewind.restype = C.c_int
 lib.osh2_bink_close.argtypes = [C.c_void_p]
 error = C.create_string_buffer(1024)
 report = {}
-for name,dimensions,count in [('background.bik',(736,768),241),('curtain_animation.bik',(381,768),136),('curtain_idle.bik',(381,768),96)]:
-    path = args.game / 'ui/frontend' / name
+for relative,dimensions,count in [('ui/frontend/background.bik',(736,768),241),('ui/frontend/curtain_animation.bik',(381,768),136),('ui/frontend/curtain_idle.bik',(381,768),96),('terrain/river/sea.bik',(256,256),125),('terrain/river/river_full_.bik',(256,256),84),('terrain/river/moat.bik',(256,256),125)]:
+    path = args.game / relative
+    name = path.name
     w,h,step = C.c_int(),C.c_int(),C.c_double()
     handle = lib.osh2_bink_open(str(path).encode(),C.byref(w),C.byref(h),C.byref(step),error,len(error))
     assert handle, error.value
@@ -44,15 +48,13 @@ for name,dimensions,count in [('background.bik',(736,768),241),('curtain_animati
                 data = bytes(pixels)
                 if not hashes:
                     alpha_first = data[3::4]
-                    # Exact alpha comparison against independent CLI alpha extraction, including row orientation.
+                    # Independent RGBA conversion supplies alpha even for opaque sources.
+                    oracle = subprocess.run([str(ffmpeg),'-v','error','-i',str(path),
+                        '-vf','format=rgba,vflip','-frames:v','1','-pix_fmt','rgba','-f','rawvideo','pipe:1'],
+                        check=True,stdout=subprocess.PIPE).stdout
+                    assert alpha_first == oracle[3::4], 'Source alpha plane or row orientation was changed.'
                     if name.startswith('curtain'):
-                        oracle = subprocess.run([str(repo/'Assets/External/ffmpeg-windows/bin/ffmpeg.exe'),
-                            '-v','error','-i',str(path),'-vf','alphaextract,vflip','-frames:v','1',
-                            '-pix_fmt','gray','-f','rawvideo','pipe:1'],check=True,stdout=subprocess.PIPE).stdout
-                        assert alpha_first == oracle, 'Source alpha plane or row orientation was changed.'
                         assert min(alpha_first)==0 and max(alpha_first)==255
-                    else:
-                        assert min(alpha_first)==255
                 hashes.append(hashlib.sha256(data).hexdigest())
             passes.append(hashes)
             assert hashes, 'No frames decoded'

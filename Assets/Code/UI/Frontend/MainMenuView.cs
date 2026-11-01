@@ -10,22 +10,18 @@ namespace Assets.Code.UI.Frontend
   /// <summary>Binds original game artwork and video playback to the menu's declarative layout.</summary>
   internal sealed class MainMenuView : IDisposable
   {
-    private readonly Transform host;
     private readonly VisualElement root;
     private readonly VisualElement frame;
     private readonly RuntimeUiAssets assets = new();
-    private readonly bool useEmbeddedBink;
     private IVideoSurface background;
     private IVideoSurface opening;
     private IVideoSurface idle;
     private bool shown;
     private bool idleRequested;
 
-    public MainMenuView(Transform host, VisualElement root, bool useEmbeddedBink = false)
+    public MainMenuView(VisualElement root)
     {
-      this.host = host;
       this.root = root;
-      this.useEmbeddedBink = useEmbeddedBink;
       frame = root.Q("menu-frame");
       root.RegisterCallback<GeometryChangedEvent>(Resize);
     }
@@ -54,9 +50,7 @@ namespace Assets.Code.UI.Frontend
     private IVideoSurface Video(string element, string path, bool loop, bool autoplay = true)
     {
       var image = root.Q<Image>(element);
-      return useEmbeddedBink
-        ? new BinkVideoSurface(image, path, loop, autoplay)
-        : new VideoSurface(host, image, VideoFilePaths.GetCachedVideoPath(path), loop, autoplay);
+      return new BinkVideoSurface(image, path, loop, autoplay);
     }
 
     private void SetBackground(VisualElement element, string path)

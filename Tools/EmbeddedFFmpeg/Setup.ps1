@@ -29,7 +29,7 @@ $build = Join-Path $work 'build.cmd'
 @echo off
 call "$devcmd" -arch=x64 -host_arch=x64
 if errorlevel 1 exit /b 1
-cl /nologo /O2 /MD /LD /std:c11 /W4 /I"$SdkDirectory/include" "$source" /Fo"$object" /link /OUT:"$nativeOutput" /IMPLIB:"$work/OpenSH2.Bink.lib" /LIBPATH:"$SdkDirectory/lib" avformat.lib avcodec.lib avutil.lib swscale.lib
+cl /nologo /O2 /MD /LD /std:c11 /W4 /I"$SdkDirectory/include" "$source" /Fo"$object" /link /OUT:"$nativeOutput" /IMPLIB:"$work/OpenSH2.Bink.lib" /LIBPATH:"$SdkDirectory/lib" avformat.lib avcodec.lib avutil.lib swscale.lib swresample.lib
 "@ | Set-Content -LiteralPath $build -Encoding ascii
 & $env:ComSpec /c $build
 if ($LASTEXITCODE -ne 0) { throw 'Native Bink bridge build failed.' }
@@ -84,4 +84,4 @@ PluginImporter:
   assetBundleVariant: 
 "@ | Set-Content -LiteralPath $meta -Encoding ascii
 }
-Write-Output "Embedded FFmpeg prototype ready: $output"
+Write-Output "Embedded FFmpeg runtime ready: $output"

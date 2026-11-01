@@ -18,5 +18,13 @@ namespace Assets.Code.Video.EmbeddedFFmpeg
     internal static extern int osh2_bink_rewind(IntPtr decoder, StringBuilder error, int errorCapacity);
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void osh2_bink_close(IntPtr decoder);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr osh2_bink_audio_open([MarshalAs(UnmanagedType.LPUTF8Str)] string path,
+      StringBuilder error, int errorCapacity);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int osh2_bink_audio_read(IntPtr decoder, [Out] float[] pcm, int frameCapacity,
+      StringBuilder error, int errorCapacity);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void osh2_bink_audio_close(IntPtr decoder);
   }
 }

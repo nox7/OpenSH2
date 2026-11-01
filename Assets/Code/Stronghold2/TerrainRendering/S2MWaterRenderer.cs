@@ -1,13 +1,11 @@
 using Assets.Code.Stronghold2.ModelRendering;
 using Assets.Code.Stronghold2.S2MReader.Enums;
 using Assets.Code.Stronghold2.S2MReader.Resources;
-using Assets.Code.Video;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Video;
 
 namespace Assets.Code.Stronghold2.TerrainRendering
 {
@@ -256,21 +254,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         || string.IsNullOrWhiteSpace(gameInstallPath) || string.IsNullOrWhiteSpace(relativePath)) return;
       bindings.Add(new S2MWaterVideoBinding(
         material,
-        GetCachedWaterVideoPath(gameInstallPath, relativePath),
+        ResolveGameAssetPath(gameInstallPath, relativePath),
         playbackSpeed));
-    }
-
-    private static string GetCachedWaterVideoPath(string gameInstallPath, string relativePath)
-    {
-      string sourcePath = ResolveGameAssetPath(gameInstallPath, relativePath);
-      string cachePath = VideoFilePaths.GetCachedVideoPath(sourcePath);
-      if (File.Exists(cachePath)) return cachePath;
-
-      Directory.CreateDirectory(Path.GetDirectoryName(cachePath));
-      Converter.Convert(sourcePath, cachePath, Converter.OutputFormatMp4);
-      if (!File.Exists(cachePath))
-        throw new InvalidOperationException($"Failed to cache Stronghold 2 water video: {relativePath}");
-      return cachePath;
     }
 
     private static Texture2D LoadGameTexture(string gameInstallPath, string relativePath, List<Texture2D> generatedTextures)
@@ -335,67 +320,6 @@ namespace Assets.Code.Stronghold2.TerrainRendering
         throw new InvalidDataException("The selected moat corner-height plane is unavailable.");
       if (map.WaterLayer.Width != map.HeightLayer.Width || map.WaterLayer.Height != map.HeightLayer.Height)
         throw new InvalidDataException("Landscape and HeightLayer dimensions do not match.");
-    }
-  }
-
-  internal readonly struct S2MWaterVideoBinding
-  {
-    public S2MWaterVideoBinding(Material material, string cachedVideoPath, float playbackSpeed)
-    {
-      Material = material ?? throw new ArgumentNullException(nameof(material));
-      CachedVideoPath = cachedVideoPath ?? throw new ArgumentNullException(nameof(cachedVideoPath));
-      PlaybackSpeed = playbackSpeed;
-    }
-
-    public Material Material { get; }
-    public string CachedVideoPath { get; }
-    public float PlaybackSpeed { get; }
-  }
-
-  /// <summary>Loops cached Bink-derived MP4 water videos and assigns their current frame to water materials.</summary>
-  internal sealed class S2MWaterVideoPlayer : MonoBehaviour
-  {
-    private readonly List<VideoPlayer> players = new();
-
-    public void Initialize(IReadOnlyList<S2MWaterVideoBinding> bindings)
-    {
-      if (bindings == null) throw new ArgumentNullException(nameof(bindings));
-      foreach (S2MWaterVideoBinding binding in bindings)
-      {
-        if (!File.Exists(binding.CachedVideoPath))
-          throw new FileNotFoundException("Cached Stronghold 2 water video was not found.", binding.CachedVideoPath);
-
-        VideoPlayer player = gameObject.AddComponent<VideoPlayer>();
-        player.playOnAwake = false;
-        player.isLooping = true;
-        player.waitForFirstFrame = true;
-        player.skipOnDrop = false;
-        // Decode continuously without external-time seeking. Game-time updates avoid
-        // unscaled wall-clock catch-up after a loading stall.
-        player.playbackSpeed = binding.PlaybackSpeed;
-        player.timeReference = VideoTimeReference.Freerun;
-        player.timeUpdateMode = VideoTimeUpdateMode.GameTime;
-        player.source = VideoSource.Url;
-        player.url = new Uri(binding.CachedVideoPath).AbsoluteUri;
-        player.renderMode = VideoRenderMode.APIOnly;
-        player.audioOutputMode = VideoAudioOutputMode.None;
-        player.prepareCompleted += source => source.Play();
-        player.frameReady += (source, _) =>
-        {
-          if (source.texture != null) binding.Material.SetTexture("_SurfaceTexture", source.texture);
-        };
-        player.sendFrameReadyEvents = true;
-        player.Prepare();
-        players.Add(player);
-      }
-    }
-
-    private void OnDestroy()
-    {
-      foreach (VideoPlayer player in players)
-      {
-        if (player != null) player.Stop();
-      }
     }
   }
 

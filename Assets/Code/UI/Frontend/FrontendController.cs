@@ -1,6 +1,6 @@
 using System.Collections;
-using System.Threading.Tasks;
 using Assets.Code.UI.Video;
+using Assets.Code.UI.Video.EmbeddedFFmpeg;
 using Assets.Code.Video;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,11 +16,11 @@ namespace Assets.Code.UI.Frontend
     private VisualElement loading;
     private VisualElement intro;
     private VisualElement menu;
-    private VideoSurface introVideo;
+    private IVideoSurface introVideo;
     private MainMenuView mainMenu;
     private bool skipRequested;
 
-    internal void Begin(Game game, bool useEmbeddedMenuBink = false)
+    internal void Begin(Game game)
     {
       this.game = game;
       panel = ScriptableObject.CreateInstance<PanelSettings>();
@@ -40,7 +40,7 @@ namespace Assets.Code.UI.Frontend
       intro = root.Q("intro-screen");
       menu = root.Q("menu-screen");
       intro.RegisterCallback<PointerDownEvent>(OnIntroPointerDown);
-      mainMenu = new MainMenuView(transform, menu, useEmbeddedMenuBink);
+      mainMenu = new MainMenuView(menu);
       StartCoroutine(Startup());
     }
 
@@ -48,19 +48,8 @@ namespace Assets.Code.UI.Frontend
     {
       game.State = GameState.LOADING_ASSETS;
       Show(loading);
-      if (game.cacheManager.assetLoadingTask == null)
-      {
-        // Capture the manager rather than accessing a destroyed MonoBehaviour from the worker.
-        var cache = game.cacheManager;
-        cache.assetLoadingTask = Task.Run(() =>
-        {
-          foreach (var status in cache.ConvertAndCacheVideoAssets())
-            Debug.Log($"Video cache: {status.AssetPath} ({(status.IsFinished ? "finished" : "converting")})");
-        });
-      }
-      while (!game.cacheManager.assetLoadingTask.IsCompleted) yield return null;
-      if (game.cacheManager.assetLoadingTask.IsFaulted)
-        Debug.LogException(game.cacheManager.assetLoadingTask.Exception);
+      // Videos stream directly from their original Bink files; no conversion or disk cache is needed.
+      yield return null;
 
       game.State = GameState.INTRO_VIDEOS;
       Show(intro);
@@ -75,8 +64,8 @@ namespace Assets.Code.UI.Frontend
     private IEnumerator PlayIntro(string originalPath)
     {
       skipRequested = false;
-      introVideo = new VideoSurface(transform, intro.Q<Image>("intro-video"),
-        VideoFilePaths.GetCachedVideoPath(originalPath), false);
+      introVideo = new BinkVideoSurface(intro.Q<Image>("intro-video"), originalPath, false,
+        audioParent: transform, withAudio: true);
       while (!introVideo.IsFinished && !skipRequested) yield return null;
       introVideo.Dispose();
       introVideo = null;

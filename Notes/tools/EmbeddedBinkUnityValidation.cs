@@ -1,4 +1,4 @@
-// Copy into an isolated Unity project's Assets/Editor, with OpenSH2 sources, plugins and intro caches.
+// Copy into an isolated Unity project's Assets/Editor, with OpenSH2 sources and plugins.
 // Run -batchmode -executeMethod EmbeddedBinkUnityValidation.Run (do not add -quit).
 using System;
 using System.IO;
@@ -18,7 +18,7 @@ public static class EmbeddedBinkUnityValidation
   static int stage, frame;
   static double started;
   static RenderTexture target;
-  static object menu, background, idle;
+  static object menu, background, idle, firstIntro;
   static MonoBehaviour controller;
   static Texture2D curtain;
   static Color32[] initialRender;
@@ -36,10 +36,8 @@ public static class EmbeddedBinkUnityValidation
     Directory.CreateDirectory(Output);
     EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
     var main = new GameObject("Main").AddComponent<Main>();
-    var serialized = new SerializedObject(main);
-    serialized.FindProperty("useEmbeddedMenuBink").boolValue = true;
-    serialized.ApplyModifiedPropertiesWithoutUndo();
     var camera = new GameObject("Camera").AddComponent<Camera>();
+    camera.gameObject.AddComponent<AudioListener>();
     camera.clearFlags = CameraClearFlags.SolidColor;
     camera.backgroundColor = Color.black;
     SessionState.SetBool(Session, true);
@@ -91,9 +89,11 @@ public static class EmbeddedBinkUnityValidation
       }
       if (stage == 0 || stage == 1)
       {
-        var player = UnityEngine.Object.FindAnyObjectByType<VideoPlayer>();
-        if (player == null || player.frame < 1) return;
-        if (stage == 1 && !player.url.Contains("Stronghold2")) return;
+        var frontend = UnityEngine.Object.FindAnyObjectByType<Assets.Code.UI.Frontend.FrontendController>();
+        var player = Field(frontend,"introVideo");
+        if (player == null || root.Q<Image>("intro-video").image == null) return;
+        if (stage == 1 && player == firstIntro) return;
+        if (stage == 0) firstIntro = player;
         Skip(root.Q("intro-screen"));
         stage++;
       }

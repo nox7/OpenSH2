@@ -14,6 +14,7 @@ public static class FrontendValidation
     static double started;
     static int stage;
     static double captured;
+    static object logo;
     static RenderTexture target;
     static int layoutIndex;
     static int layoutFrame;
@@ -33,6 +34,7 @@ public static class FrontendValidation
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         new GameObject("Main").AddComponent<Main>();
         var camera = new GameObject("Camera").AddComponent<Camera>();
+        camera.gameObject.AddComponent<AudioListener>();
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = Color.black;
         SessionState.SetBool("FrontendValidation", true);
@@ -67,13 +69,15 @@ public static class FrontendValidation
             if (stage == 0 && root.Q<Image>("intro-video")?.image != null)
             {
                 Debug.Log("VALIDATION: logo is displaying decoded video; waiting for natural completion.");
+                var controller = UnityEngine.Object.FindAnyObjectByType<Assets.Code.UI.Frontend.FrontendController>();
+                logo = controller.GetType().GetField("introVideo",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(controller);
                 stage = 1;
             }
             else if (stage == 1)
             {
-                var movie = UnityEngine.Object.FindObjectsByType<VideoPlayer>(FindObjectsSortMode.None)
-                    .FirstOrDefault(v => v.url.Contains("Stronghold2") && v.frame > 2);
-                if (movie == null) return;
+                var controller = UnityEngine.Object.FindAnyObjectByType<Assets.Code.UI.Frontend.FrontendController>();
+                var movie = controller.GetType().GetField("introVideo",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(controller);
+                if (movie == null || movie == logo || root.Q<Image>("intro-video").image == null) return;
                 var input = new Event { type = EventType.MouseDown, button = 0, mousePosition = new Vector2(100,100) };
                 using (var evt = PointerDownEvent.GetPooled(input)) root.Q("intro-screen").SendEvent(evt);
                 Debug.Log("VALIDATION: natural logo completion advanced to intro; sent left click to skip it.");
@@ -86,8 +90,7 @@ public static class FrontendValidation
                 if (root.Q<Image>("logo").image == null) throw new Exception("Original game logo missing.");
                 if (root.Q<Button>("play").enabledSelf || !root.Q<Button>("exit").enabledSelf) throw new Exception("Menu action availability incorrect.");
                 var players = UnityEngine.Object.FindObjectsByType<VideoPlayer>(FindObjectsSortMode.None);
-                if (players.Length != 2) return; // Destroy is deferred until the end of the frame.
-                if (players.Any(p => !p.isLooping)) throw new Exception("Expected looping menu videos.");
+                if (players.Length != 0) throw new Exception("Unexpected Unity VideoPlayer in embedded UI.");
                 var main = UnityEngine.Object.FindAnyObjectByType<Main>();
                 if (main.Labor != null || main.Inventory != null) throw new Exception("Test map was loaded at startup.");
 
@@ -142,7 +145,7 @@ public static class FrontendValidation
                     throw new Exception("Video players leaked after disabling frontend.");
                 if (UnityEngine.Object.FindAnyObjectByType<UIDocument>() != null)
                     throw new Exception("UIDocument leaked after disabling frontend.");
-                File.WriteAllText(Output + "/result.txt", "PASS: natural logo completion, intro click-to-skip, menu artwork, curtain handoff, two looping menu videos, no test map, 4:3/wide/portrait layouts, frontend cleanup.");
+                File.WriteAllText(Output + "/result.txt", "PASS: natural embedded logo completion, intro click-to-skip, menu artwork, curtain handoff, no test map, 4:3/wide/portrait layouts, frontend cleanup.");
                 target.Release();
                 UnityEngine.Object.DestroyImmediate(target);
                 SessionState.SetBool("FrontendValidation", false);

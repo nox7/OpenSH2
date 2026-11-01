@@ -20,7 +20,7 @@ namespace Assets.Code.Video.EmbeddedFFmpeg
     public int Loop;
   }
 
-  /// <summary>Silent Bink 1 prototype. Native decoding stays on one worker; at most four RGBA buffers exist.</summary>
+  /// <summary>Bink 1 video decoding on one worker; at most four RGBA buffers exist. Audio has its own worker.</summary>
   internal sealed class BinkFrameDecoder : IDisposable
   {
     private readonly BlockingCollection<BinkFrame> ready = new(3);

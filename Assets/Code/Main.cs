@@ -13,8 +13,6 @@ using UnityEngine.Serialization;
 [DefaultExecutionOrder(-1000)]
 public class Main : MonoBehaviour
 {
-  [Tooltip("Prototype: decode original silent menu Bink videos using embedded FFmpeg (Windows x64). Intro videos and conversion cache remain unchanged.")]
-  [SerializeField] private bool useEmbeddedMenuBink;
   [Min(0)]
   [Tooltip("Simulation seconds per real second. Applies live to movement, work timers and gameplay animations. Zero freezes simulation; camera/UI remain responsive.")]
   [SerializeField] private float gameSpeed = 1f;
@@ -112,7 +110,7 @@ public class Main : MonoBehaviour
   {
     if (GetComponent<AtmosphereController>() == null) gameObject.AddComponent<AtmosphereController>();
     if (Game.GetInstance() == null) Game.Initialize();
-    gameObject.AddComponent<FrontendController>().Begin(Game.GetInstance(), useEmbeddedMenuBink);
+    gameObject.AddComponent<FrontendController>().Begin(Game.GetInstance());
   }
 
   // Update is called once per frame

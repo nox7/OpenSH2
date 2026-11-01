@@ -116,6 +116,6 @@ InitTestScene*.unity*
 /[Aa]ssets/Cache/Audio/*
 !/[Aa]ssets/Cache/Audio/.gitkeep
 
-# Generated native FFmpeg prototype dependencies; restore with Tools/EmbeddedFFmpeg/Setup.ps1.
+# Generated native FFmpeg dependencies; restore with Tools/EmbeddedFFmpeg/Setup.ps1.
 /Assets/Plugins/x86_64/EmbeddedFFmpeg/
 /Assets/Plugins/x86_64/EmbeddedFFmpeg.meta

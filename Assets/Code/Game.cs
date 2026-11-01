@@ -1,4 +1,3 @@
-﻿using Assets.Code.Caching;
 using System;
 
 namespace Assets.Code
@@ -28,11 +27,6 @@ namespace Assets.Code
     public Simulation.Economy.EstateInventory Inventory { get; internal set; }
     public Stronghold2.MapLoading.S2MAiRuntime AI { get; internal set; }
     public bool IsPaused { get => Simulation.IsPaused; set => Simulation.IsPaused = value; }
-    public CacheManager cacheManager;
 
-    public Game()
-    {
-      cacheManager = new();
-    }
   }
 }
