@@ -76,8 +76,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
         foreach(var job in jobs)foreach(var equipment in presentations.Get(job.Role).Equipment(job))actors.HideActor(equipment.ActorId);
       }
     }
-    public IPreparedAiLabor PrepareSawpit(BuildingPlacement placement,FoliageResources resources,WoodcuttingSettings woodSettings,EstateInventory inventory)
+    public IPreparedAiLabor PrepareSawpit(BuildingPlacement placement,FoliageResources resources,WoodcuttingSettings woodSettings,EstateInventory inventory,StockpileLocator stockpiles=null)
     {
+      stockpiles??=new StockpileLocator(inventory,navigation,new Assets.Code.Stronghold2.Construction.S2MStorageAccessProvider(map,navigation));
       int id=actors.AllocateEquipmentPair();
       var job=(WoodcutterJob)new WoodcutterBuildingDefinition().Create(map,placement,navigation,id,new HashSet<int>());
       bool reachable=false;
@@ -92,10 +93,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
         if(reachable)break;
       }
       if(!reachable)throw new InvalidOperationException("Sawpit has no route from its estate's recruitment area.");
-      bool canDeliver=false;
-      foreach(var point in job.DeliveryPoints)if(navigation.CanReach(job.Approach,point.Position)){canDeliver=true;break;}
+      bool canDeliver=stockpiles.CanReachAny(job.EstateId,Goods.Wood,job.Approach);
       if(!canDeliver)throw new InvalidOperationException("Sawpit has no route to a same-estate stockpile.");
-      job.ConfigureHarvest(resources,woodSettings);job.ConfigureStorage(inventory);
+      job.ConfigureHarvest(resources,woodSettings);job.ConfigureStorage(inventory,stockpiles);
       presentations.Get(job.Role).ConfigureJob(job,presentationData);
       try
       {

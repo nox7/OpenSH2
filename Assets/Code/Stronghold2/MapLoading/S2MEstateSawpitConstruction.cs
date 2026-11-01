@@ -1,4 +1,5 @@
 using System;
+using Assets.Code.Stronghold2.Construction;
 using System.Collections.Generic;
 using Assets.Code.Simulation.AI;
 using Assets.Code.Simulation.Economy;
@@ -31,8 +32,8 @@ namespace Assets.Code.Stronghold2.MapLoading
         public long ResourceSearchSteps { get; private set; }
         private static bool Standing(FoliageResource tree)=>tree!=null && (tree.State==FoliageState.Available || tree.State==FoliageState.Reserved);
         public S2MEstateSawpitConstruction(S2MFile map,AiWorld world,EstateInventory inventory,string installation,
-            NavigationGrid navigation=null,LaborManager labor=null,StartupBuildingSettings placementSettings=null,EstateSawpitSettings settings=null,FoliageResources foliage=null)
-            :base(map,world,inventory,installation,navigation,labor,placementSettings,settings??new EstateSawpitSettings(),"SawPit")
+            NavigationGrid navigation=null,LaborManager labor=null,StartupBuildingSettings placementSettings=null,EstateSawpitSettings settings=null,FoliageResources foliage=null,S2MBuildingConstructionService construction=null)
+            :base(map,world,inventory,installation,navigation,labor,placementSettings,settings??new EstateSawpitSettings(),"SawPit",construction)
         {
             this.foliage=foliage;policy=settings??new EstateSawpitSettings();
             BuildingCompleted+=p=>world.SetPlannedLabor(p.RuntimeEstateId.Value,"SawPit",0);

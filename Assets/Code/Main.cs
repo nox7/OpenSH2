@@ -4,7 +4,8 @@ using Assets.Code.Stronghold2.MapLoading;
 using Assets.Code.Stronghold2.AssetLoading;
 using Assets.Code.Stronghold2.ModelRendering;
 using Assets.Code.Stronghold2.TerrainRendering;
-using Assets.Code.Video;
+using Assets.Code.Stronghold2.Construction;
+using Assets.Code.UI.Frontend;
 using Assets.Code.Lighting;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,6 +13,8 @@ using UnityEngine.Serialization;
 [DefaultExecutionOrder(-1000)]
 public class Main : MonoBehaviour
 {
+  [Tooltip("Prototype: decode original silent menu Bink videos using embedded FFmpeg (Windows x64). Intro videos and conversion cache remain unchanged.")]
+  [SerializeField] private bool useEmbeddedMenuBink;
   [Min(0)]
   [Tooltip("Simulation seconds per real second. Applies live to movement, work timers and gameplay animations. Zero freezes simulation; camera/UI remain responsive.")]
   [SerializeField] private float gameSpeed = 1f;
@@ -81,6 +84,8 @@ public class Main : MonoBehaviour
   [SerializeField] private S2MStockpileVisualSettings stockpileVisualSettings = new();
   [Tooltip("Recruitment timing, movement speed, entrance offsets, and campfire ring spacing in map cells. Applied when the map loads.")]
   [SerializeField] private Assets.Code.Simulation.Population.PopulationSettings populationSettings = new();
+  [Tooltip("Shared pathfinding CPU budget per rendered frame. Independent of simulation speed. Applied live.")]
+  [SerializeField] private Assets.Code.Simulation.Navigation.PathfindingSettings pathfindingSettings = new();
   [Tooltip("Horse/cart assembly offsets and saw-pit seat alignment. Reload the map to apply.")]
   [SerializeField] private HorseCartAssemblySettings horseCartSettings = new();
   [Tooltip("AI scheduling uses simulation time and bounded work budgets.")]
@@ -92,7 +97,11 @@ public class Main : MonoBehaviour
   [Tooltip("Estate housing search and one-time starting wood. Header population level sets the hovel ceiling; each hovel costs six wood.")]
   [SerializeField] private EstateHovelSettings estateHovelSettings=new();
   private S2MEstateHovelConstruction estateHousing;
-  private EstateConstructionPlanner estatePlanner;
+  private BuildingConstructionPlanner constructionPlanner;
+  [SerializeField] private KingdomStockpileSettings kingdomStockpileSettings=new();
+  private S2MKingdomStockpileConstruction kingdomStockpiles;
+  private S2MBuildingConstructionService buildingConstruction;
+  public S2MBuildingConstructionService BuildingConstruction=>buildingConstruction;
   [Tooltip("Estate sawpit placement and optional wood-profile target override. Cost: three wood; staffing: one worker.")]
   [SerializeField] private EstateSawpitSettings estateSawpitSettings=new();
   private S2MEstateSawpitConstruction estateSawpits;
@@ -103,14 +112,14 @@ public class Main : MonoBehaviour
   {
     if (GetComponent<AtmosphereController>() == null) gameObject.AddComponent<AtmosphereController>();
     if (Game.GetInstance() == null) Game.Initialize();
-    RunTests();
+    gameObject.AddComponent<FrontendController>().Begin(Game.GetInstance(), useEmbeddedMenuBink);
   }
 
   // Update is called once per frame
   void Update()
   {
     var game = Game.GetInstance();
-    if (game == null) return;
+    if (game == null || game.State != GameState.PLAYING) return;
 #if ENABLE_INPUT_SYSTEM
     if (UnityEngine.InputSystem.Keyboard.current?.pKey.wasPressedThisFrame == true) game.IsPaused = !game.IsPaused;
 #else
@@ -119,70 +128,13 @@ public class Main : MonoBehaviour
     game.Simulation.Speed = float.IsNaN(gameSpeed) || float.IsInfinity(gameSpeed) ? 1 : Mathf.Max(0,gameSpeed);
     game.Simulation.Advance(Time.unscaledDeltaTime);
     game.AI?.Scheduler.Advance(game.Simulation.DeltaTime);
-    if(game.Simulation.DeltaTime>0 && aiSettings.Enabled)estatePlanner?.CommitPending(game.Simulation.ElapsedSeconds);
-    return;
-
-    if (game.State == GameState.NONE)
-    {
-      // Immediately swap to loading assets
-      game.State = GameState.LOADING_ASSETS;
-    }
-    else if (game.State == GameState.LOADING_ASSETS)
-    {
-      if (game.cacheManager.assetLoadingTask == null)
-      {
-        Debug.Log("Loading assets");
-        game.cacheManager.assetLoadingTask = Task.Run(() =>
-        {
-          foreach (var status in game.cacheManager.ConvertAndCacheVideoAssets())
-          {
-            if (!status.IsFinished)
-            {
-              Debug.Log($"Started conversion of asset {status.AssetPath}.");
-            }
-            else
-            {
-              Debug.Log($"Finished conversion of asset {status.AssetPath}.");
-            }
-          }
-        });
-      }
-      else if (game.cacheManager.assetLoadingTask.IsCompleted)
-      {
-        game.State = GameState.INTRO_VIDEOS;
-      }
-    }
-    else if (game.State == GameState.INTRO_VIDEOS)
-    {
-      if (Input.GetMouseButtonDown(0))
-      {
-        game.videoManager.SkipCurrentIntroVideo();
-      }
-
-      if (game.videoManager.introVideosTask == null)
-      {
-        Debug.Log("Playing intro videos");
-        game.videoManager.introVideosTask = PlayIntroVideosAsync(game);
-      }
-      else if (game.videoManager.introVideosTask.IsCompleted)
-      {
-        game.State = GameState.MAIN_MENU;
-      }
-    }
-    else if (game.State == GameState.MAIN_MENU)
-    {
-      if (!game.mainMenuUI.IsShown)
-      {
-        game.mainMenuUI.Show();
-      }
-
-      game.mainMenuUI.UpdateLayout();
-    }
+    if(game.Simulation.DeltaTime>0 && aiSettings.Enabled)constructionPlanner?.CommitPending(game.Simulation.ElapsedSeconds);
   }
 
   [Tooltip("Startup keeps and estate flagpole/store placement. Applied when the map loads.")]
   [SerializeField] private StartupBuildingSettings startupBuildingSettings = new();
 
+  // Retained for future map-loading UI integration; startup no longer calls this test harness.
   private async void RunTests()
   {
     try
@@ -277,16 +229,19 @@ public class Main : MonoBehaviour
       woodcuttingSettings.UnitScale=actorRenderSettings.ModelScale*unitModelScale/terrainSettings.HorizontalCellSize;
       var harvestResources=vegetation.GetComponent<S2MFoliageHarvestView>().Initialize(navigation,woodcuttingSettings);
       navigation.PrepareConnectivity();
+      navigation.EnablePathRequests(pathfindingSettings);
+      navigation.PreparePathRequests();
       RecordStage("navigation connectivity");
       var recruitmentPlans = S2MRecruitmentPlan.Create(mapFile, navigation, populationSettings);
       var laborPlan = S2MLaborPlan.Create(mapFile,navigation,quarrySettings,oxHaulingSettings,ironMineSettings);
       var inventory=S2MStoragePlan.Create(mapFile,storageSettings,stockpileDeliverySettings);
       Game.GetInstance().Inventory=inventory;
-      laborPlan.OxHauling.ConfigureStorage(inventory);
+      var stockpiles=new Assets.Code.Simulation.Economy.StockpileLocator(inventory,navigation,new S2MStorageAccessProvider(mapFile,navigation));
+      laborPlan.OxHauling.ConfigureStorage(inventory,stockpiles);
       if(stockpileVisualSettings.Enabled)
         S2MStockpileRenderer.Create(mapFile,inventory,S2MStockpileAssets.Load(gameInstallPath,settings:stockpileVisualSettings),mapWorld.transform,terrainSettings);
       foreach(var job in laborPlan.Jobs)if(job is Assets.Code.Simulation.Labor.WoodcutterJob woodcutter)
-        {woodcutter.ConfigureHarvest(harvestResources,woodcuttingSettings);woodcutter.ConfigureStorage(inventory);}
+        {woodcutter.ConfigureHarvest(harvestResources,woodcuttingSettings);woodcutter.ConfigureStorage(inventory,stockpiles);}
       S2MActorData actorData = await new S2MActorAssetLoader().LoadAsync(mapFile, gameInstallPath,
         actorRenderSettings.Overrides, actorRenderSettings.AnimationSamplesPerSecond, placements:laborPlan.StartupActors,assembly:horseCartSettings);
       if (this == null || mapWorld == null) return;
@@ -300,31 +255,38 @@ public class Main : MonoBehaviour
         populationData, terrainSettings, actorRenderSettings, populationSettings, Game.GetInstance().Simulation, unitModelScale,laborPlan.Jobs,horseCartSettings,laborPlan.Buildings);
       Labor=populationController.Labor;
       estateConstruction?.Dispose();
-      estateHousing?.Dispose();estateSawpits?.Dispose();
-      estateSawpits=null;estateConstruction=null;estateHousing=null;estatePlanner=null;
+      estateHousing?.Dispose();estateSawpits?.Dispose();kingdomStockpiles?.Dispose();buildingConstruction?.Dispose();
+      estateSawpits=null;estateConstruction=null;estateHousing=null;constructionPlanner=null;kingdomStockpiles=null;buildingConstruction=null;
       aiRuntime?.Dispose();
       aiRuntime=S2MAiRuntime.Create(mapFile,inventory,gameInstallPath,aiSettings,Game.GetInstance().Simulation.ElapsedSeconds,Labor);
       Game.GetInstance().AI=aiRuntime;
       S2MEstateHovelConstruction.InitializeEstateResources(mapFile,aiRuntime.World,inventory,estateHovelSettings.InitialWood);
-      if(estateGranarySettings.Enabled || estateHovelSettings.Enabled || estateSawpitSettings.Enabled)
+      if(estateGranarySettings.Enabled || estateHovelSettings.Enabled || estateSawpitSettings.Enabled || kingdomStockpileSettings.Enabled)
       {
+        buildingConstruction=new S2MBuildingConstructionService(mapFile,aiRuntime.World,inventory,navigation,Labor,startupBuildingSettings);
         var presentation=new S2MAiBuildingPresentation(mapFile,gameInstallPath,mapWorld.transform,terrainSettings,buildingRenderSettings);
-        estateConstruction=new S2MEstateGranaryConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateGranarySettings);
+        estateConstruction=new S2MEstateGranaryConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateGranarySettings,construction:buildingConstruction);
         estateConstruction.PreparePresentation=presentation.BeginPreparation;
         estateConstruction.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
         estateConstruction.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} granary construction failed: {error.Message}");
-        estateHousing=new S2MEstateHovelConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateHovelSettings);
+        estateHousing=new S2MEstateHovelConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateHovelSettings,construction:buildingConstruction);
         estateHousing.PreparePresentation=presentation.BeginPreparation;
         estateHousing.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
         estateHousing.BuildingCompleted+=populationController.AuthorizeHovel;
         estateHousing.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} hovel construction failed: {error.Message}");
-        estateSawpits=new S2MEstateSawpitConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateSawpitSettings,foliage:harvestResources);
+        estateSawpits=new S2MEstateSawpitConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateSawpitSettings,foliage:harvestResources,construction:buildingConstruction);
         estateSawpits.PreparePresentation=presentation.BeginPreparation;
         estateSawpits.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
-        estateSawpits.PrepareLabor=p=>populationController.PrepareSawpit(p,harvestResources,woodcuttingSettings,inventory);
+        estateSawpits.PrepareLabor=p=>populationController.PrepareSawpit(p,harvestResources,woodcuttingSettings,inventory,stockpiles);
         estateSawpits.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} sawpit construction failed: {error.Message}");
-        estatePlanner=new EstateConstructionPlanner(estateConstruction,estateHousing,estateSawpits);
-        aiRuntime.Scheduler.SetPlanner(estatePlanner);
+        kingdomStockpiles=new S2MKingdomStockpileConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,kingdomStockpileSettings,buildingConstruction);
+        kingdomStockpiles.PreparePresentation=presentation.BeginPreparation;
+        kingdomStockpiles.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
+        kingdomStockpiles.ConstructionFailed+=(territory,error)=>Debug.LogWarning($"Kingdom {territory} stockpile construction failed: {error.Message}");
+        var estates=new BuildingConstructionPlanner(estateConstruction,estateHousing,estateSawpits);
+        var kingdoms=new GeneralKingdomPlanner(kingdomStockpiles);
+        constructionPlanner=new BuildingConstructionPlanner(estateConstruction,estateHousing,estateSawpits,kingdomStockpiles);
+        aiRuntime.Scheduler.SetPlanner(new SettlementPlanner(estates,kingdoms));
       }
       RecordStage("placed actors and animations");
       Debug.Log($"Rendered {actorData.PlacedCount}/{mapFile.Actors.Count} placed actors ({actorData.InactiveCount} inactive).");
@@ -340,16 +302,13 @@ public class Main : MonoBehaviour
     }
   }
 
-  private async Task PlayIntroVideosAsync(Game game)
-  {
-    await game.videoManager.PlayFullscreenBinkVideo(VideoFilePaths.FireflyLogo, fadeOutMs: 300);
-    await game.videoManager.PlayFullscreenBinkVideo(VideoFilePaths.Intro, fadeOutMs: 300);
-  }
   private void OnDestroy()
   {
+    kingdomStockpiles?.Dispose();
     estateSawpits?.Dispose();
     estateHousing?.Dispose();
     estateConstruction?.Dispose();
+    buildingConstruction?.Dispose();
     aiRuntime?.Dispose();
     var game=Game.GetInstance();
     if(game!=null && game.AI==aiRuntime)game.AI=null;

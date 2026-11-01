@@ -1,6 +1,4 @@
 ﻿using Assets.Code.Caching;
-using Assets.Code.UI;
-using Assets.Code.Video;
 using System;
 
 namespace Assets.Code
@@ -31,14 +29,10 @@ namespace Assets.Code
     public Stronghold2.MapLoading.S2MAiRuntime AI { get; internal set; }
     public bool IsPaused { get => Simulation.IsPaused; set => Simulation.IsPaused = value; }
     public CacheManager cacheManager;
-    public VideoManager videoManager;
-    public MainMenuUI mainMenuUI;
 
     public Game()
     {
       cacheManager = new();
-      videoManager = new();
-      mainMenuUI = new();
     }
   }
 }

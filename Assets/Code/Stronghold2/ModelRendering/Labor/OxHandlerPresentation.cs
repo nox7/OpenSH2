@@ -11,6 +11,8 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     protected override string TravelingActorType=>TravelingVariant;
     protected override string WorkingActorType=>WorkingVariant;
     public override IEnumerable<S2MActorOverride> AssetOverrides()=>S2MOxHaulingAssets.Overrides();
+    // Handlers move over terrain throughout the hauling cycle; the ox spawn height is not a worker floor.
+    public override bool UseBuildingHeight(WorkerComponent worker)=>false;
     public override bool BuildingEquipment=>true;
     public override bool KeepEquipmentOnRemoval=>false;
     public override int EquipmentCount=>1;

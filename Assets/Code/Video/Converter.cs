@@ -16,9 +16,9 @@ public class Converter
   /// <param name="inputFilePath">The file path of the input BIK video.</param>
   /// <param name="outputFilePath">The file path of the output video.</param>
   /// <param name="outputFormat">The desired output format. Supported values are "mp4" and "webm".</param>
-  public static void Convert(string inputFilePath, string outputFilePath, string outputFormat)
+  public static void Convert(string inputFilePath, string outputFilePath, string outputFormat, string ffmpegPath = null)
   {
-    string locationOfFFMPEG = Application.dataPath + "/External/ffmpeg-windows/bin/ffmpeg.exe";
+    string locationOfFFMPEG = ffmpegPath ?? Application.dataPath + "/External/ffmpeg-windows/bin/ffmpeg.exe";
     string normalizedOutputFormat = (outputFormat ?? OutputFormatMp4).Trim().ToLowerInvariant();
 
     string ffmpegArguments;

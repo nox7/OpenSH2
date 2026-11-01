@@ -223,7 +223,7 @@ checks live construction in Chapter 8 with native assets and captures a preview.
 ## Estate housing and staffing
 
 The raw Scenario field 4 combines production type with estate population level:
-0–7 = Small, 8–14 = Medium, 15–19 = Large. `AiTerritory.PopulationLevel` exposes
+0ï¿½7 = Small, 8ï¿½14 = Medium, 15ï¿½19 = Large. `AiTerritory.PopulationLevel` exposes
 the level; `MaximumHovels` is respectively 1, 2 or 3. Unknown codes do not authorize
 new housing. Existing authored hovels are preserved even above the header ceiling.
 
@@ -372,7 +372,7 @@ Medium/Large expansion thresholds are covered by the headless cases.
 
 ### Sawpit terrain and tree-centred placement
 
-Runtime sawpits now acquire the same physical **1×2-cell terrain opening** observed
+Runtime sawpits now acquire the same physical **1ï¿½2-cell terrain opening** observed
 for static sawpits. `S2MAiBuildingPresentation` opens it at activation and releases
 it on disposal/failed construction. Rotation follows the native model origin;
 the one-cell apron and larger authored worker-clearance rectangles are excluded.
@@ -417,8 +417,8 @@ Chapter 8 tree-centred sawpits through the complete production/delivery loop.
 
 The original placement path invalidated connectivity globally, then flooded the
 entire 1,048,576-cell Chapter 8 navigation grid on the next reachability query.
-An isolated Unity probe measured 141–168 ms for that work. The replacement keeps
-exact connected components inside **32×32 navigation-cell tiles** (8×8 map cells
+An isolated Unity probe measured 141ï¿½168 ms for that work. The replacement keeps
+exact connected components inside **32ï¿½32 navigation-cell tiles** (8ï¿½8 map cells
 at resolution four), joined by real traversable edges across tile boundaries.
 
 Obstacle changes mark only touched tiles and a one-cell halo. The halo is required:
@@ -485,5 +485,109 @@ p50 **0.114 ms**, p95 **1.476 ms**, p99 **2.688 ms**, maximum **5.376 ms**. The 
 navigation refresh processed 6,144 cells (including pending local foliage edits),
 rather than a million-cell flood. The standalone million-cell test measured
 p50 **0.451 ms**, p95 **0.871 ms** for small local edits, rebuilding at most four
-32×32 tiles per isolated footprint change. These are CPU construction/query
+32ï¿½32 tiles per isolated footprint change. These are CPU construction/query
 measurements on the test machine, not whole-frame or GPU performance guarantees.
+
+### General kingdom construction and shared delivery discovery
+
+Kingdoms use `GeneralKingdomPlanner`, independently of future `.aic` blueprint
+selection. Their first goal is a missing stockpile. Autonomous kingdoms with an
+actual keep and the map's `Allowed` construction policy search near the keep's
+front, matching its quarter-turn rotation. Human kingdoms are not managed.
+Stockpiles are free; no starting resources are invented for kingdoms. Existing
+stockpiles suppress the goal. Candidates use the established estate, terrain,
+occupancy, troop, slope, navigation and North/East/South/West tie rules. The default
+maximum distance from keep center is 40 cells. The central aisle must be reachable
+from the keep stairs both before and after activating the storage bays.
+
+Construction is shared infrastructure under `Stronghold2/Construction`:
+
+- `S2MBuildingDefinition` supplies native dimensions, explicit costs and storage
+  kind, with `Propose` creating a rotated logical placement.
+- `S2MBuildingPlacementService.Check` is a read-only physical placement query for
+  AI searches and future player previews/blueprint candidates. It does not spend
+  resources or grant authority.
+- `S2MBuildingConstructionService.TrySubmit` accepts an authorized intent and
+  snapshots its placement, reserves costs, stages presentation, rechecks the site
+  and intent, then publishes inventory, navigation, labor and building records.
+  It rolls back failed activation. A caller supplies its authority/goal validator
+  and preparation hooks; execution does not select a strategy or parse AIC files.
+  `Main.BuildingConstruction` exposes the loaded shared service for future UI
+  integration. Estate granaries, hovels, sawpits and kingdom stockpiles use this
+  same executor, retaining one construction stage per simulation frame.
+
+Stockpiles are **not registered with individual workers or production buildings**.
+Construction publishes the building and its inventory once. One `StockpileLocator`
+queries the estate inventory index and an `S2MStorageAccessProvider` geometry index
+of registered buildings. Ox handlers and woodcutters use the same locator to find
+an accepting, reachable, same-estate stockpile by shortest computed route. The
+lookup runs on dispatch/retry, not every frame. Workers retain their current
+selected destination and recheck capacity during each incremental deposit; if it
+fills, they retry with their remaining cargo. New stores are discovered from the
+building registry automatically. Legacy explicit destination lists are retained
+only for standalone consumers/tests that do not supply the shared locator.
+
+`S2MStockpileRenderer` observes building-list changes too, so newly constructed
+stockpiles show pallets and goods without worker-specific registration. Runtime
+stockpile navigation blocks storage bays while leaving the same single-tile
+central aisle as static stockpiles, including all four rotations.
+
+Validation: `KingdomStockpileValidation.cs` runs inside Unity (keep reservation
+uses Unity transforms), covering free stockpile construction, duplicate
+suppression, keep access, new-store discovery, nearest/full/foreign-store
+filtering, preview occupancy and rotated aisle/rollback. `KingdomNativeValidation`
+loads Chapter 8 with native building data, staged rendering and navigation and
+checks Edwin's newly placed stockpile, quarry access and incremental hauling.
+Existing estate, staged-construction and localized-navigation regressions also
+remain applicable.
+
+### Frame-budgeted path requests
+
+Live navigation now enables one `NavigationPathQueue` per map. `Main` exposes
+`PathfindingSettings`: by default 2,048 work units and 2 ms per advancing rendered
+frame, at most two active searches, and a bounded 1,024-request queue. The budget
+is shared across all workers and does not multiply with game speed or NPC count.
+`LaborManager.Advance` services it once before advancing population/work, with no
+search progress while paused. Lowering the limits trades response latency for
+frame time. Time is checked between small work quanta; allocations, runtime GC and
+JIT mean the millisecond limit is cooperative rather than a hard real-time limit.
+`LastWorkUnits`, `LastMilliseconds` and `PendingCount` support profiling.
+
+A queued `NavigationGrid.PathRequest` retains sparse search state only while
+active. A*, predecessor reconstruction and every line-of-sight smoothing sample
+consume work units, so reaching the goal does not cause a large final smoothing
+spike. Multiple stockpile aisle targets are handled by one search instead of a
+separate full A* per aisle point. An O(1) admissible octile bound to the goal
+rectangle avoids making every expansion proportional to the number of stores.
+Navigation uses the existing detailed cell/height/diagonal rules. Obstacle
+revisions restart unfinished requests; consumers reject completed results whose
+revision is stale, and revalidate inventory capacity or source claims before use.
+Requests can be cancelled, and excess queue submissions are rejected for retry.
+
+Ox source selection, handler/ox joining, delivery and affected-route recovery all
+use the queue. Woodcutters use it for harvest travel, return trips, delivery and
+replanning; foliage siting checks exact connectivity without eagerly computing
+three complete routes. Peasant seat routes, staffing routes and assigned workers'
+replanning also use this same budget. Pending staffing claims prevent several
+jobs from claiming the same idle peasant. Removal/rollback cancels pending work.
+The synchronous path API remains available for loading, explicit diagnostics and
+standalone tests whose grids do not enable the queue.
+
+Validation: `IncrementalPathValidation.cs` covers budget bounds, long detours,
+multiple targets, navigation edits, cancellation, queued requests, foreign-store
+filtering, complete 16-stone hauling, repeated woodcutting/delivery and queued
+recruitment/staffing. `IncrementalNativeValidation.cs` exercises Edwin's real
+Chapter 8 route with native navigation/rendering and reports slice timings.
+`IncrementalPopulationNativeValidation.cs` exercises six estate production loops
+with the shared queue enabled alongside staged building placement, terrain and
+GPU pool checks. Existing localized-navigation, estate AI and construction
+regressions remain in place.
+
+Search workspaces use lazily allocated 256-cell pages, stamped and pooled across
+requests, so long searches do not trigger large hash-table rehashes or global
+buffer clears. Reconstructed paths use small pages too. `PreparePathRequests`
+warms the pipeline during map loading. The final isolated Edwin run with a 1 ms
+budget used 133 active search slices: p95 **1.046 ms**, maximum **1.090 ms**, with
+no more than 2,048 work units in a frame. It still collected and deposited exactly
+16 stone. These are measured search CPU slices on this machine, not whole-frame
+or hard real-time guarantees.

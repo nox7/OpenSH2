@@ -14,6 +14,9 @@ namespace Assets.Code.Caching
   class CacheManager
   {
     public Task assetLoadingTask = null;
+    // Game creates this manager on the Unity thread. Workers must not query Application.dataPath.
+    private readonly string videoCachePath = Constants.VideoCachePath;
+    private readonly string ffmpegPath = Application.dataPath + "/External/ffmpeg-windows/bin/ffmpeg.exe";
 
     /// <summary>
     /// Runs conversion and caching on any video assets that are needed.
@@ -23,12 +26,13 @@ namespace Assets.Code.Caching
     /// <returns></returns>
     public IEnumerable<CacheManagerAssetStatus> ConvertAndCacheVideoAssets()
     {
+      System.IO.Directory.CreateDirectory(videoCachePath);
       foreach (var asset in VideoFilePaths.CachedVideoOutputFormats)
       {
         string assetFilePath = asset.Key;
         string outputFormat = asset.Value;
         string basename = System.IO.Path.GetFileNameWithoutExtension(assetFilePath);
-        string cachedVideoPath = Constants.VideoCachePath + "/" + basename + "." + outputFormat;
+        string cachedVideoPath = videoCachePath + "/" + basename + "." + outputFormat;
 
         if (System.IO.File.Exists(cachedVideoPath))
         {
@@ -44,7 +48,7 @@ namespace Assets.Code.Caching
 
         try
         {
-          Converter.Convert(assetFilePath, cachedVideoPath, outputFormat);
+          Converter.Convert(assetFilePath, cachedVideoPath, outputFormat, ffmpegPath);
           Debug.Log($"Finished converting and caching asset {assetFilePath} ({outputFormat}).");
         }
         catch (Exception ex)

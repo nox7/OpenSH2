@@ -25,6 +25,7 @@ namespace Assets.Code.Simulation.Population
     public float Heading { get => Movement.Heading; internal set => Movement.Heading=value; }
     public MapPoint Position { get => Movement.Position; internal set => Movement.Position=value; }
     internal int NavigationRevision=-1;
+    internal NavigationGrid.PathRequest PathRequest;
     private PeasantState recruitmentState;
     private float recruitmentTime;
     public PeasantState State
@@ -86,7 +87,8 @@ namespace Assets.Code.Simulation.Population
     }
     private void Tick(Peasant p,float seconds)
     {
-      if(p.Worker.State==WorkerState.Removed)return;
+      if(p.Worker.State==WorkerState.Removed){p.PathRequest?.Dispose();p.PathRequest=null;return;}
+      if(p.PathRequest!=null){if(p.PathRequest.Status==PathRequestStatus.Pending)return;Plan(p);}
       if(p.Job!=null) { p.Worker.Advance(seconds,settings.WalkSpeedCellsPerSecond,navigation);return; }
       float remaining=seconds;
       while(remaining>0)
@@ -110,7 +112,7 @@ namespace Assets.Code.Simulation.Population
           if(p.NavigationRevision!=navigation.Revision)
           {
             bool affected=p.Movement.RouteMayHaveChanged(navigation,p.NavigationRevision);p.NavigationRevision=navigation.Revision;
-            if(affected && !p.Movement.CanContinue(navigation)){Plan(p);continue;}
+            if(affected && (navigation.PathRequests!=null || !p.Movement.CanContinue(navigation))){Plan(p);continue;}
           }
           float before=remaining;p.Movement.Advance(ref remaining,settings.RunSpeedCellsPerSecond);p.StateTime+=before-remaining;
           if(!p.Movement.IsFollowingPath) { p.Movement.Place(p.Seat,p.SeatHeading);Change(p,PeasantState.Seated); }
@@ -122,6 +124,15 @@ namespace Assets.Code.Simulation.Population
     private void Plan(Peasant p)
     {
       p.NavigationRevision=navigation.Revision;
+      if(navigation.PathRequests!=null)
+      {
+        p.PathRequest??=navigation.PathRequests.Request(p.Position,new[]{new PathTarget(p.Id,p.Seat)});
+        if(p.PathRequest.Status==PathRequestStatus.Pending){p.Movement.Place(p.Position,p.Heading);Change(p,PeasantState.WaitingForPath);return;}
+        var result=p.PathRequest;p.PathRequest=null;
+        if(result.Status==PathRequestStatus.Succeeded && result.Revision==navigation.Revision){p.Movement.Follow(result.Path);Change(p,PeasantState.Running);}
+        else Change(p,PeasantState.WaitingForPath);
+        return;
+      }
       if(navigation.TryFindPath(p.Position,p.Seat,out var path)) { p.Movement.Follow(path);Change(p,PeasantState.Running); }
       else Change(p,PeasantState.WaitingForPath);
     }

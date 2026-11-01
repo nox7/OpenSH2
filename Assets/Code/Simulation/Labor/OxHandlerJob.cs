@@ -22,6 +22,9 @@ namespace Assets.Code.Simulation.Labor
     public OxHaulingPhase Phase { get; private set; }public OxHaulingSource Source { get; private set; }
     public int? StockpileId { get; private set; }
     private float retry,actionTime;private int navRevision;private bool routeReady;
+    private NavigationGrid.PathRequest pathRequest,joinRequest;
+    private IReadOnlyList<MapPoint> selectedRoute;
+    private OxHaulingPhase selectedPhase;private int selectedRevision;
     private MapPoint goal;private double handlerStart,oxStart;private float joinDistance;
     public OxHandlerJob(int building,int estate,int equipment,MapPoint approach,MapPoint tether,float heading,float height,OxHaulingSettings settings)
       :base(building,estate,approach,approach,heading,height)
@@ -32,12 +35,21 @@ namespace Assets.Code.Simulation.Labor
     private void ReleaseSource(){Source?.Production.ReleaseHauler(WorkerId);Source=null;}
     protected override void OnWorkerRemoved(WorkerComponent worker)
     {
+      pathRequest?.Dispose();joinRequest?.Dispose();pathRequest=null;joinRequest=null;selectedRoute=null;
       Source?.Production.ReleaseHauler(worker.ActorId);Source=null;CargoCount=0;CargoGoods=Goods.Stone;StockpileId=null;routeReady=false;
       Ox.Place(TetherPosition,TetherHeading);OxMoving=false;HandlerMoving=false;OxAnimationTime=0;Change(OxHaulingPhase.MeetingOx);
     }
     public override void AdvanceWork(WorkerComponent worker,float seconds)
     {
       OxMoving=false;HandlerMoving=false;if(Network==null)return;float remaining=seconds;
+      if(selectedRoute!=null)
+      {
+        if(joinRequest.Status==PathRequestStatus.Pending)return;
+        var request=joinRequest;joinRequest=null;var selected=selectedRoute;selectedRoute=null;
+        if(request.Status!=PathRequestStatus.Succeeded || request.Revision!=Network.Navigation.Revision || selectedRevision!=Network.Navigation.Revision)
+        {ReleaseSource();routeReady=false;Change(CargoCount>0?OxHaulingPhase.WaitingForStockpile:OxHaulingPhase.WaitingForQuarry);retry=Settings.RetrySeconds;return;}
+        FollowTogether(worker,selected,request.Path,selectedPhase);
+      }
       while(remaining>0)
       {
         if(retry>0){float wait=Math.Min(retry,remaining);retry-=wait;remaining-=wait;PhaseTime+=wait;if(retry>0 || remaining<=0)return;}
@@ -49,8 +61,17 @@ namespace Assets.Code.Simulation.Labor
             {
               if(!routeReady)
               {
-                if(!Network.Navigation.TryNearest(Ox.Position,2,out var meet) || !Network.Navigation.TryFindPath(worker.Movement.Position,meet,out var meetPath))
-                {retry=Settings.RetrySeconds;return;}
+                if(!Network.Navigation.TryNearest(Ox.Position,2,out var meet)){retry=Settings.RetrySeconds;return;}
+                IReadOnlyList<MapPoint> meetPath;
+                if(Network.Navigation.PathRequests!=null)
+                {
+                  pathRequest??=Network.Navigation.PathRequests.Request(worker.Movement.Position,new[]{new PathTarget(0,meet)});
+                  if(pathRequest.Status==PathRequestStatus.Pending)return;
+                  var result=pathRequest;pathRequest=null;
+                  if(result.Status!=PathRequestStatus.Succeeded || result.Revision!=Network.Navigation.Revision){retry=Settings.RetrySeconds;return;}
+                  meetPath=result.Path;
+                }
+                else if(!Network.Navigation.TryFindPath(worker.Movement.Position,meet,out meetPath)){retry=Settings.RetrySeconds;return;}
                 worker.Movement.Follow(meetPath);routeReady=true;
               }
               float before=remaining;worker.Movement.Advance(ref remaining,Settings.HandlerSpeedCellsPerSecond);PhaseTime+=before-remaining;HandlerMoving=before>remaining;
@@ -58,8 +79,17 @@ namespace Assets.Code.Simulation.Labor
             }
             routeReady=false;Change(OxHaulingPhase.WaitingForQuarry);break;
           case OxHaulingPhase.WaitingForQuarry:
-            if(!Network.TrySource(worker.ActorId,EstateId,worker.Movement.Position,out var source,out var sourcePath,CargoCount>0?CargoGoods:(Goods?)null)){retry=Settings.RetrySeconds;return;}
-            Source=source;CargoGoods=source.Resource;if(!BeginTravel(worker,sourcePath,OxHaulingPhase.ToQuarry)){ReleaseSource();retry=Settings.RetrySeconds;return;}break;
+            OxHaulingSource source;IReadOnlyList<MapPoint> sourcePath;
+            if(Network.Navigation.PathRequests!=null)
+            {
+              pathRequest??=Network.RequestSource(worker.ActorId,EstateId,worker.Movement.Position,CargoCount>0?CargoGoods:(Goods?)null);
+              if(pathRequest.Status==PathRequestStatus.Pending)return;
+              var result=pathRequest;pathRequest=null;
+              if(result.Status!=PathRequestStatus.Succeeded || result.Revision!=Network.Navigation.Revision || !Network.TryClaimSource(worker.ActorId,EstateId,result.TargetId,out source)){retry=Settings.RetrySeconds;return;}
+              sourcePath=result.Path;
+            }
+            else if(!Network.TrySource(worker.ActorId,EstateId,worker.Movement.Position,out source,out sourcePath,CargoCount>0?CargoGoods:(Goods?)null)){retry=Settings.RetrySeconds;return;}
+            Source=source;CargoGoods=source.Resource;if(!BeginTravel(worker,sourcePath,OxHaulingPhase.ToQuarry)){ReleaseSource();retry=Settings.RetrySeconds;return;}if(selectedRoute!=null)return;break;
           case OxHaulingPhase.ToQuarry:
           case OxHaulingPhase.ToStockpile:
             if(!Travel(worker,ref remaining))return;
@@ -67,7 +97,7 @@ namespace Assets.Code.Simulation.Labor
           case OxHaulingPhase.Loading:
             if(Source==null || Source.Production.HaulerId!=worker.ActorId){ReleaseSource();Change(OxHaulingPhase.WaitingForQuarry);break;}
             if(CargoCount>=Capacity)
-            {Change(OxHaulingPhase.WaitingForStockpile);break;}
+            {ReleaseSource();Change(OxHaulingPhase.WaitingForStockpile);break;}
             // An empty output buffer is temporary: keep this quarry reserved and
             // wait here for production instead of dispatching a partial load.
             if(Source.Production.StoredGoods==0)
@@ -75,9 +105,18 @@ namespace Assets.Code.Simulation.Labor
             if(!Wait(CargoGoods==Goods.Iron?Settings.LoadSecondsPerIron:Settings.LoadSecondsPerStone,ref remaining))return;
             if(Source.Production.TryTakeGoods(1)){CargoCount++;Revision++;}actionTime=0;break;
           case OxHaulingPhase.WaitingForStockpile:
-            if(!Network.TryDestination(EstateId,worker.Movement.Position,out int store,out var delivery,CargoGoods)){retry=Settings.RetrySeconds;return;}
+            int store;IReadOnlyList<MapPoint> delivery;
+            if(Network.Navigation.PathRequests!=null)
+            {
+              pathRequest??=Network.RequestDestination(EstateId,worker.Movement.Position,CargoGoods);
+              if(pathRequest.Status==PathRequestStatus.Pending)return;
+              var result=pathRequest;pathRequest=null;
+              if(result.Status!=PathRequestStatus.Succeeded || result.Revision!=Network.Navigation.Revision || !Network.Inventory.CanDeposit(result.TargetId,EstateId,CargoGoods,1)){retry=Settings.RetrySeconds;return;}
+              store=result.TargetId;delivery=result.Path;
+            }
+            else if(!Network.TryDestination(EstateId,worker.Movement.Position,out store,out delivery,CargoGoods)){retry=Settings.RetrySeconds;return;}
             StockpileId=store;if(!BeginTravel(worker,delivery,OxHaulingPhase.ToStockpile)){retry=Settings.RetrySeconds;return;}
-            ReleaseSource();break;
+            ReleaseSource();if(selectedRoute!=null)return;break;
           case OxHaulingPhase.Unloading:
             if(CargoCount==0){StockpileId=null;Change(OxHaulingPhase.WaitingForQuarry);break;}
             if(!StockpileId.HasValue || !Network.Inventory.CanDeposit(StockpileId.Value,EstateId,CargoGoods,1))
@@ -90,16 +129,32 @@ namespace Assets.Code.Simulation.Labor
     }
     private bool BeginTravel(WorkerComponent worker,IReadOnlyList<MapPoint> path,OxHaulingPhase phase)
     {
-      if(!Network.Navigation.TryNearest(Ox.Position,2,out var oxStartPoint) || !Network.Navigation.TryFindPath(oxStartPoint,worker.Movement.Position,out var join))return false;
+      if(!Network.Navigation.TryNearest(Ox.Position,2,out var oxStartPoint))return false;
+      if(Network.Navigation.PathRequests!=null)
+      {
+        selectedRoute=path;selectedPhase=phase;selectedRevision=Network.Navigation.Revision;
+        joinRequest=Network.Navigation.PathRequests.Request(oxStartPoint,new[]{new PathTarget(0,worker.Movement.Position)});return true;
+      }
+      if(!Network.Navigation.TryFindPath(oxStartPoint,worker.Movement.Position,out var join))return false;
+      FollowTogether(worker,path,join,phase);return true;
+    }
+    private void FollowTogether(WorkerComponent worker,IReadOnlyList<MapPoint> path,IReadOnlyList<MapPoint> join,OxHaulingPhase phase)
+    {
+      var oxStartPoint=join[0];
       // Reuse the handler's route, including every corner. The model's size adds no clearance.
       var oxPath=new List<MapPoint>{Ox.Position};if(MapPoint.Distance(Ox.Position,oxStartPoint)>.001f)oxPath.Add(oxStartPoint);
       for(int i=1;i<join.Count;i++)oxPath.Add(join[i]);joinDistance=OxHaulingNetwork.Length(oxPath);
       for(int i=1;i<path.Count;i++)oxPath.Add(path[i]);
       handlerStart=worker.Movement.DistanceTravelled;oxStart=Ox.DistanceTravelled;
-      worker.Movement.Follow(path);Ox.Follow(oxPath);goal=path[path.Count-1];navRevision=Network.Navigation.Revision;routeReady=true;Change(phase);return true;
+      worker.Movement.Follow(path);Ox.Follow(oxPath);goal=path[path.Count-1];navRevision=Network.Navigation.Revision;routeReady=true;Change(phase);
     }
     private bool Travel(WorkerComponent worker,ref float remaining)
     {
+      if(Network.Navigation.PathRequests!=null && (!routeReady || navRevision!=Network.Navigation.Revision && (worker.Movement.RouteMayHaveChanged(Network.Navigation,navRevision) || Ox.RouteMayHaveChanged(Network.Navigation,navRevision))))
+      {
+        worker.Movement.Place(worker.Movement.Position,worker.Movement.Heading);Ox.Place(Ox.Position,Ox.Heading);routeReady=false;
+        ReleaseSource();StockpileId=null;Change(CargoCount>0?OxHaulingPhase.WaitingForStockpile:OxHaulingPhase.WaitingForQuarry);return false;
+      }
       if(!routeReady || navRevision!=Network.Navigation.Revision && ((worker.Movement.RouteMayHaveChanged(Network.Navigation,navRevision) && !worker.Movement.CanContinue(Network.Navigation)) || (Ox.RouteMayHaveChanged(Network.Navigation,navRevision) && !Ox.CanContinue(Network.Navigation))))
       {
         if(!Network.Navigation.TryFindPath(worker.Movement.Position,goal,out var path) || !BeginTravel(worker,path,Phase))

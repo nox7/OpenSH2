@@ -40,9 +40,11 @@ namespace Assets.Code.Simulation.Labor
       foreach(var source in sources){if(!sourcesByEstate.TryGetValue(source.EstateId,out var list))sourcesByEstate.Add(source.EstateId,list=new List<OxHaulingSource>());list.Add(source);}
       foreach(var destination in destinations){if(!destinationsByEstate.TryGetValue(destination.EstateId,out var list))destinationsByEstate.Add(destination.EstateId,list=new List<HaulingDestination>());list.Add(destination);}
     }
-    public void ConfigureStorage(EstateInventory inventory)=>Inventory=inventory??throw new ArgumentNullException(nameof(inventory));
+    private StockpileLocator stockpiles;
+    public void ConfigureStorage(EstateInventory inventory,StockpileLocator locator=null)
+    {Inventory=inventory??throw new ArgumentNullException(nameof(inventory));stockpiles=locator;}
     public bool HasStorage(int estate,Goods goods=Goods.Stone)
-    {if(!destinationsByEstate.TryGetValue(estate,out var destinations))return false;foreach(var d in destinations)if(Inventory!=null && Inventory.CanDeposit(d.BuildingId,estate,goods,1))return true;return false;}
+    {if(stockpiles!=null)return stockpiles.HasCapacity(estate,goods);if(!destinationsByEstate.TryGetValue(estate,out var destinations))return false;foreach(var d in destinations)if(Inventory!=null && Inventory.CanDeposit(d.BuildingId,estate,goods,1))return true;return false;}
     public bool TrySource(int handler,int estate,MapPoint from,out OxHaulingSource source,out IReadOnlyList<MapPoint> route,Goods? resource=null)
     {
       source=null;route=null;float best=float.PositiveInfinity;
@@ -56,8 +58,31 @@ namespace Assets.Code.Simulation.Labor
       }
       return source!=null && source.Production.TryReserveHauler(handler);
     }
+    public NavigationGrid.PathRequest RequestSource(int handler,int estate,MapPoint from,Goods? resource=null)
+    {
+      var targets=new List<PathTarget>();
+      if(sourcesByEstate.TryGetValue(estate,out var sources))foreach(var candidate in sources)
+        if((!resource.HasValue || candidate.Resource==resource.Value) && HasStorage(estate,candidate.Resource)
+          && (!candidate.Production.HaulerId.HasValue || candidate.Production.HaulerId==handler))targets.Add(new PathTarget(candidate.BuildingId,candidate.Position));
+      return Navigation.PathRequests.Request(from,targets);
+    }
+    public bool TryClaimSource(int handler,int estate,int id,out OxHaulingSource source)
+    {
+      source=null;if(!sourcesByEstate.TryGetValue(estate,out var sources))return false;
+      foreach(var candidate in sources)if(candidate.BuildingId==id && HasStorage(estate,candidate.Resource) && candidate.Production.TryReserveHauler(handler)){source=candidate;return true;}
+      return false;
+    }
+    public NavigationGrid.PathRequest RequestDestination(int estate,MapPoint from,Goods goods)
+    {
+      if(stockpiles!=null)return stockpiles.RequestNearest(estate,goods,from);
+      var targets=new List<PathTarget>();
+      if(destinationsByEstate.TryGetValue(estate,out var destinations))foreach(var d in destinations)
+        if(Inventory!=null && Inventory.CanDeposit(d.BuildingId,estate,goods,1))targets.Add(new PathTarget(d.BuildingId,d.Position));
+      return Navigation.PathRequests.Request(from,targets);
+    }
     public bool TryDestination(int estate,MapPoint from,out int building,out IReadOnlyList<MapPoint> route,Goods goods=Goods.Stone)
     {
+      if(stockpiles!=null)return stockpiles.TryNearest(estate,goods,from,out building,out route);
       building=0;route=null;float best=float.PositiveInfinity;
       if(!destinationsByEstate.TryGetValue(estate,out var destinations))return false;
       foreach(var d in destinations)

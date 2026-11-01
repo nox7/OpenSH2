@@ -19,9 +19,11 @@ namespace Assets.Code.Simulation.Labor
     public bool WaitingForPath { get; private set; }
     private int navigationRevision=-1;
     private float pathRetry;
+    private NavigationGrid.PathRequest repathRequest;
     public event Action<WorkerComponent,LaborJob> Removed;
     public void Remove()
     {
+      repathRequest?.Dispose();repathRequest=null;
       if(State==WorkerState.Removed)return;
       var former=Job;former?.RemoveWorker(this);Job=null;State=WorkerState.Removed;
       Movement.Place(Movement.Position,Movement.Heading);Removed?.Invoke(this,former);
@@ -29,12 +31,12 @@ namespace Assets.Code.Simulation.Labor
     public WorkerComponent(int actorId,MovementComponent movement)
     { ActorId=actorId;Movement=movement??throw new ArgumentNullException(nameof(movement)); }
 
-    public bool TryAssign(LaborJob job,IReadOnlyList<MapPoint> path)
+    public bool TryAssign(LaborJob job,IReadOnlyList<MapPoint> path,int navigationRevision=-1)
     {
       if(job==null)throw new ArgumentNullException(nameof(job));
       if(State==WorkerState.Removed || Job!=null || path==null || path.Count==0 || MapPoint.Distance(path[path.Count-1],job.Approach)>.001f)return false;
       if(!job.TryReserve(ActorId))return false;
-      Job=job;State=WorkerState.Traveling;StateTime=0;navigationRevision=-1;WaitingForPath=false;Movement.Follow(path);
+      Job=job;State=WorkerState.Traveling;StateTime=0;this.navigationRevision=navigationRevision;WaitingForPath=false;Movement.Follow(path);
       if(!Movement.IsFollowingPath)Arrive();
       return true;
     }
@@ -50,14 +52,23 @@ namespace Assets.Code.Simulation.Labor
         {
           if(navigationRevision!=navigation.Revision)
           {
-            if(Movement.RouteMayHaveChanged(navigation,navigationRevision) && !Movement.CanContinue(navigation))WaitingForPath=true;
+            if(Movement.RouteMayHaveChanged(navigation,navigationRevision) && (navigation.PathRequests!=null || !Movement.CanContinue(navigation)))WaitingForPath=true;
             navigationRevision=navigation.Revision;pathRetry=0;
           }
           if(WaitingForPath)
           {
             pathRetry-=seconds;
             if(pathRetry>0)return;
-            if(!navigation.TryFindPath(Movement.Position,Job.Approach,out var replacement)){pathRetry=1;return;}
+            IReadOnlyList<MapPoint> replacement;
+            if(navigation.PathRequests!=null)
+            {
+              repathRequest??=navigation.PathRequests.Request(Movement.Position,new[]{new PathTarget(Job.BuildingId,Job.Approach)});
+              if(repathRequest.Status==PathRequestStatus.Pending)return;
+              var request=repathRequest;repathRequest=null;
+              if(request.Status!=PathRequestStatus.Succeeded || request.Revision!=navigation.Revision){pathRetry=1;return;}
+              replacement=request.Path;
+            }
+            else if(!navigation.TryFindPath(Movement.Position,Job.Approach,out replacement)){pathRetry=1;return;}
             Movement.Follow(replacement);WaitingForPath=false;
           }
         }

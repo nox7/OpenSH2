@@ -13,7 +13,7 @@ namespace Assets.Code.Simulation.Navigation
   }
 
   /// <summary>Reusable ground-level A*. Eight neighbours, no corner cutting or climbing cliffs.</summary>
-  public sealed class NavigationGrid
+  public sealed partial class NavigationGrid
   {
     public int Width { get; }
     public int Height { get; }

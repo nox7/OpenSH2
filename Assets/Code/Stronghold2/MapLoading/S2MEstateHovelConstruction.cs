@@ -1,4 +1,5 @@
 using System;
+using Assets.Code.Stronghold2.Construction;
 using System.IO;
 using System.Collections.Generic;
 using Assets.Code.Simulation.AI;
@@ -19,8 +20,8 @@ namespace Assets.Code.Stronghold2.MapLoading
     public sealed class S2MEstateHovelConstruction : S2MEstateBuildingConstruction
     {
         public S2MEstateHovelConstruction(S2MFile map,AiWorld world,EstateInventory inventory,string installation,
-            NavigationGrid navigation=null,LaborManager labor=null,StartupBuildingSettings placementSettings=null,EstateHovelSettings settings=null)
-            :base(map,world,inventory,installation,navigation,labor,placementSettings,settings??new EstateHovelSettings(),"Hovel"){}
+            NavigationGrid navigation=null,LaborManager labor=null,StartupBuildingSettings placementSettings=null,EstateHovelSettings settings=null,S2MBuildingConstructionService construction=null)
+            :base(map,world,inventory,installation,navigation,labor,placementSettings,settings??new EstateHovelSettings(),"Hovel",construction){}
         protected override int DesiredCount(AiTerritory territory)
         {
             int current=territory.BuildingCount("Hovel"),maximum=territory.MaximumHovels;
@@ -40,12 +41,12 @@ namespace Assets.Code.Stronghold2.MapLoading
                 if(territory.Kind==AiTerritoryKind.Estate)inventory.TryGrantInitialWood(territory.Id,wood);
         }
     }
-    public sealed class EstateConstructionPlanner : IAiPlanner
+    public class BuildingConstructionPlanner : IAiPlanner
     {
-        private readonly S2MEstateBuildingConstruction[] policies;
+        private readonly S2MBuildingConstructionPolicy[] policies;
         private readonly Dictionary<int,int> evaluationCursor=new();
         private int commitCursor;
-        public EstateConstructionPlanner(params S2MEstateBuildingConstruction[] policies)=>this.policies=Array.FindAll(policies,p=>p!=null);
+        public BuildingConstructionPlanner(params S2MBuildingConstructionPolicy[] policies)=>this.policies=Array.FindAll(policies,p=>p!=null);
         public void Evaluate(in AiEvaluation evaluation)
         {
             if(policies.Length==0)return;
@@ -65,4 +66,7 @@ namespace Assets.Code.Stronghold2.MapLoading
             }
         }
     }
+    public sealed class EstateConstructionPlanner : BuildingConstructionPlanner
+    {public EstateConstructionPlanner(params S2MBuildingConstructionPolicy[] policies):base(policies){}}
+
 }

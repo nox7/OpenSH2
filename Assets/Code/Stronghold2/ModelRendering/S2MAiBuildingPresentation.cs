@@ -26,9 +26,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
             terrainEdits=parent!=null?parent.GetComponentInChildren<S2MTerrainEdits>():null;
             this.map=map;this.parent=parent;this.terrain=terrain;this.settings=settings;
             S2MSceneryOcclusion.GetOrCreate(parent,map);
-            foreach(string type in new[]{"Granary","Hovel","SawPit"})
+            foreach(string type in new[]{"Granary","Hovel","SawPit","StockPile"})
             {
-                var descriptor=S2MBuildingDescriptorReader.Read(installation,type=="Granary"?"meshes/buildings/granary.bdg":type=="Hovel"?"meshes/buildings/hovel1.bdg":"meshes/buildings/saw_pit.bdg");
+                var descriptor=S2MBuildingDescriptorReader.Read(installation,type=="Granary"?"meshes/buildings/granary.bdg":type=="Hovel"?"meshes/buildings/hovel1.bdg":type=="SawPit"?"meshes/buildings/saw_pit.bdg":"meshes/buildings/stockpile.bdg");
                 var sample=new BuildingPlacement{Id=0,Type=type,HovelAppearance=type=="Hovel"?0:(int?)null,FootprintWidth=descriptor.Width,FootprintHeight=descriptor.Height};
                 var request=new S2MFile{MapSize=map.MapSize,BuildingPlacements=new[]{sample}};
                 var issues=new List<S2MBuildingAssetIssue>();

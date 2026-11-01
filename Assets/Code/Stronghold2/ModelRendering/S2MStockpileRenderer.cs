@@ -18,6 +18,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     private readonly Dictionary<string,Model> models=new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int,BuildingPlacement> placements=new();
     private readonly List<Part> batches=new();
+    private S2MFile map;private IReadOnlyList<BuildingPlacement> indexedBuildings;
     private EstateInventory inventory;private S2MStockpileAssets assets;private S2MTerrainSettings terrain;
     private bool dirty=true;private MaterialPropertyBlock properties;
     public int OccupiedPallets { get; private set; }
@@ -26,7 +27,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public static S2MStockpileRenderer Create(S2MFile map,EstateInventory inventory,S2MStockpileAssets assets,Transform parent,S2MTerrainSettings terrain=null)
     {
       var root=new GameObject("Stockpile inventory");root.transform.SetParent(parent,false);
-      var view=root.AddComponent<S2MStockpileRenderer>();view.inventory=inventory;view.assets=assets;view.terrain=terrain??new S2MTerrainSettings();
+      var view=root.AddComponent<S2MStockpileRenderer>();view.map=map;view.indexedBuildings=map.BuildingPlacements;view.inventory=inventory;view.assets=assets;view.terrain=terrain??new S2MTerrainSettings();
       root.transform.localPosition=new Vector3(view.terrain.FlipX?map.MapSize*view.terrain.HorizontalCellSize:0,0,view.terrain.FlipZ?map.MapSize*view.terrain.HorizontalCellSize:0);
       root.transform.localScale=new Vector3(view.terrain.FlipX?-1:1,1,view.terrain.FlipZ?-1:1);
       foreach(var building in map.BuildingPlacements)if(building.Type=="StockPile")view.placements.Add(building.Id,building);
@@ -66,6 +67,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
     }
     public void Synchronize()
     {
+      if(!ReferenceEquals(indexedBuildings,map.BuildingPlacements))
+      {placements.Clear();foreach(var building in map.BuildingPlacements)if(building.Type=="StockPile")placements[building.Id]=building;indexedBuildings=map.BuildingPlacements;dirty=true;}
       if(!dirty)return;dirty=false;OccupiedPallets=0;VisiblePieces=0;
       foreach(var batch in batches)batch.Instances.Clear();
       foreach(var store in inventory.Buildings)

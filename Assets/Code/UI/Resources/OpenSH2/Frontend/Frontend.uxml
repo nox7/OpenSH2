@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="Frontend.uss" />
+    <ui:Template name="MainMenu" src="MainMenu.uxml" />
+    <ui:VisualElement name="frontend" class="fullscreen">
+        <ui:VisualElement name="loading-screen" class="fullscreen centered">
+            <ui:Label text="Preparing Stronghold 2 assets…" class="loading-label" />
+        </ui:VisualElement>
+        <ui:VisualElement name="intro-screen" class="fullscreen hidden">
+            <ui:Image name="intro-video" class="fullscreen" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement name="menu-screen" class="fullscreen hidden">
+            <ui:Instance template="MainMenu" class="fullscreen" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

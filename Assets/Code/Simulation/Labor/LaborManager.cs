@@ -53,6 +53,23 @@ namespace Assets.Code.Simulation.Labor
     private readonly NavigationGrid navigation;
     private readonly PopulationSettings settings;
     private double untilPoll;
+    private readonly Dictionary<LaborJob,(Peasant Peasant,NavigationGrid.PathRequest Request)> staffingPaths=new();
+    private readonly HashSet<int> staffingClaims=new();private readonly List<LaborJob> staffingFinished=new();
+    private void CancelStaffing(LaborJob job)
+    {if(staffingPaths.TryGetValue(job,out var pending)){pending.Request.Dispose();staffingClaims.Remove(pending.Peasant.Id);staffingPaths.Remove(job);}}
+    private void FinishStaffing()
+    {
+      staffingFinished.Clear();
+      foreach(var pair in staffingPaths)
+      {
+        var job=pair.Key;var p=pair.Value.Peasant;var request=pair.Value.Request;
+        bool valid=!job.WorkerId.HasValue && p.State==PeasantState.Seated && p.Job==null;
+        if(valid && request.Status==PathRequestStatus.Pending)continue;
+        if(valid && request.Status==PathRequestStatus.Succeeded && request.Revision==navigation.Revision)p.Worker.TryAssign(job,request.Path,navigation.Revision);
+        staffingFinished.Add(job);
+      }
+      foreach(var job in staffingFinished)CancelStaffing(job);
+    }
     public LaborManager(IReadOnlyList<LaborJob> jobs,IReadOnlyList<PeasantRecruitment> kingdoms,NavigationGrid navigation,PopulationSettings settings,IReadOnlyList<LaborBuilding> buildings=null)
     {
       settings.Validate();registeredJobs.AddRange(jobs);Jobs=registeredJobs.AsReadOnly();this.kingdoms=kingdoms;this.navigation=navigation;this.settings=settings;untilPoll=settings.JobAssignmentIntervalSeconds;
@@ -81,7 +98,7 @@ namespace Assets.Code.Simulation.Labor
     public bool RemoveUnstaffedBuilding(int id)
     {
       if(!buildingsById.TryGetValue(id,out var b)||b.TotalWorkers!=0)return false;
-      foreach(var job in b.Jobs){job.StaffingChanged-=OnStaffingChanged;registeredJobs.Remove(job);}
+      foreach(var job in b.Jobs){CancelStaffing(job);job.StaffingChanged-=OnStaffingChanged;registeredJobs.Remove(job);}
       buildingsById.Remove(id);registeredBuildings.Remove(b);byEstate[b.EstateId].Remove(b);RefreshDemand(b.EstateId);return true;
     }
     public bool RemovePassiveBuilding(int id)
@@ -92,6 +109,8 @@ namespace Assets.Code.Simulation.Labor
     public void Advance(float seconds)
     {
       if(!(seconds>=0) || float.IsInfinity(seconds))throw new ArgumentOutOfRangeException(nameof(seconds));
+      if(seconds>0)navigation.PathRequests?.AdvanceFrame();
+      if(seconds>0)FinishStaffing();
       float remaining=seconds;
       while(remaining>0)
       {
@@ -104,6 +123,7 @@ namespace Assets.Code.Simulation.Labor
     }
     public void Dispose()
     {
+      foreach(var pending in staffingPaths.Values)pending.Request.Dispose();staffingPaths.Clear();staffingClaims.Clear();
       foreach(var job in Jobs)job.StaffingChanged-=OnStaffingChanged;
       StaffingChanged=null;
     }
@@ -112,6 +132,20 @@ namespace Assets.Code.Simulation.Labor
       foreach(var job in Jobs)
       {
         if(job.WorkerId.HasValue || job.EstateId<0)continue;
+        if(navigation.PathRequests!=null)
+        {
+          if(staffingPaths.ContainsKey(job))continue;
+          Peasant nearest=null;float nearestDistance=float.PositiveInfinity;
+          if(populationByEstate.TryGetValue(job.EstateId,out var population))foreach(var group in population)foreach(var p in group.Peasants)
+          {
+            if(p.State!=PeasantState.Seated || p.Job!=null || staffingClaims.Contains(p.Id))continue;
+            float d=MapPoint.Distance(p.Position,job.Approach);
+            if(d<nearestDistance && navigation.CanReach(p.Position,job.Approach)){nearest=p;nearestDistance=d;}
+          }
+          if(nearest!=null)
+          {staffingClaims.Add(nearest.Id);staffingPaths[job]=(nearest,navigation.PathRequests.Request(nearest.Position,new[]{new PathTarget(job.BuildingId,job.Approach)}));}
+          continue;
+        }
         Peasant selected=null;IReadOnlyList<MapPoint> selectedPath=null;float best=float.MaxValue;
         foreach(var kingdom in kingdoms)foreach(var p in kingdom.Peasants)
         {

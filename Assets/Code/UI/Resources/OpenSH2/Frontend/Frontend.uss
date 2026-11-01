@@ -1,0 +1,5 @@
+.fullscreen { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+#frontend { background-color: black; color: rgb(255, 244, 214); }
+.centered { align-items: center; justify-content: center; }
+.hidden { display: none; }
+.loading-label { font-size: 24px; -unity-text-align: middle-center; }

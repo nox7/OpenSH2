@@ -161,8 +161,10 @@ namespace Assets.Code.Simulation.Labor
         if(!Walking.TryNearest(stand,.4f,out var chop) || MapPoint.Distance(chop,tree.Position)>reach+.65f)continue;
         var side=new MapPoint(park.X+z*settings.DismountDistance*settings.UnitScale,park.Z-x*settings.DismountDistance*settings.UnitScale);
         if(!Walking.TryNearest(side,.4f,out var dismount) || !Walking.CanTravel(park,dismount) || !Walking.CanReach(dismount,chop))continue;
-        if(!Carts.TryFindPath(start,park,out var drive) || !Walking.TryFindPath(dismount,chop,out var walk)
-          || !Carts.TryFindPath(park,home,out var back))continue;
+        IReadOnlyList<MapPoint> drive=null,walk=null,back=null;
+        // Exact connectivity above establishes a viable site. Live movement requests each leg through the shared queue.
+        if(Carts.PathRequests==null && (!Carts.TryFindPath(start,park,out drive) || !Walking.TryFindPath(dismount,chop,out walk)
+          || !Carts.TryFindPath(park,home,out back)))continue;
         route=new WoodcuttingRoute{Resource=tree,Start=start,Home=home,Parking=park,Dismount=dismount,Chop=chop,DriveOut=drive,WalkOut=walk,DriveHome=back};return true;
       }
       return false;

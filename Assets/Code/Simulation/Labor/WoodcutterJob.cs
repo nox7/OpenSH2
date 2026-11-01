@@ -45,7 +45,11 @@ namespace Assets.Code.Simulation.Labor
     public const int PlanksPerDelivery=16;
     public long DeliveredPlanks { get; private set; }
     private EstateInventory inventory;
-    public void ConfigureStorage(EstateInventory inventory) => this.inventory=inventory??throw new ArgumentNullException(nameof(inventory));
+    private StockpileLocator stockpileLocator;
+    private NavigationGrid.PathRequest deliveryRequest;
+    private NavigationGrid.PathRequest movementRequest;
+    public void ConfigureStorage(EstateInventory inventory,StockpileLocator locator=null)
+    {this.inventory=inventory??throw new ArgumentNullException(nameof(inventory));stockpileLocator=locator;}
     private FoliageResources resources;
     private WoodcuttingSettings settings;
     private WoodcuttingRoute route;
@@ -101,12 +105,13 @@ namespace Assets.Code.Simulation.Labor
             Loaded=CarryingLog;CarryingLog=false;
             worker.Movement.Place(CartPosition,CartHeading);
             // Removing foliage may have opened a shorter return route. Never reuse a route blindly.
-            resources.Carts.TryFindPath(CartPosition,route.Home,out var home);
+            IReadOnlyList<MapPoint> home=null;
+            if(resources.Carts.PathRequests==null)resources.Carts.TryFindPath(CartPosition,route.Home,out home);
             Begin(worker,WoodcuttingPhase.Returning,resources.Carts,home,route.Home);break;
           case WoodcuttingPhase.Returning:
             if(!Travel(worker,resources.Carts,ref remaining,true))return;
             CartPosition=WorkPosition;CartHeading=WorkHeading;worker.Movement.Place(CartPosition,CartHeading);
-            if(cancelled || !Loaded || stockpiles==null) {Change(WoodcuttingPhase.Returned);return;}
+            if(cancelled || !Loaded || stockpiles==null && stockpileLocator==null) {Change(WoodcuttingPhase.Returned);return;}
             Loaded=false;worker.Movement.Place(SawPosition,SawHeading);Change(WoodcuttingPhase.Sawing);break;
           case WoodcuttingPhase.Sawing:
             if(!Wait(settings.SawingSeconds,ref remaining))return;
@@ -114,7 +119,7 @@ namespace Assets.Code.Simulation.Labor
             Change(WoodcuttingPhase.WaitingForStockpile);break;
           case WoodcuttingPhase.WaitingForStockpile:
             if(retry>0) {float step=Math.Min(retry,remaining);retry-=step;remaining-=step;if(retry>0 || remaining<=0)return;}
-            if(!TryDelivery(worker)) {retry=settings.RetrySeconds;return;}
+            if(!TryDelivery(worker)) {if(deliveryRequest==null)retry=settings.RetrySeconds;return;}
             break;
           case WoodcuttingPhase.Delivering:
             if(!Travel(worker,resources.Carts,ref remaining,true))return;
@@ -146,10 +151,24 @@ namespace Assets.Code.Simulation.Labor
         if(remaining<=0)return;
       }
     }
-    // Destinations are map-level immutable data; paths are only computed when dispatching/retrying.
+    // Live games query the central inventory/building index at dispatch/retry; explicit destinations remain a headless-fixture fallback.
     private bool TryDelivery(WorkerComponent worker)
     {
       if(!resources.Carts.TryNearest(CartPosition,2,out var start))return false;
+      if(stockpileLocator!=null)
+      {
+        int store;IReadOnlyList<MapPoint> path;
+        if(resources.Carts.PathRequests!=null)
+        {
+          deliveryRequest??=stockpileLocator.RequestNearest(EstateId,Goods.Wood,start);
+          if(deliveryRequest.Status==PathRequestStatus.Pending)return false;
+          var result=deliveryRequest;deliveryRequest=null;
+          if(result.Status!=PathRequestStatus.Succeeded || result.Revision!=resources.Carts.Revision || !inventory.CanDeposit(result.TargetId,EstateId,Goods.Wood,1))return false;
+          store=result.TargetId;path=result.Path;
+        }
+        else if(!stockpileLocator.TryNearest(EstateId,Goods.Wood,start,out store,out path))return false;
+        CartPosition=start;worker.Movement.Place(start,CartHeading);StockpileId=store;Begin(worker,WoodcuttingPhase.Delivering,resources.Carts,path,path[path.Count-1]);return true;
+      }
       IReadOnlyList<MapPoint> best=null;float bestDistance=float.PositiveInfinity;int id=0;var visited=new HashSet<(float,float)>();
       foreach(var destination in stockpiles)
       {
@@ -167,17 +186,33 @@ namespace Assets.Code.Simulation.Labor
     }
     private void BeginReturnWalk(WorkerComponent worker)
     {
-      resources.Walking.TryFindPath(worker.Movement.Position,route.Dismount,out var walk);
+      IReadOnlyList<MapPoint> walk=null;
+      if(resources.Walking.PathRequests==null)resources.Walking.TryFindPath(worker.Movement.Position,route.Dismount,out walk);
       Begin(worker,WoodcuttingPhase.WalkingToCart,resources.Walking,walk,route.Dismount);
     }
     private void Begin(WorkerComponent worker,WoodcuttingPhase phase,NavigationGrid nav,IReadOnlyList<MapPoint> path,MapPoint destination)
     {
       Change(phase);goal=destination;navigationRevision=nav.Revision;
       if(path!=null && path.Count>0)worker.Movement.Follow(path);
-      else { worker.Movement.Place(worker.Movement.Position,worker.Movement.Heading);WaitingForPath=true;retry=settings.RetrySeconds; }
+      else { worker.Movement.Place(worker.Movement.Position,worker.Movement.Heading);WaitingForPath=true;retry=nav.PathRequests==null?settings.RetrySeconds:0; }
     }
     private bool Travel(WorkerComponent worker,NavigationGrid nav,ref float remaining,bool cart)
     {
+      if(nav.PathRequests!=null)
+      {
+        if(!WaitingForPath && navigationRevision!=nav.Revision && worker.Movement.RouteMayHaveChanged(nav,navigationRevision))
+        {worker.Movement.Place(worker.Movement.Position,worker.Movement.Heading);WaitingForPath=true;retry=0;Revision++;}
+        if(WaitingForPath)
+        {
+          if(retry>0){retry=Math.Max(0,retry-remaining);return false;}
+          movementRequest??=nav.PathRequests.Request(worker.Movement.Position,new[]{new PathTarget(0,goal)});
+          if(movementRequest.Status==PathRequestStatus.Pending)return false;
+          var result=movementRequest;movementRequest=null;
+          if(result.Status!=PathRequestStatus.Succeeded || result.Revision!=nav.Revision){retry=settings.RetrySeconds;return false;}
+          worker.Movement.Follow(result.Path);WaitingForPath=false;Revision++;
+        }
+        navigationRevision=nav.Revision;
+      }
       if(WaitingForPath)
       {
         float wait=Math.Min(remaining,retry);retry-=wait;remaining-=wait;
@@ -208,7 +243,7 @@ namespace Assets.Code.Simulation.Labor
     }
     private bool Wait(float duration,ref float remaining)
     { float step=Math.Min(remaining,Math.Max(0,duration-PhaseTime));PhaseTime+=step;remaining-=step;return PhaseTime>=duration; }
-    private void Change(WoodcuttingPhase phase) {Phase=phase;PhaseTime=0;CartAnimationTime=0;unloadProgress=0;Revision++;WaitingForPath=false;retry=0;}
+    private void Change(WoodcuttingPhase phase) {movementRequest?.Dispose();movementRequest=null;deliveryRequest?.Dispose();deliveryRequest=null;Phase=phase;PhaseTime=0;CartAnimationTime=0;unloadProgress=0;Revision++;WaitingForPath=false;retry=0;}
     /// <summary>Explicitly abandon this harvest and return safely, preserving any remaining ground logs.</summary>
     public void CancelHarvest(WorkerComponent worker)
     {
@@ -216,7 +251,7 @@ namespace Assets.Code.Simulation.Labor
       cancelled=true;
       resources.ReleaseWorker(worker.ActorId);
       if(WorkerOnCart || Phase==WoodcuttingPhase.Sawing)
-      {worker.Movement.Place(CartPosition,CartHeading);resources.Carts.TryFindPath(CartPosition,route.Home,out var path);Begin(worker,WoodcuttingPhase.Returning,resources.Carts,path,route.Home);}
+      {worker.Movement.Place(CartPosition,CartHeading);IReadOnlyList<MapPoint> path=null;if(resources.Carts.PathRequests==null)resources.Carts.TryFindPath(CartPosition,route.Home,out path);Begin(worker,WoodcuttingPhase.Returning,resources.Carts,path,route.Home);}
       else BeginReturnWalk(worker);
     }
     /// <summary>Legacy integration hook; storage-backed jobs restart automatically after timed unloading.</summary>
@@ -228,6 +263,7 @@ namespace Assets.Code.Simulation.Labor
     }
     protected override void OnWorkerRemoved(WorkerComponent worker)
     {
+      deliveryRequest?.Dispose();deliveryRequest=null;
       resources?.ReleaseWorker(worker.ActorId);
       route=null;Loaded=false;RemainingPlanks=0;StockpileId=null;CarryingLog=false;cancelled=false;CartPosition=WorkPosition;CartHeading=WorkHeading;
       Change(WoodcuttingPhase.WaitingForResource);

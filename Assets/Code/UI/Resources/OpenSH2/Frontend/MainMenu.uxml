@@ -1,0 +1,37 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="MainMenu.uss" />
+    <ui:VisualElement name="left-sidebar" class="sidebar left" picking-mode="Ignore" />
+    <ui:VisualElement name="right-sidebar" class="sidebar right" picking-mode="Ignore" />
+    <ui:VisualElement name="menu-frame">
+        <ui:Image name="background-video" picking-mode="Ignore" />
+        <ui:Image name="curtain-opening" class="curtain" picking-mode="Ignore" />
+        <ui:Image name="curtain-idle" class="curtain" picking-mode="Ignore" />
+        <ui:VisualElement name="menu-column">
+            <ui:Image name="logo" picking-mode="Ignore" />
+            <ui:Button name="play" class="menu-button" enabled="false">
+                <ui:VisualElement class="button-highlight" picking-mode="Ignore" />
+                <ui:Label text="Play" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="multiplayer" class="menu-button" enabled="false">
+                <ui:VisualElement class="button-highlight" picking-mode="Ignore" />
+                <ui:Label text="Multiplayer" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="map-editor" class="menu-button" enabled="false">
+                <ui:VisualElement class="button-highlight" picking-mode="Ignore" />
+                <ui:Label text="Map Editor" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="options" class="menu-button" enabled="false">
+                <ui:VisualElement class="button-highlight" picking-mode="Ignore" />
+                <ui:Label text="Options" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="load" class="menu-button" enabled="false">
+                <ui:VisualElement class="button-highlight" picking-mode="Ignore" />
+                <ui:Label text="Load" picking-mode="Ignore" />
+            </ui:Button>
+            <ui:Button name="exit" class="menu-button">
+                <ui:VisualElement class="button-highlight" picking-mode="Ignore" />
+                <ui:Label text="Exit" picking-mode="Ignore" />
+            </ui:Button>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
