@@ -1,0 +1,87 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="CampaignSelection.uss" />
+    <ui:VisualElement name="campaign-background" class="fullscreen" picking-mode="Ignore" />
+    <ui:Button name="campaign-chapter-1" class="chapter-button red">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 1" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-2" class="chapter-button red">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 2" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-3" class="chapter-button red">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 3" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-4" class="chapter-button red">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 4" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-5" class="chapter-button red">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 5" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-6" class="chapter-button red">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 6" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-7" class="chapter-button good">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 7" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-8" class="chapter-button good">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 8" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-9" class="chapter-button good">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 9" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-10" class="chapter-button bad">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 10" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-11" class="chapter-button bad">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 11" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-chapter-12" class="chapter-button bad">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:VisualElement class="chapter-symbol" picking-mode="Ignore" />
+        <ui:Label text="Chapter 12" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="campaign-back" class="artwork-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:VisualElement name="campaign-continue-hover">
+        <ui:Button name="campaign-continue" class="artwork-button">
+            <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+            <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        </ui:Button>
+    </ui:VisualElement>
+    <ui:Label name="campaign-title" picking-mode="Ignore" />
+</ui:UXML>

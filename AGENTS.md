@@ -17,7 +17,16 @@ The game flow starts with a UnityGame object just named "Main" in a default scen
 ### Main Menu
 The main menu is a UI that has videos looping in the background. There are two video player UIs going on here. The most background element is a video playing the "MainMenuBackground" video (in a loop). Layered on top of it will be another video player that players "MainMenuCurtainOpen". Once that "MainMenuCurtainOpen" is _finished_ then "MainMenuCurtainIdle" plays in its plays in loop.
 
-Layered on top of both of these videos will be the actual interactable UI layer done later.
+Layered on top of both videos is the UI Toolkit menu. Play opens the war/peace selection page; its lower-left arrow returns to the title. Path of Peace opens `PathOfPeaceSelection`, with Sim Campaign, Free Build and Custom Maps previews/descriptions; its Back arrow returns to the chooser. Path of War opens `PathOfWarSelection`, with Campaign, Kingmaker, Siege, Conquest Trail and Custom previews/descriptions and the same Back navigation. Page controllers are organized under `Assets/Code/UI/Screens`, with matching UXML/USS under `Assets/Code/UI/Resources/OpenSH2/Frontend/Screens`. The router creates pages lazily and shares the centered 4:3 viewport and stone borders. Frontend navigation stays separate from map loading and simulation.
 
 ## S2M Binary File Format
 The format is currently being documented and notes on how .s2m files are structured is in the `Notes/FileFormats/S2M` directory.
+
+## Local User Data
+Versioned per-OS-user configuration/progress is in `Assets/Code/UserData`, stored at
+`%LOCALAPPDATA%/OpenSH2/profile.json` separately from save files. Campaign selection
+is under `UI/Screens/CampaignSelection` with matching UXML/USS; War's Campaign button
+opens it. The temporary `CampaignProgress.CompleteAllForLocalTesting` override makes
+all chapters completed for current local testing without changing stored progress.
+Record attempted/completed missions through `UserProfileStore` when actual mission
+startup/victory is implemented. Chapter selection alone must not change progress.

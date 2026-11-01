@@ -1,6 +1,11 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="Frontend.uss" />
-    <ui:Template name="MainMenu" src="MainMenu.uxml" />
+    <Style src="Screens/Shared/ScreenControls.uss" />
+    <ui:Template name="MainMenu" src="Screens/MainMenu/MainMenu.uxml" />
+    <ui:Template name="WarPeace" src="Screens/WarPeace/WarPeace.uxml" />
+    <ui:Template name="PathOfPeaceSelection" src="Screens/PathOfPeaceSelection/PathOfPeaceSelection.uxml" />
+    <ui:Template name="PathOfWarSelection" src="Screens/PathOfWarSelection/PathOfWarSelection.uxml" />
+    <ui:Template name="CampaignSelection" src="Screens/CampaignSelection/CampaignSelection.uxml" />
     <ui:VisualElement name="frontend" class="fullscreen">
         <ui:VisualElement name="loading-screen" class="fullscreen centered">
             <ui:Label text="Preparing Stronghold 2 assets…" class="loading-label" />
@@ -8,8 +13,26 @@
         <ui:VisualElement name="intro-screen" class="fullscreen hidden">
             <ui:Image name="intro-video" class="fullscreen" picking-mode="Ignore" />
         </ui:VisualElement>
-        <ui:VisualElement name="menu-screen" class="fullscreen hidden">
-            <ui:Instance template="MainMenu" class="fullscreen" />
+        <ui:VisualElement name="screen-host" class="fullscreen hidden">
+            <ui:VisualElement name="left-sidebar" class="sidebar left" picking-mode="Ignore" />
+            <ui:VisualElement name="right-sidebar" class="sidebar right" picking-mode="Ignore" />
+            <ui:VisualElement name="screen-frame">
+                <ui:VisualElement name="menu-screen" class="fullscreen hidden">
+                    <ui:Instance template="MainMenu" class="fullscreen" />
+                </ui:VisualElement>
+                <ui:VisualElement name="war-peace-screen" class="fullscreen hidden" focusable="true" tabindex="-1">
+                    <ui:Instance template="WarPeace" class="fullscreen" />
+                </ui:VisualElement>
+                <ui:VisualElement name="path-of-peace-selection-screen" class="fullscreen hidden" focusable="true" tabindex="-1">
+                    <ui:Instance template="PathOfPeaceSelection" class="fullscreen" />
+                </ui:VisualElement>
+                <ui:VisualElement name="path-of-war-selection-screen" class="fullscreen hidden" focusable="true" tabindex="-1">
+                    <ui:Instance template="PathOfWarSelection" class="fullscreen" />
+                </ui:VisualElement>
+                <ui:VisualElement name="campaign-selection-screen" class="fullscreen hidden" focusable="true" tabindex="-1">
+                    <ui:Instance template="CampaignSelection" class="fullscreen" />
+                </ui:VisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

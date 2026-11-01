@@ -1,0 +1,35 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="PathOfWarSelection.uss" />
+    <ui:VisualElement name="war-selection-background" class="fullscreen" picking-mode="Ignore" />
+    <ui:Button name="war-campaign" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Campaign" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="war-kingmaker" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Kingmaker" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="war-siege" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Siege" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="war-conquest-trail" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Conquest Trail" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="war-custom" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Custom" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Image name="war-selection-preview" picking-mode="Ignore" />
+    <ui:Button name="war-previous-menu" class="artwork-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Label name="war-selection-description" picking-mode="Ignore" />
+</ui:UXML>

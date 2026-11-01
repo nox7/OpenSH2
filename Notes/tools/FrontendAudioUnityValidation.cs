@@ -19,6 +19,7 @@ public static class FrontendAudioUnityValidation
   static int stage,frame;
   static double started;
   static object logo,movie,early,menu;
+  static object[] menuPlayback;
   static MonoBehaviour controller;
   static RenderTexture target;
   static float logoOutput,movieOutput;
@@ -160,11 +161,12 @@ public static class FrontendAudioUnityValidation
         Check(Field(menu,"opening")==null,"Curtain handoff failed.");
         var curtain=(Texture2D)root.Q<Image>("curtain-idle").image;
         Check(curtain.width==381&&curtain.GetPixels32().Any(p=>p.a==0)&&curtain.GetPixels32().Any(p=>p.a>0&&p.a<255),"Curtain alpha or width lost.");
+        menuPlayback=new[]{Field(menu,"background"),Field(menu,"idle")};
         controller.enabled=false;frame=Time.frameCount;stage=5;
       }
       else if(stage==5&&Time.frameCount>frame+3)
       {
-        Released(Field(menu,"background"));Released(Field(menu,"idle"));
+        Released(menuPlayback[0]);Released(menuPlayback[1]);
         UnityEngine.Object.Destroy(controller);
         // Replay the frontend to exercise skipping before video/audio preparation has completed.
         var gameType=typeof(Main).Assembly.GetType("Assets.Code.Game");

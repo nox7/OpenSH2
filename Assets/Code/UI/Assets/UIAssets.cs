@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Assets.Code.UI.Frontend
+namespace Assets.Code.UI.Assets
 {
   class UIAssets
   {
@@ -12,6 +12,6 @@ namespace Assets.Code.UI.Frontend
     public static string LogoTexture = Constants.GamePath + "/ui/frontend/frontend_logo.tga";
     public static string FancyButtonTexture = Constants.GamePath + "/ui/frontend/frontend_button_fancy.tga";
     public static string FancyButtonHighlightTexture = Constants.GamePath + "/ui/frontend/frontend_button_fancy_highlight.tga";
-    public static string FancyButtonHighlightTexture2 = Constants.GamePath + "/ui/frontend/frontend_button_fancy_highlight_green.tga";
+    public static string FancyButtonGreenHighlightTexture = Constants.GamePath + "/ui/frontend/frontend_button_fancy_highlight_green.tga";
   }
 }

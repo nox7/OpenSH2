@@ -1,0 +1,35 @@
+/* Original menu coordinates are authored at 1024 x 768. The controller fits this
+   frame uniformly inside the viewport; layout stays here rather than in C#. */
+#background-video { position: absolute; right: 0; top: 0; width: 768px; height: 768px; }
+.curtain { position: absolute; left: 0; top: 0; width: 381px; height: 768px; }
+#menu-column { position: absolute; left: 0; top: 0; width: 381px; height: 768px; }
+/* The logo has transparent padding: native dimensions reproduce the original visible size. */
+#logo { position: absolute; left: -64px; top: 44px; width: 512px; height: 128px; }
+.menu-button {
+    position: absolute; left: 8px; width: 332px; height: 81px;
+    margin: 0; padding: 0; border-width: 0; border-radius: 0;
+    background-color: transparent; background-size: 100% 100%;
+    align-items: center; justify-content: center;
+    color: rgb(255, 244, 214); font-size: 18px; -unity-font-style: normal;
+}
+#play { top: 133px; }
+#multiplayer { top: 218px; }
+#map-editor { top: 303px; }
+#options { top: 388px; }
+#load { top: 473px; }
+/* Exit sits near the banner point, with a larger gap after Load. */
+#exit { top: 611px; }
+#build-version {
+    position: absolute; right: 24px; bottom: 12px;
+    margin: 0; padding: 0; font-size: 12px; color: white;
+    -unity-text-align: lower-right;
+}
+.menu-button:hover { background-color: transparent; }
+.menu-button:active { background-color: transparent; }
+.menu-button:disabled { opacity: 1; }
+.menu-button > Label { margin: 0; padding: 0; -unity-text-align: middle-center; }
+.button-highlight {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background-size: 100% 100%; opacity: 0;
+}
+.menu-button:hover > .button-highlight, .menu-button:focus > .button-highlight { opacity: 1; }

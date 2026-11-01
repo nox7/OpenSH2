@@ -1,29 +1,35 @@
 using System;
+using Assets.Code.UI.Assets;
 using Assets.Code.UI.Video;
 using Assets.Code.UI.Video.EmbeddedFFmpeg;
 using Assets.Code.Video;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Assets.Code.UI.Frontend
+namespace Assets.Code.UI.Screens.MainMenu
 {
   /// <summary>Binds original game artwork and video playback to the menu's declarative layout.</summary>
-  internal sealed class MainMenuView : IDisposable
+  internal sealed class MainMenuScreen : IFrontendScreen
   {
     private readonly VisualElement root;
-    private readonly VisualElement frame;
+    private readonly Action play;
     private readonly RuntimeUiAssets assets = new();
     private IVideoSurface background;
     private IVideoSurface opening;
     private IVideoSurface idle;
+    private readonly Font font;
     private bool shown;
     private bool idleRequested;
 
-    public MainMenuView(VisualElement root)
+    public MainMenuScreen(VisualElement root, Action play)
     {
       this.root = root;
-      frame = root.Q("menu-frame");
-      root.RegisterCallback<GeometryChangedEvent>(Resize);
+      this.play = play;
+      root.Q<Label>("build-version").text = $"v{Constants.Version} OpenSH2";
+      font = Font.CreateDynamicFontFromOSFont(new[] { "Georgia", "Times New Roman" }, 18);
+      if (font != null) root.style.unityFontDefinition = FontDefinition.FromFont(font);
+      root.Q<Button>("play").clicked += play;
+      root.Q<Button>("exit").clicked += Exit;
     }
 
     public void Show()
@@ -31,20 +37,17 @@ namespace Assets.Code.UI.Frontend
       if (shown) return;
       shown = true;
       root.Q<Image>("logo").image = assets.Load(UIAssets.LogoTexture);
-      SetBackground(root.Q("left-sidebar"), UIAssets.StoneSidebar2KTexture);
-      SetBackground(root.Q("right-sidebar"), UIAssets.StoneSidebar2KTexture);
       foreach (var button in root.Query<Button>().ToList())
       {
         SetBackground(button, UIAssets.FancyButtonTexture);
         SetBackground(button.Q(className: "button-highlight"), UIAssets.FancyButtonHighlightTexture);
       }
-      root.Q<Button>("exit").clicked += Exit;
+      root.style.display = DisplayStyle.Flex;
       background = Video("background-video", VideoFilePaths.MainMenuBackground, true);
       opening = Video("curtain-opening", VideoFilePaths.MainMenuCurtainOpen, false);
       // Decode/prepare idle in advance, but reveal it only after it produces its first frame.
       idle = Video("curtain-idle", VideoFilePaths.MainMenuCurtainIdle, true, false);
       idle.FirstFrame += HideOpening;
-      ResizeFrame(root.contentRect.width, root.contentRect.height);
     }
 
     private IVideoSurface Video(string element, string path, bool loop, bool autoplay = true)
@@ -78,20 +81,6 @@ namespace Assets.Code.UI.Frontend
       opening = null;
     }
 
-    private void Resize(GeometryChangedEvent evt) => ResizeFrame(evt.newRect.width, evt.newRect.height);
-
-    private void ResizeFrame(float width, float height)
-    {
-      if (width <= 0 || height <= 0) return;
-      float scale = Mathf.Min(width / 1024f, height / 768f);
-      frame.style.scale = new Scale(new Vector3(scale, scale, 1));
-      frame.style.left = (width - 1024f * scale) / 2f;
-      frame.style.top = (height - 768f * scale) / 2f;
-      float gutter = Mathf.Max(0, (width - 1024f * scale) / 2f);
-      root.Q("left-sidebar").style.width = gutter;
-      root.Q("right-sidebar").style.width = gutter;
-    }
-
     private static void Exit()
     {
 #if UNITY_EDITOR
@@ -101,16 +90,25 @@ namespace Assets.Code.UI.Frontend
 #endif
     }
 
-    public void Dispose()
+    public void Hide()
     {
-      root.UnregisterCallback<GeometryChangedEvent>(Resize);
-      root.Q<Button>("exit").clicked -= Exit;
+      root.style.display = DisplayStyle.None;
       background?.Dispose();
       opening?.Dispose();
       if (idle != null) idle.FirstFrame -= HideOpening;
       idle?.Dispose();
-      assets.Dispose();
+      background = opening = idle = null;
+      idleRequested = false;
       shown = false;
+    }
+
+    public void Dispose()
+    {
+      Hide();
+      root.Q<Button>("play").clicked -= play;
+      root.Q<Button>("exit").clicked -= Exit;
+      assets.Dispose();
+      if (font != null) UnityEngine.Object.Destroy(font);
     }
   }
 }

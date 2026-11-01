@@ -1,14 +1,12 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="MainMenu.uss" />
-    <ui:VisualElement name="left-sidebar" class="sidebar left" picking-mode="Ignore" />
-    <ui:VisualElement name="right-sidebar" class="sidebar right" picking-mode="Ignore" />
-    <ui:VisualElement name="menu-frame">
+    <ui:VisualElement name="menu-frame" class="fullscreen">
         <ui:Image name="background-video" picking-mode="Ignore" />
         <ui:Image name="curtain-opening" class="curtain" picking-mode="Ignore" />
         <ui:Image name="curtain-idle" class="curtain" picking-mode="Ignore" />
         <ui:VisualElement name="menu-column">
             <ui:Image name="logo" picking-mode="Ignore" />
-            <ui:Button name="play" class="menu-button" enabled="false">
+            <ui:Button name="play" class="menu-button">
                 <ui:VisualElement class="button-highlight" picking-mode="Ignore" />
                 <ui:Label text="Play" picking-mode="Ignore" />
             </ui:Button>
@@ -33,5 +31,6 @@
                 <ui:Label text="Exit" picking-mode="Ignore" />
             </ui:Button>
         </ui:VisualElement>
+        <ui:Label name="build-version" picking-mode="Ignore" />
     </ui:VisualElement>
 </ui:UXML>

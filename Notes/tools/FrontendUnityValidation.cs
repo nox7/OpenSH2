@@ -88,7 +88,7 @@ public static class FrontendValidation
                 if (root.Q<Image>("background-video").image == null || root.Q<Image>("curtain-idle").image == null) return;
                 if (root.Q<Image>("curtain-opening").image != null) throw new Exception("Opening was not released after idle began.");
                 if (root.Q<Image>("logo").image == null) throw new Exception("Original game logo missing.");
-                if (root.Q<Button>("play").enabledSelf || !root.Q<Button>("exit").enabledSelf) throw new Exception("Menu action availability incorrect.");
+                if (!root.Q<Button>("play").enabledSelf || !root.Q<Button>("exit").enabledSelf) throw new Exception("Menu action availability incorrect.");
                 var players = UnityEngine.Object.FindObjectsByType<VideoPlayer>(FindObjectsSortMode.None);
                 if (players.Length != 0) throw new Exception("Unexpected Unity VideoPlayer in embedded UI.");
                 var main = UnityEngine.Object.FindAnyObjectByType<Main>();
@@ -126,7 +126,7 @@ public static class FrontendValidation
                     frame.xMin < bounds.xMin - 1 || frame.yMin < bounds.yMin - 1 ||
                     frame.xMax > bounds.xMax + 1 || frame.yMax > bounds.yMax + 1)
                     throw new Exception("Menu frame does not fit viewport " + Sizes[layoutIndex] + ": " + frame + " within " + bounds);
-                foreach(var button in root.Query<Button>().ToList())
+                foreach(var button in root.Q("menu-screen").Query<Button>().ToList())
                     if (!frame.Contains(button.worldBound.min) || !frame.Contains(button.worldBound.max))
                         throw new Exception("Menu button overflows frame: " + button.name);
                 Debug.Log("VALIDATION: reference frame and buttons fit viewport " + Sizes[layoutIndex]);

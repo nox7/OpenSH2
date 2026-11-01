@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="PathOfPeaceSelection.uss" />
+    <ui:VisualElement name="peace-selection-background" class="fullscreen" picking-mode="Ignore" />
+    <ui:Button name="peace-sim-campaign" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Sim Campaign" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="peace-free-build" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Free Build" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="peace-custom-maps" class="mode-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+        <ui:Label text="Custom Maps" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Image name="peace-selection-preview" picking-mode="Ignore" />
+    <ui:Button name="peace-previous-menu" class="artwork-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Label name="peace-selection-description" picking-mode="Ignore" />
+</ui:UXML>

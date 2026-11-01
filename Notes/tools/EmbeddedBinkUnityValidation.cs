@@ -18,7 +18,7 @@ public static class EmbeddedBinkUnityValidation
   static int stage, frame;
   static double started;
   static RenderTexture target;
-  static object menu, background, idle, firstIntro;
+  static object menu, background, idle, firstIntro, pausedRouter;
   static MonoBehaviour controller;
   static Texture2D curtain;
   static Color32[] initialRender;
@@ -137,7 +137,8 @@ public static class EmbeddedBinkUnityValidation
         UnityEngine.Object.DestroyImmediate(rendered);
         File.WriteAllText(Output + "/loops.txt",$"Background completed loops: {Loops(background)}; curtain completed loops: {Loops(idle)}");
         // Pause view ticking without disabling/disposal, then render alpha against a known color.
-        menuField.SetValue(controller,null);
+        pausedRouter=Field(controller,"screenRouter");
+        controller.GetType().GetField("screenRouter",Private).SetValue(controller,null);
         root.Q("menu-column").style.display = DisplayStyle.None;
         root.Q("background-video").style.display = DisplayStyle.None;
         root.Q("menu-frame").style.backgroundColor = Color.magenta;
@@ -170,7 +171,7 @@ public static class EmbeddedBinkUnityValidation
         Check(transparent>100 && opaque>100,"Insufficient GPU alpha samples.");
         File.WriteAllText(Output+"/alpha.txt",$"GPU samples: {transparent} transparent, {opaque} opaque; partial alpha retained in texture.");
         UnityEngine.Object.DestroyImmediate(capture);
-        menuField.SetValue(controller,menu);
+        controller.GetType().GetField("screenRouter",Private).SetValue(controller,pausedRouter);
         controller.enabled=false;
         frame=Time.frameCount;
         stage=5;

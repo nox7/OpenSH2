@@ -3,3 +3,10 @@
 .centered { align-items: center; justify-content: center; }
 .hidden { display: none; }
 .loading-label { font-size: 24px; -unity-text-align: middle-center; }
+#screen-frame {
+    position: absolute; width: 1024px; height: 768px;
+    transform-origin: 0 0; overflow: hidden; background-color: black;
+}
+.sidebar { position: absolute; top: 0; bottom: 0; background-size: cover; }
+.sidebar.left { left: 0; }
+.sidebar.right { right: 0; }

@@ -1,0 +1,12 @@
+/* Coordinates match the original 1024x768 JPEG. Both states include the gold frames. */
+#war-peace-background { background-size: 100% 100%; }
+.path-button { top: 106px; width: 363px; height: 407px; }
+#peace { left: 114px; }
+#war { left: 530px; }
+#previous-menu { left: 32px; top: 658px; width: 83px; height: 83px; }
+#tutorial { left: 860px; top: 602px; width: 137px; height: 153px; }
+#path-description {
+    position: absolute; left: 181px; top: 594px; width: 650px; height: 102px;
+    margin: 0; padding: 0; white-space: normal;
+    font-size: 16px; color: rgb(255, 244, 214); -unity-text-align: upper-left;
+}

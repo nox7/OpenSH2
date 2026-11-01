@@ -1,0 +1,20 @@
+#peace-selection-background { background-size: 100% 100%; }
+#path-of-peace-selection-screen .mode-button {
+    /* Keep the source TGA's 81px height, including its transparent top/bottom padding. */
+    left: 82px; width: 430px; height: 81px;
+    align-items: center; justify-content: center;
+    color: rgb(255, 244, 214); font-size: 25px; -unity-font-style: normal;
+}
+#path-of-peace-selection-screen .mode-button > Label {
+    margin: 0; padding: 0; -unity-text-align: middle-center;
+}
+#peace-sim-campaign { top: 140px; }
+#peace-free-build { top: 224px; }
+#peace-custom-maps { top: 302px; }
+#peace-selection-preview { position: absolute; left: 550px; top: 98px; width: 366px; height: 367px; display: none; }
+#peace-previous-menu { left: 32px; top: 658px; width: 83px; height: 83px; }
+#peace-selection-description {
+    position: absolute; left: 181px; top: 594px; width: 650px; height: 102px;
+    margin: 0; padding: 0; white-space: normal;
+    font-size: 18px; color: rgb(255, 244, 214); -unity-text-align: upper-left;
+}

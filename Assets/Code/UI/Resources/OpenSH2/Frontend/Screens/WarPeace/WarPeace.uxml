@@ -1,0 +1,21 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="WarPeace.uss" />
+    <ui:VisualElement name="war-peace-background" class="fullscreen" picking-mode="Ignore" />
+    <ui:Button name="peace" class="path-button artwork-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="war" class="path-button artwork-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="previous-menu" class="artwork-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Button name="tutorial" class="artwork-button">
+        <ui:VisualElement class="normal-art" picking-mode="Ignore" />
+        <ui:VisualElement class="highlight-art" picking-mode="Ignore" />
+    </ui:Button>
+    <ui:Label name="path-description" text="Choose Your Path" picking-mode="Ignore" />
+</ui:UXML>

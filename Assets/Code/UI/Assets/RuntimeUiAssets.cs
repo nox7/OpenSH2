@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Assets.Code.UI.Frontend
+namespace Assets.Code.UI.Assets
 {
   /// <summary>Loads installed game artwork without importing or distributing it with the port.</summary>
   internal sealed class RuntimeUiAssets : IDisposable
@@ -18,6 +18,8 @@ namespace Assets.Code.UI.Frontend
       {
         if (Path.GetExtension(path).Equals(".tga", StringComparison.OrdinalIgnoreCase))
           texture = TGALoader.LoadTGA(path);
+        else if (Path.GetExtension(path).Equals(".bmp", StringComparison.OrdinalIgnoreCase))
+          texture = BmpTextureLoader.Load(path);
         else
         {
           texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);

@@ -1,4 +1,12 @@
 using System.Collections;
+using Assets.Code.UserData;
+using Assets.Code.UI.Screens.CampaignSelection;
+using Assets.Code.UI.Screens;
+using Assets.Code.UI.Screens.MainMenu;
+using Assets.Code.UI.Screens.PathOfPeaceSelection;
+using Assets.Code.UI.Screens.PathOfWarSelection;
+using Assets.Code.UI.Screens.Shared;
+using Assets.Code.UI.Screens.WarPeace;
 using Assets.Code.UI.Video;
 using Assets.Code.UI.Video.EmbeddedFFmpeg;
 using Assets.Code.Video;
@@ -15,9 +23,11 @@ namespace Assets.Code.UI.Frontend
     private PanelSettings panel;
     private VisualElement loading;
     private VisualElement intro;
-    private VisualElement menu;
+    private VisualElement screenHost;
     private IVideoSurface introVideo;
-    private MainMenuView mainMenu;
+    private MainMenuScreen mainMenu;
+    private FrontendViewport viewport;
+    private FrontendScreenRouter screenRouter;
     private bool skipRequested;
 
     internal void Begin(Game game)
@@ -38,9 +48,23 @@ namespace Assets.Code.UI.Frontend
       root.style.unityFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
       loading = root.Q("loading-screen");
       intro = root.Q("intro-screen");
-      menu = root.Q("menu-screen");
+      screenHost = root.Q("screen-host");
       intro.RegisterCallback<PointerDownEvent>(OnIntroPointerDown);
-      mainMenu = new MainMenuView(menu);
+      viewport = new FrontendViewport(screenHost);
+      screenRouter = new FrontendScreenRouter();
+      screenRouter.Register(FrontendScreenId.MainMenu, () => mainMenu = new MainMenuScreen(root.Q("menu-screen"),
+        () => screenRouter.Navigate(FrontendScreenId.WarPeace)));
+      screenRouter.Register(FrontendScreenId.WarPeace, () => new WarPeaceScreen(root.Q("war-peace-screen"),
+        () => screenRouter.Navigate(FrontendScreenId.MainMenu),
+        () => screenRouter.Navigate(FrontendScreenId.PathOfPeaceSelection),
+        () => screenRouter.Navigate(FrontendScreenId.PathOfWarSelection)));
+      screenRouter.Register(FrontendScreenId.PathOfPeaceSelection, () => new PathOfPeaceSelectionScreen(root.Q("path-of-peace-selection-screen"),
+        () => screenRouter.Navigate(FrontendScreenId.WarPeace)));
+      screenRouter.Register(FrontendScreenId.PathOfWarSelection, () => new PathOfWarSelectionScreen(root.Q("path-of-war-selection-screen"),
+        () => screenRouter.Navigate(FrontendScreenId.WarPeace),
+        () => screenRouter.Navigate(FrontendScreenId.CampaignSelection)));
+      screenRouter.Register(FrontendScreenId.CampaignSelection, () => new CampaignSelectionScreen(root.Q("campaign-selection-screen"),
+        () => screenRouter.Navigate(FrontendScreenId.PathOfWarSelection), new UserProfileStore()));
       StartCoroutine(Startup());
     }
 
@@ -57,8 +81,8 @@ namespace Assets.Code.UI.Frontend
       yield return PlayIntro(VideoFilePaths.Intro);
 
       game.State = GameState.MAIN_MENU;
-      Show(menu);
-      mainMenu.Show();
+      Show(screenHost);
+      screenRouter.Navigate(FrontendScreenId.MainMenu);
     }
 
     private IEnumerator PlayIntro(string originalPath)
@@ -84,13 +108,13 @@ namespace Assets.Code.UI.Frontend
     {
       loading.style.display = loading == screen ? DisplayStyle.Flex : DisplayStyle.None;
       intro.style.display = intro == screen ? DisplayStyle.Flex : DisplayStyle.None;
-      menu.style.display = menu == screen ? DisplayStyle.Flex : DisplayStyle.None;
+      screenHost.style.display = screenHost == screen ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     private void Update()
     {
       introVideo?.Tick();
-      mainMenu?.Tick();
+      screenRouter?.Tick();
     }
 
     private void OnDisable()
@@ -98,8 +122,10 @@ namespace Assets.Code.UI.Frontend
       StopAllCoroutines();
       introVideo?.Dispose();
       introVideo = null;
-      mainMenu?.Dispose();
+      screenRouter?.Dispose();
+      screenRouter = null;
       mainMenu = null;
+      viewport?.Dispose();
       intro?.UnregisterCallback<PointerDownEvent>(OnIntroPointerDown);
       if (document != null) Destroy(document);
       if (panel != null) Destroy(panel);

@@ -1,0 +1,39 @@
+#campaign-background { background-size: 100% 100%; }
+.chapter-button {
+    position: absolute; left: 760px; width: 232px; height: 44px;
+    margin: 0; padding: 0; border-width: 0; border-radius: 0;
+    background-color: transparent; color: black;
+    font-size: 18px; -unity-font-style: normal;
+    align-items: center; justify-content: center; overflow: hidden;
+}
+/* The 251px source includes a right-side strip; the original displays only its first 232px. */
+.chapter-button > .normal-art, .chapter-button > .highlight-art { width: 251px; right: auto; }
+.chapter-button:hover, .chapter-button:focus, .chapter-button:active { background-color: transparent; }
+.chapter-button:hover > .highlight-art, .chapter-button:focus > .highlight-art { opacity: 1; }
+.chapter-button.selected.red { color: red; }
+.chapter-button.selected.good { color: blue; }
+.chapter-button.selected.bad { color: green; }
+.chapter-button > Label { margin: 0; padding: 0; -unity-text-align: middle-center; }
+.chapter-symbol { position: absolute; left: 0; top: 0; width: 32px; height: 32px; background-size: 100% 100%; }
+#campaign-back { left: 32px; top: 658px; width: 83px; height: 83px; }
+#campaign-continue-hover { position: absolute; left: 608px; top: 658px; width: 83px; height: 83px; }
+#campaign-continue { left: 0; top: 0; width: 83px; height: 83px; }
+/* Keep the original forward artwork visible while mission loading is still pending. */
+#campaign-continue:disabled { opacity: 1; }
+#campaign-title {
+    position: absolute; left: 194px; top: 668px; width: 325px; height: 68px;
+    margin: 0; padding: 0; white-space: normal;
+    font-size: 18px; color: rgb(255,244,214); -unity-text-align: upper-left;
+}
+#campaign-chapter-1 { top: 32px; }
+#campaign-chapter-2 { top: 82px; }
+#campaign-chapter-3 { top: 132px; }
+#campaign-chapter-4 { top: 182px; }
+#campaign-chapter-5 { top: 232px; }
+#campaign-chapter-6 { top: 282px; }
+#campaign-chapter-7 { top: 382px; }
+#campaign-chapter-8 { top: 432px; }
+#campaign-chapter-9 { top: 482px; }
+#campaign-chapter-10 { top: 582px; }
+#campaign-chapter-11 { top: 632px; }
+#campaign-chapter-12 { top: 682px; }

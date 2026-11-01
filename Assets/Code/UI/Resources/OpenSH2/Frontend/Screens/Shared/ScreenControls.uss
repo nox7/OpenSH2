@@ -1,0 +1,14 @@
+/* Shared image-button states. Artwork children ignore picking so each control has one hover region. */
+.artwork-button, .mode-button {
+    position: absolute; margin: 0; padding: 0;
+    border-width: 0; border-radius: 0; background-color: transparent;
+}
+.artwork-button:hover, .artwork-button:focus, .artwork-button:active,
+.mode-button:hover, .mode-button:focus, .mode-button:active { background-color: transparent; }
+.normal-art, .highlight-art {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background-size: 100% 100%;
+}
+.highlight-art { opacity: 0; }
+.artwork-button:hover > .highlight-art, .artwork-button:focus > .highlight-art,
+.mode-button:hover > .highlight-art, .mode-button:focus > .highlight-art { opacity: 1; }
