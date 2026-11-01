@@ -276,6 +276,8 @@ public class Main : MonoBehaviour
       var navigation = S2MNavigationBuilder.Build(mapFile, populationSettings, buildingData, dynamicFoliage:true);
       woodcuttingSettings.UnitScale=actorRenderSettings.ModelScale*unitModelScale/terrainSettings.HorizontalCellSize;
       var harvestResources=vegetation.GetComponent<S2MFoliageHarvestView>().Initialize(navigation,woodcuttingSettings);
+      navigation.PrepareConnectivity();
+      RecordStage("navigation connectivity");
       var recruitmentPlans = S2MRecruitmentPlan.Create(mapFile, navigation, populationSettings);
       var laborPlan = S2MLaborPlan.Create(mapFile,navigation,quarrySettings,oxHaulingSettings,ironMineSettings);
       var inventory=S2MStoragePlan.Create(mapFile,storageSettings,stockpileDeliverySettings);
@@ -308,16 +310,16 @@ public class Main : MonoBehaviour
       {
         var presentation=new S2MAiBuildingPresentation(mapFile,gameInstallPath,mapWorld.transform,terrainSettings,buildingRenderSettings);
         estateConstruction=new S2MEstateGranaryConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateGranarySettings);
-        estateConstruction.PreparePresentation=presentation.Prepare;
+        estateConstruction.PreparePresentation=presentation.BeginPreparation;
         estateConstruction.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
         estateConstruction.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} granary construction failed: {error.Message}");
         estateHousing=new S2MEstateHovelConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateHovelSettings);
-        estateHousing.PreparePresentation=presentation.Prepare;
+        estateHousing.PreparePresentation=presentation.BeginPreparation;
         estateHousing.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
         estateHousing.BuildingCompleted+=populationController.AuthorizeHovel;
         estateHousing.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} hovel construction failed: {error.Message}");
         estateSawpits=new S2MEstateSawpitConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateSawpitSettings,foliage:harvestResources);
-        estateSawpits.PreparePresentation=presentation.Prepare;
+        estateSawpits.PreparePresentation=presentation.BeginPreparation;
         estateSawpits.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
         estateSawpits.PrepareLabor=p=>populationController.PrepareSawpit(p,harvestResources,woodcuttingSettings,inventory);
         estateSawpits.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} sawpit construction failed: {error.Message}");

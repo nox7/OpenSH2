@@ -22,7 +22,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public IReadOnlyList<PeasantRecruitment> Kingdoms => kingdoms;
     public IReadOnlyList<PeasantRecruitment> Territories => kingdoms;
     private NavigationGrid navigation;
-    private bool[] recruitmentSeats;
+    private bool[] recruitmentSeats,occupiedWorkerCells;
+    private readonly List<int> occupiedWorkerIndices=new();
     private readonly HashSet<int> authorizedHovels=new();
     public LaborManager Labor { get; private set; }
     private readonly List<PeasantRecruitment> kingdoms = new();
@@ -46,7 +47,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       if(data.Issues.Count>0)throw new InvalidOperationException("Recruitment animation assets failed: "+string.Join("; ",data.Issues));
       presentationData=data;this.navigation=navigation;this.map=map; this.terrain=terrain; this.clock=clock; buildingEquipmentScale=terrain.HorizontalCellSize/(S2MBuildingRenderer.ModelUnitsPerCell*renderSettings.ModelUnitScale); scale=renderSettings.ModelScale*unitScale;
       this.settings=settings;
-      recruitmentSeats=new bool[map.MapSize*map.MapSize];
+      recruitmentSeats=new bool[map.MapSize*map.MapSize];occupiedWorkerCells=new bool[recruitmentSeats.Length];
       foreach(var plan in plans)foreach(var p in plan)
       {
         int x=(int)Math.Floor(p.Seat.X),z=(int)Math.Floor(p.Seat.Z);
@@ -122,7 +123,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
     {
       var footprint=S2MBuildingFootprint.FromPlacement(building);
       for(int z=footprint.MinZ;z<footprint.MaxZExclusive;z++)for(int x=footprint.MinX;x<footprint.MaxXExclusive;x++)
-        if(x>=0 && z>=0 && x<map.MapSize && z<map.MapSize && recruitmentSeats[z*map.MapSize+x])return false;
+        if(x>=0 && z>=0 && x<map.MapSize && z<map.MapSize && (recruitmentSeats[z*map.MapSize+x] || occupiedWorkerCells[z*map.MapSize+x]))return false;
       return true;
     }
     public void AuthorizeHovel(BuildingPlacement building)
@@ -141,15 +142,19 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public void Advance(float seconds)
     {
       if(Labor!=null)Labor.Advance(seconds);
+      foreach(int cell in occupiedWorkerIndices)occupiedWorkerCells[cell]=false;occupiedWorkerIndices.Clear();
       foreach(var kingdom in kingdoms)
       {
         if(Labor==null)kingdom.Advance(seconds);
         foreach(var p in kingdom.Peasants)
         {
           if(p.State==PeasantState.Unspawned || p.State==PeasantState.Removed)continue;
+          int px=(int)Math.Floor(p.Position.X),pz=(int)Math.Floor(p.Position.Z);
+          if(px>=0 && pz>=0 && px<map.MapSize && pz<map.MapSize)
+          {int cell=pz*map.MapSize+px;if(!occupiedWorkerCells[cell]){occupiedWorkerCells[cell]=true;occupiedWorkerIndices.Add(cell);}}
           var presentation=p.Job==null ? null : presentations.Get(p.Job.Role);
           string variant=presentation?.Variant(p.Worker);
-          float rate=presentation?.AnimationRate(p.Worker,settings.WalkSpeedCellsPerSecond)??1;
+          float rate=p.Worker.WaitingForPath?0:presentation?.AnimationRate(p.Worker,settings.WalkSpeedCellsPerSecond)??1;
           var signature=(p.Job?.Role??default,variant,presentation?.AnimationRevision(p.Worker)??0,rate);
           bool workChanged=presentation!=null && (!shownWork.TryGetValue(p.Id,out var previousWork) || !previousWork.Equals(signature));
           if(!shown.TryGetValue(p.Id,out var previous) || previous!=p.State || workChanged)

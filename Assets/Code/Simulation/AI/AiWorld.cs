@@ -83,12 +83,19 @@ namespace Assets.Code.Simulation.AI
     {
         private readonly Dictionary<int,AiTerritory> territories=new();
         private readonly Dictionary<int,AiBuilding> buildings=new();
+        private int nextRuntimeBuildingId=int.MaxValue;
         private readonly Dictionary<AiFaction,HashSet<int>> factions=new();
         private readonly SortedSet<(double At,int Receiver,int Target,int Source)> expiry=new();
         public double Now { get; private set; }
         public IReadOnlyDictionary<int,AiTerritory> Territories { get; }
         public event Action<int,AiChange> Changed;
         public AiWorld()=>Territories=new ReadOnlyDictionary<int,AiTerritory>(territories);
+        /// <summary>One allocation sequence for all concurrently prepared policies, including unpublished buildings.</summary>
+        public int AllocateBuildingId(ISet<int> occupied)
+        {
+            while(buildings.ContainsKey(nextRuntimeBuildingId) || occupied.Contains(nextRuntimeBuildingId))nextRuntimeBuildingId--;
+            return nextRuntimeBuildingId--;
+        }
         public bool TryGet(int id,out AiTerritory territory)=>territories.TryGetValue(id,out territory);
         public bool TryGetBuilding(int id,out AiBuilding building)=>buildings.TryGetValue(id,out building);
         public void Add(AiTerritory territory)

@@ -100,7 +100,7 @@ namespace Assets.Code.Simulation.Labor
     }
     private bool Travel(WorkerComponent worker,ref float remaining)
     {
-      if(!routeReady || navRevision!=Network.Navigation.Revision && (!worker.Movement.CanContinue(Network.Navigation) || !Ox.CanContinue(Network.Navigation)))
+      if(!routeReady || navRevision!=Network.Navigation.Revision && ((worker.Movement.RouteMayHaveChanged(Network.Navigation,navRevision) && !worker.Movement.CanContinue(Network.Navigation)) || (Ox.RouteMayHaveChanged(Network.Navigation,navRevision) && !Ox.CanContinue(Network.Navigation))))
       {
         if(!Network.Navigation.TryFindPath(worker.Movement.Position,goal,out var path) || !BeginTravel(worker,path,Phase))
         {

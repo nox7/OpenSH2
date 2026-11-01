@@ -101,6 +101,39 @@ namespace Assets.Code.Stronghold2.ModelRendering
       return root;
     }
 
+    /// <summary>Map-lifetime native geometry prepared before simulation. Instances do not own or duplicate these resources.</summary>
+    internal sealed class SharedModel
+    {
+      private readonly GameObject owner;
+      private readonly List<PreparedMesh> meshes;
+      private bool collisionBaked;
+      internal void BakeCollision(){if(collisionBaked)return;foreach(var mesh in meshes)Physics.BakeMesh(mesh.Mesh.GetEntityId(),false);collisionBaked=true;}
+      internal SharedModel(GameObject owner,List<PreparedMesh> meshes){this.owner=owner;this.meshes=meshes;}
+      internal GameObject Instantiate(IReadOnlyList<Granny2ModelInstance> instances,Transform parent,string name)
+      {
+        if(owner==null)throw new InvalidOperationException("Shared building resources were destroyed.");
+        var root=new GameObject(name);root.transform.SetParent(parent,false);
+        foreach(var instance in instances)
+        {
+          var child=new GameObject(instance.Name);child.transform.SetParent(root.transform,false);
+          child.transform.localPosition=instance.Position;child.transform.localRotation=Quaternion.Euler(instance.EulerAngles);child.transform.localScale=instance.Scale;
+          AddPreparedMeshes(meshes,child.transform);
+        }
+        return root;
+      }
+    }
+    internal static SharedModel PrepareShared(Granny2ModelData model,Transform parent,Granny2ModelRenderSettings settings,bool collision)
+    {
+      var owner=new GameObject("Shared building resource "+Path.GetFileName(model.SourcePath));owner.SetActive(false);owner.transform.SetParent(parent,false);
+      try
+      {
+        var meshes=PrepareMeshes(model,settings,owner.AddComponent<Granny2GeneratedModelResources>());
+        foreach(var mesh in meshes)mesh.Mesh.UploadMeshData(false);
+        var shared=new SharedModel(owner,meshes);if(collision)shared.BakeCollision();return shared;
+      }
+      catch{if(Application.isPlaying)UnityEngine.Object.Destroy(owner);else UnityEngine.Object.DestroyImmediate(owner);throw;}
+    }
+
     private static PreparedMesh PrepareMesh(
       Granny2MeshData source,
       string sourcePath,
@@ -322,7 +355,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       material.renderQueue = (int)RenderQueue.Geometry;
     }
 
-    private sealed class PreparedMesh
+    internal sealed class PreparedMesh
     {
       public string Name;
       public Mesh Mesh;

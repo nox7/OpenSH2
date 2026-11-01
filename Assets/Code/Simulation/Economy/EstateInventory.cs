@@ -97,7 +97,9 @@ namespace Assets.Code.Simulation.Economy
     {
       reservation=null;if(amount<0 || AvailableAmount(estate,goods)<amount)return false;
       Estate(estate);
-      var parts=new List<(BuildingStorage Store,int Amount)>();int left=amount;
+      var parts=new List<(BuildingStorage Store,int Amount)>();
+      if(amount==0){reservation=new GoodsReservation(this,estate,goods,0,parts);return true;}
+      int left=amount;
       foreach(var store in estates[estate].Buildings)
       {int take=(int)Math.Min(left,Available(store,goods));if(take<=0)continue;parts.Add((store,take));left-=take;if(left==0)break;}
       if(left!=0)return false;
@@ -119,6 +121,7 @@ namespace Assets.Code.Simulation.Economy
       }
       private void Release()
       {
+        if(amount==0){owner=null;return;}
         foreach(var p in parts){var key=(p.Store.BuildingId,goods);int n=owner.reserved[key]-p.Amount;if(n==0)owner.reserved.Remove(key);else owner.reserved[key]=n;}
         var e=(estate,goods);int remaining=owner.estateReserved[e]-amount;if(remaining==0)owner.estateReserved.Remove(e);else owner.estateReserved[e]=remaining;
         owner=null;

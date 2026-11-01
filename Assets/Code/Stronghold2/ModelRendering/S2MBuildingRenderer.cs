@@ -3,6 +3,7 @@ using Assets.Code.Stronghold2.TerrainRendering;
 using Assets.Code.Stronghold2.S2MReader.Resources;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 namespace Assets.Code.Stronghold2.ModelRendering
@@ -15,12 +16,25 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public static GameObject Render(S2MBuildingData data, Transform parent = null,
       S2MTerrainSettings terrainSettings = null, S2MBuildingRenderSettings settings = null)
     {
+      var preparation=BeginRender(data,parent,terrainSettings,settings);
+      try{while(preparation.Steps.MoveNext()){}return preparation.Root;}
+      catch{if(Application.isPlaying)UnityEngine.Object.Destroy(preparation.Root);else UnityEngine.Object.DestroyImmediate(preparation.Root);throw;}
+      finally{(preparation.Steps as IDisposable)?.Dispose();}
+    }
+    internal delegate GameObject ModelFactory(Granny2ModelData model,IReadOnlyList<Granny2ModelInstance> instances,Transform parent,Granny2ModelRenderSettings settings,string name);
+    internal static (GameObject Root,IEnumerator Steps) BeginRender(S2MBuildingData data,Transform parent,S2MTerrainSettings terrainSettings,
+      S2MBuildingRenderSettings settings,ModelFactory factory=null)
+    {
       if (data == null) throw new ArgumentNullException(nameof(data));
       terrainSettings ??= new S2MTerrainSettings();
       settings ??= new S2MBuildingRenderSettings();
       settings.AmbientAnimations ??= new S2MBuildingAnimationSettings();
       var root = new GameObject("S2M Buildings");
       if (parent != null) root.transform.SetParent(parent, false);
+      return (root,RenderSteps(data,root,parent,terrainSettings,settings,factory??Granny2ModelRenderer.RenderInstances));
+    }
+    private static IEnumerator RenderSteps(S2MBuildingData data,GameObject root,Transform parent,S2MTerrainSettings terrainSettings,S2MBuildingRenderSettings settings,ModelFactory model)
+    {
       S2MSceneryOcclusion.GetOrCreate(parent != null ? parent : root.transform, data.Map);
       S2MKeepRenderer.Render(data.Keeps, root.transform, terrainSettings, settings);
       S2MBridgeRenderer.Render(data.Bridges, root.transform, terrainSettings);
@@ -36,6 +50,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         FallbackMaterial = Resources.Load<Material>("StaticOriginalModel"),
         Livery = S2MLiveryContext.Find(parent)
       };
+      yield return null;
       foreach (S2MPlacedBuildingBatch batch in data.Batches)
       {
         Transform[] buildingRoots = CreateBuildingRoots(batch.Placements, placed.transform, data.Map);
@@ -43,12 +58,13 @@ namespace Assets.Code.Stronghold2.ModelRendering
         var instances = new List<Granny2ModelInstance>(batch.Placements.Count);
         foreach (BuildingPlacement placement in batch.Placements) instances.Add(CreateInstance(placement, terrainSettings));
         string name = System.IO.Path.GetFileNameWithoutExtension(batch.Descriptor.RelativePath);
-        GameObject closed = Granny2ModelRenderer.RenderInstances(batch.Closed, instances,
+        GameObject closed = model(batch.Closed, instances,
           placed.transform, modelSettings, name + " Exteriors");
         modelBatches.Add(closed);
+        yield return null;
         if (batch.Open != null)
         {
-          GameObject open = Granny2ModelRenderer.RenderInstances(batch.Open, instances,
+          GameObject open = model(batch.Open, instances,
             placed.transform, modelSettings, name + " Interiors");
           modelBatches.Add(open);
           Bounds bounds = Granny2ModelRenderer.GetLocalBounds(batch.Closed, modelSettings.UnitScale);
@@ -64,6 +80,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
               closed.transform.GetChild(i).gameObject, open.transform.GetChild(i).gameObject, null, bounds);
           }
         }
+        yield return null;
         foreach (Granny2ModelData part in batch.StaticParts)
         {
           var partInstances=new List<Granny2ModelInstance>(instances.Count);
@@ -87,15 +104,16 @@ namespace Assets.Code.Stronghold2.ModelRendering
             catch (Exception e) when (e is NotSupportedException || e is InvalidOperationException)
             { Debug.LogWarning($"Building animation {part.SourcePath}: {e.Message}; using static geometry."); }
           }
-          rendered ??= Granny2ModelRenderer.RenderInstances(part, partInstances, placed.transform, modelSettings);
+          rendered ??= model(part, partInstances, placed.transform, modelSettings,System.IO.Path.GetFileName(part.SourcePath));
           for(int i=0;i<partStates.Count;i++)if(!partStates[i].Visible)rendered.transform.GetChild(i).gameObject.SetActive(false);
           modelBatches.Add(rendered);
+          yield return null;
         }
         if (terrainSettings.GenerateMeshColliders)
         {
           if (batch.Collision != null)
           {
-            GameObject collision = Granny2ModelRenderer.RenderInstances(batch.Collision, instances,
+            GameObject collision = model(batch.Collision, instances,
               placed.transform, modelSettings, name + " Collision");
             modelBatches.Add(collision);
             foreach (MeshRenderer renderer in collision.GetComponentsInChildren<MeshRenderer>()) renderer.enabled = false;
@@ -118,13 +136,14 @@ namespace Assets.Code.Stronghold2.ModelRendering
             }
           }
         }
+        yield return null;
         foreach (GameObject modelBatch in modelBatches)
         {
           if (modelSettings.Livery != null) modelSettings.Livery.ApplyBuildings(modelBatch, batch.Placements);
           ParentInstances(modelBatch, buildingRoots);
         }
       }
-      return root;
+      yield break;
     }
 
     internal static Transform[] CreateBuildingRoots(IReadOnlyList<BuildingPlacement> placements, Transform parent, S2MFile map)

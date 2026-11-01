@@ -187,8 +187,8 @@ namespace Assets.Code.Simulation.Labor
       }
       if(navigationRevision!=nav.Revision)
       {
-        navigationRevision=nav.Revision;
-        if(!worker.Movement.CanContinue(nav))
+        bool affected=worker.Movement.RouteMayHaveChanged(nav,navigationRevision);navigationRevision=nav.Revision;
+        if(affected && !worker.Movement.CanContinue(nav))
         {
           if(!nav.TryFindPath(worker.Movement.Position,goal,out var path))
           {WaitingForPath=true;retry=settings.RetrySeconds;Revision++;return false;}

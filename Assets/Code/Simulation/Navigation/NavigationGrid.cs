@@ -24,8 +24,19 @@ namespace Assets.Code.Simulation.Navigation
     private readonly float[] costs;
     private readonly float maximumStep;
     private int search;
+    // Exact components within small tiles, linked by real traversable boundary edges.
+    private const int RegionTileSize=32;
     private int[] regions;
-    private readonly List<int> regionParents=new();
+    private List<int>[] tileRegions;
+    private int tilesX,tilesZ;
+    private readonly int[] tileChangedAt;
+    private readonly HashSet<int> dirtyTiles=new();
+    private readonly Dictionary<int,HashSet<int>> regionEdges=new();
+    private readonly Dictionary<int,int> connectedGroups=new();
+    private readonly List<int> graphQueue=new();
+    private readonly int[] tileQueue=new int[RegionTileSize*RegionTileSize];
+    public long ConnectivityCellsRebuilt { get; private set; }
+    public long ConnectivityTilesRebuilt { get; private set; }
     private readonly Dictionary<long,List<int>> obstacles = new();
     private readonly int[] obstacleCounts;
     public int Revision { get; private set; }
@@ -35,6 +46,7 @@ namespace Assets.Code.Simulation.Navigation
         || !(maximumStep > 0)) throw new ArgumentException("Invalid navigation grid.");
       Width = width; Height = height; Resolution = resolution; this.walkable = walkable; this.heights = heights;
       this.maximumStep = maximumStep;
+      tilesX=(width+RegionTileSize-1)/RegionTileSize;tilesZ=(height+RegionTileSize-1)/RegionTileSize;tileChangedAt=new int[tilesX*tilesZ];
       obstacleCounts = new int[walkable.Length];
       visited = new int[walkable.Length]; closed = new int[walkable.Length]; parents = new int[walkable.Length]; costs = new float[walkable.Length];
     }
@@ -53,9 +65,9 @@ namespace Assets.Code.Simulation.Navigation
         {
           float px=(x+.5f)/Resolution,pz=(z+.5f)/Resolution;
           if(px<minX||pz<minZ||px>=maxX||pz>=maxZ)continue;
-          int i=z*Width+x;cells.Add(i);obstacleCounts[i]++;
+          int i=z*Width+x;cells.Add(i);if(obstacleCounts[i]++==0 && walkable[i])DirtyRegion(i);
         }
-      obstacles.Add(id,cells);regions=null;Revision++;
+      obstacles.Add(id,cells);Revision++;
     }
     /// <summary>Reference-counted dynamic blockers cannot accidentally reopen walls or overlapping trees.</summary>
     public void SetObstacle(long id,MapPoint center,float radius,bool enabled)
@@ -63,24 +75,8 @@ namespace Assets.Code.Simulation.Navigation
       if(!enabled)
       {
         if(!obstacles.TryGetValue(id,out var old))return;
-        foreach(int i in old)obstacleCounts[i]--;
+        foreach(int i in old)if(--obstacleCounts[i]==0 && walkable[i])DirtyRegion(i);
         obstacles.Remove(id);
-        // Opening cells only merges connectivity; do not flood the map for each harvested trunk.
-        if(regions!=null)
-        {
-          foreach(int i in old)if(Open(i) && regions[i]==0)
-          {regions[i]=regionParents.Count;regionParents.Add(regionParents.Count);}
-          foreach(int i in old)if(Open(i))
-          {
-            int x=i%Width,z=i/Width;
-            for(int dz=-1;dz<=1;dz++)for(int dx=-1;dx<=1;dx++)
-            {
-              if((dx==0 && dz==0) || x+dx<0 || z+dz<0 || x+dx>=Width || z+dz>=Height)continue;
-              int other=(z+dz)*Width+x+dx;
-              if(Connected(i,other))Union(regions[i],regions[other]);
-            }
-          }
-        }
         Revision++;return;
       }
       if(obstacles.ContainsKey(id))return;
@@ -90,14 +86,16 @@ namespace Assets.Code.Simulation.Navigation
       {
         float dx=(x+.5f)/Resolution-center.X,dz=(z+.5f)/Resolution-center.Z;
         if(dx*dx+dz*dz>radius*radius && !(x==cx && z==cz))continue;
-        int i=z*Width+x;cells.Add(i);obstacleCounts[i]++;
+        int i=z*Width+x;cells.Add(i);if(obstacleCounts[i]++==0 && walkable[i])DirtyRegion(i);
       }
-      obstacles[id]=cells;regions=null;Revision++;
+      obstacles[id]=cells;Revision++;
     }
+    /// <summary>Build the initial connectivity index during map loading, after static and foliage blockers are registered.</summary>
+    public void PrepareConnectivity()=>EnsureRegions();
     public bool CanReach(MapPoint a, MapPoint b)
     {
       if(!Index(a,out int first) || !Index(b,out int last) || !Open(first) || !Open(last))return false;
-      EnsureRegions(); return Region(regions[first])==Region(regions[last]);
+      EnsureRegions(); return RegionsConnected(regions[first],regions[last]);
     }
     public bool CanTravel(MapPoint a, MapPoint b)
     {
@@ -133,7 +131,7 @@ namespace Assets.Code.Simulation.Navigation
       path = Array.Empty<MapPoint>();
       if (!Index(start, out int first) || !Index(goal, out int last) || !Open(first) || !Open(last)) return false;
       EnsureRegions();
-      if (Region(regions[first]) != Region(regions[last])) return false;
+      if (!RegionsConnected(regions[first],regions[last])) return false;
       if (++search == int.MaxValue) { Array.Clear(visited,0,visited.Length); Array.Clear(closed,0,closed.Length); search=1; }
       var open = new MinHeap(); visited[first]=search; costs[first]=0; parents[first]=-1; open.Push(first, Heuristic(first,last));
       while (open.Count > 0)
@@ -179,35 +177,117 @@ namespace Assets.Code.Simulation.Navigation
       }
       return true;
     }
-    private void EnsureRegions()
+    private void DirtyRegion(int cell)
     {
-      if(regions!=null)return;
-      regionParents.Clear();regionParents.Add(0);
-      regions=new int[walkable.Length]; var queue=new Queue<int>(); int region=0;
-      for(int first=0;first<walkable.Length;first++)
+      int x=cell%Width,z=cell/Width;
+      // A changed side cell also changes diagonal edges between its neighbours.
+      for(int tz=Math.Max(0,z-1)/RegionTileSize;tz<=Math.Min(Height-1,z+1)/RegionTileSize;tz++)
+        for(int tx=Math.Max(0,x-1)/RegionTileSize;tx<=Math.Min(Width-1,x+1)/RegionTileSize;tx++)
+        {int tile=tz*tilesX+tx;tileChangedAt[tile]=Revision+1;if(regions!=null)dirtyTiles.Add(tile);}
+    }
+    /// <summary>Conservative local change test for cached route segments; exact traversal checks run only when needed.</summary>
+    public bool ChangedNear(MapPoint a,MapPoint b,int sinceRevision)
+    {
+      if(sinceRevision<0 || !Index(a,out int first) || !Index(b,out int last))return true;
+      int x=first%Width/RegionTileSize,z=first/Width/RegionTileSize,endX=last%Width/RegionTileSize,endZ=last/Width/RegionTileSize;
+      double dx=b.X-a.X,dz=b.Z-a.Z,size=RegionTileSize/(double)Resolution;
+      int stepX=Math.Sign(dx),stepZ=Math.Sign(dz);
+      double deltaX=stepX==0?double.PositiveInfinity:size/Math.Abs(dx),deltaZ=stepZ==0?double.PositiveInfinity:size/Math.Abs(dz);
+      double edgeX=stepX==0?double.PositiveInfinity:((stepX>0?x+1:x)*size-a.X)/dx;
+      double edgeZ=stepZ==0?double.PositiveInfinity:((stepZ>0?z+1:z)*size-a.Z)/dz;
+      // Supercover traversal visits only tiles crossed by the segment, not its potentially map-sized bounding box.
+      while(true)
       {
-        if(!Open(first) || regions[first]!=0)continue;
-        regions[first]=++region;regionParents.Add(region);queue.Enqueue(first);
-        while(queue.Count>0)
+        if(TileChanged(x,z,sinceRevision))return true;
+        if(x==endX && z==endZ)return false;
+        if(edgeX<edgeZ){x+=stepX;edgeX+=deltaX;}
+        else if(edgeZ<edgeX){z+=stepZ;edgeZ+=deltaZ;}
+        else
         {
-          int current=queue.Dequeue(),x=current%Width,z=current/Width;
-          for(int dz=-1;dz<=1;dz++)for(int dx=-1;dx<=1;dx++)
-          {
-            if((dx==0 && dz==0) || x+dx<0 || z+dz<0 || x+dx>=Width || z+dz>=Height)continue;
-            int next=(z+dz)*Width+x+dx;
-            if(regions[next]==0 && Connected(current,next)) { regions[next]=region; queue.Enqueue(next); }
-          }
+          if(TileChanged(x+stepX,z,sinceRevision) || TileChanged(x,z+stepZ,sinceRevision))return true;
+          x+=stepX;z+=stepZ;edgeX+=deltaX;edgeZ+=deltaZ;
         }
       }
     }
-    private int Region(int label)
+    private bool TileChanged(int x,int z,int since)=>x>=0 && z>=0 && x<tilesX && z<tilesZ && tileChangedAt[z*tilesX+x]>since;
+
+    private void EnsureRegions()
     {
-      while(regionParents[label]!=label)
-      {regionParents[label]=regionParents[regionParents[label]];label=regionParents[label];}
-      return label;
+      if(regions==null)
+      {
+        regions=new int[walkable.Length];tilesX=(Width+RegionTileSize-1)/RegionTileSize;tilesZ=(Height+RegionTileSize-1)/RegionTileSize;
+        tileRegions=new List<int>[tilesX*tilesZ];
+        for(int tile=0;tile<tileRegions.Length;tile++){tileRegions[tile]=new List<int>();RebuildTile(tile);}
+        for(int tile=0;tile<tileRegions.Length;tile++)LinkTile(tile);
+        return;
+      }
+      if(dirtyTiles.Count==0)return;
+      // Remove both ends of stale boundary links before replacing local component IDs.
+      foreach(int tile in dirtyTiles)foreach(int label in tileRegions[tile])
+      {
+        if(!regionEdges.TryGetValue(label,out var adjacent))continue;
+        foreach(int other in adjacent)if(regionEdges.TryGetValue(other,out var reverse))reverse.Remove(label);
+        regionEdges.Remove(label);
+      }
+      foreach(int tile in dirtyTiles)RebuildTile(tile);
+      foreach(int tile in dirtyTiles)LinkTile(tile);
+      dirtyTiles.Clear();connectedGroups.Clear();
     }
-    private void Union(int a,int b)
-    {a=Region(a);b=Region(b);if(a!=b){if(a<b)regionParents[b]=a;else regionParents[a]=b;}}
+    private void RebuildTile(int tile)
+    {
+      int minX=tile%tilesX*RegionTileSize,minZ=tile/tilesX*RegionTileSize,maxX=Math.Min(Width,minX+RegionTileSize),maxZ=Math.Min(Height,minZ+RegionTileSize);
+      tileRegions[tile].Clear();
+      for(int z=minZ;z<maxZ;z++)Array.Clear(regions,z*Width+minX,maxX-minX);
+      for(int z=minZ;z<maxZ;z++)for(int x=minX;x<maxX;x++)
+      {
+        int first=z*Width+x;if(!Open(first) || regions[first]!=0)continue;
+        int label=first+1,head=0,tail=1;regions[first]=label;tileQueue[0]=first;tileRegions[tile].Add(label);
+        while(head<tail)
+        {
+          int cell=tileQueue[head++],cx=cell%Width,cz=cell/Width;
+          for(int dz=-1;dz<=1;dz++)for(int dx=-1;dx<=1;dx++)
+          {
+            int nx=cx+dx,nz=cz+dz;if((dx==0 && dz==0) || nx<minX || nz<minZ || nx>=maxX || nz>=maxZ)continue;
+            int next=nz*Width+nx;if(regions[next]!=0 || !Connected(cell,next))continue;
+            regions[next]=label;tileQueue[tail++]=next;
+          }
+        }
+      }
+      ConnectivityCellsRebuilt+=(maxX-minX)*(maxZ-minZ);ConnectivityTilesRebuilt++;
+    }
+    private void LinkTile(int tile)
+    {
+      int minX=tile%tilesX*RegionTileSize,minZ=tile/tilesX*RegionTileSize,maxX=Math.Min(Width,minX+RegionTileSize),maxZ=Math.Min(Height,minZ+RegionTileSize);
+      for(int x=minX;x<maxX;x++){LinkBoundary(x,minZ,tile);if(maxZ-1!=minZ)LinkBoundary(x,maxZ-1,tile);}
+      for(int z=minZ+1;z<maxZ-1;z++){LinkBoundary(minX,z,tile);if(maxX-1!=minX)LinkBoundary(maxX-1,z,tile);}
+    }
+    private void LinkBoundary(int x,int z,int tile)
+    {
+      int cell=z*Width+x;if(regions[cell]==0)return;
+      for(int dz=-1;dz<=1;dz++)for(int dx=-1;dx<=1;dx++)
+      {
+        int nx=x+dx,nz=z+dz;if(nx<0 || nz<0 || nx>=Width || nz>=Height || nz/RegionTileSize*tilesX+nx/RegionTileSize==tile)continue;
+        int next=nz*Width+nx;if(!Connected(cell,next))continue;
+        int a=regions[cell],b=regions[next];
+        if(!regionEdges.TryGetValue(a,out var aa))regionEdges.Add(a,aa=new HashSet<int>());
+        if(!regionEdges.TryGetValue(b,out var bb))regionEdges.Add(b,bb=new HashSet<int>());
+        aa.Add(b);bb.Add(a);
+      }
+    }
+    private bool RegionsConnected(int first,int last)
+    {
+      if(first==last)return true;
+      if(!connectedGroups.TryGetValue(first,out int group))
+      {
+        group=first;connectedGroups[first]=group;graphQueue.Clear();graphQueue.Add(first);
+        for(int head=0;head<graphQueue.Count;head++)
+        {
+          if(!regionEdges.TryGetValue(graphQueue[head],out var adjacent))continue;
+          foreach(int other in adjacent)if(!connectedGroups.ContainsKey(other)){connectedGroups[other]=group;graphQueue.Add(other);}
+        }
+      }
+      return connectedGroups.TryGetValue(last,out int otherGroup) && otherGroup==group;
+    }
     private bool Index(MapPoint p,out int index)
     { int x=(int)Math.Floor(p.X*Resolution), z=(int)Math.Floor(p.Z*Resolution); index=z*Width+x; return x>=0 && z>=0 && x<Width && z<Height; }
     private MapPoint Point(int index) => new((index%Width+.5f)/Resolution,(index/Width+.5f)/Resolution);

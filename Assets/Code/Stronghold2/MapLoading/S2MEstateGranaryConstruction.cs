@@ -27,6 +27,7 @@ namespace Assets.Code.Stronghold2.MapLoading
     }
     [Serializable] public sealed class EstateGranarySettings : EstateBuildingSettings {}
     public interface IPreparedAiBuilding : IDisposable { void Show(); }
+    public interface IStagedAiBuilding : IPreparedAiBuilding { bool IsPrepared { get; } void AdvancePreparation(); }
     public interface IPreparedAiLabor : IPreparedAiBuilding { LaborBuilding Building { get; } }
 
     /// <summary>Budgeted estate policy plus serial commit boundary. Assets are prepared by the host before activation.</summary>
@@ -39,7 +40,7 @@ namespace Assets.Code.Stronghold2.MapLoading
             public double RetryAt;
             public BuildingPlacement Ready;
             public MapPoint Origin;
-            public bool HasOrigin;
+            public bool HasOrigin,Preparing;
         }
         protected readonly S2MFile map;
         protected readonly AiWorld world;
@@ -72,11 +73,16 @@ namespace Assets.Code.Stronghold2.MapLoading
         private IReadOnlyList<BuildingPlacement> indexedBuildings;
         private IReadOnlyList<ActorPlacement> indexedActors;
         private bool[] troopMask;
-        private int nextId=int.MaxValue;
         private bool disposed;
+        private sealed class Preparation
+        {
+            public int Estate;public float Height;public Search Search;public BuildingPlacement Placement;
+            public IPreparedAiBuilding View;public EstateInventory.GoodsReservation Cost;
+        }
+        private Preparation preparation;
         public int CompletedCount { get; private set; }
         public long CandidateTests { get; private set; }
-        public int PendingCount=>pending.Count;
+        public int PendingCount=>pending.Count+(preparation!=null?1:0);
         public event Action<int,Exception> ConstructionFailed;
         public Func<BuildingPlacement,IPreparedAiLabor> PrepareLabor { get; set; }
         private readonly Dictionary<int,IPreparedAiLabor> laborViews=new();
@@ -113,7 +119,7 @@ namespace Assets.Code.Stronghold2.MapLoading
             if((evaluation.Work&AiWork.Economy)==0 && (evaluation.Changes&(AiChange.Buildings|AiChange.Ownership|AiChange.Profile))==0)return;
             if(!searches.TryGetValue(estate,out var search) || !Nullable.Equals(search.Owner,t.Owner))
                 searches[estate]=search=new Search{Owner=t.Owner};
-            if(search.Ready!=null || evaluation.Now<search.RetryAt)return;
+            if(search.Ready!=null || search.Preparing || evaluation.Now<search.RetryAt)return;
             if(search.HasOrigin && !IsSearchOriginCurrent(estate)){search.HasOrigin=false;search.Cursor=0;}
             if(!search.HasOrigin)
             {
@@ -133,36 +139,66 @@ namespace Assets.Code.Stronghold2.MapLoading
             }
             if(search.Cursor==candidates.Count){search.Cursor=0;search.RetryAt=evaluation.Now+settings.RetrySeconds;}
         }
-        /// <summary>Call after AI evaluation, only while simulation is advancing. At most one queued intent is processed.</summary>
+        /// <summary>Call once per construction frame action. Starts, advances one inactive preparation stage, or commits a ready building.</summary>
         public void CommitPending(double now)
         {
-            if(disposed || pending.Count==0)return;
-            int estate=pending.Dequeue();
-            queued.Remove(estate);
-            if(!searches.TryGetValue(estate,out var search) || search.Ready==null)return;
-            var p=search.Ready;search.Ready=null;
-            if(!Eligible(estate,out var t) || !Nullable.Equals(t.Owner,search.Owner)){searches.Remove(estate);return;}
-            if(!IsSearchOriginCurrent(estate)){search.HasOrigin=false;search.Cursor=0;return;}
-            // Reconcile a building inserted between planning and commit by another authority.
-            foreach(var existing in map.BuildingPlacements.Where(b=>b.Type==buildingType && S2MCampfireLayout.EstateAtBuilding(map,b)==estate))
-                world.UpsertBuilding(new AiBuilding(existing.Id,estate,buildingType));
-            if(!Eligible(estate,out t)){searches.Remove(estate);return;}
+            if(disposed)return;
+            if(preparation==null)
+            {
+                if(pending.Count==0)return;
+                int estate=pending.Dequeue();queued.Remove(estate);
+                if(!searches.TryGetValue(estate,out var search) || search.Ready==null)return;
+                var p=search.Ready;search.Ready=null;
+                if(!Revalidate(estate,search,p,now))return;
+                p.Id=world.AllocateBuildingId(ids);ids.Add(p.Id);
+                if(!inventory.TryReserveEstateGoods(estate,Goods.Wood,woodCost,out var cost))
+                {search.Cursor=0;search.RetryAt=now+settings.RetrySeconds;return;}
+                var next=new Preparation{Estate=estate,Height=p.RawY,Search=search,Placement=p,Cost=cost};preparation=next;search.Preparing=true;
+                try{next.View=PreparePresentation?.Invoke(p);}
+                catch(Exception error){CancelPreparation(now,error);return;}
+                // Starting a staged view and advancing it are separate frame actions.
+                if(next.View is IStagedAiBuilding)return;
+            }
+            var active=preparation;
+            if(!Revalidate(active.Estate,active.Search,active.Placement,now)){CancelPreparation(now);return;}
+            if(active.Height!=active.Placement.RawY){active.Search.Cursor=0;CancelPreparation(now);return;}
+            if(active.View is IStagedAiBuilding staged && !staged.IsPrepared)
+            {
+                try{staged.AdvancePreparation();}
+                catch(Exception error){CancelPreparation(now,error);}
+                return;
+            }
+            CompletePreparation(active,now);
+        }
+        private bool Revalidate(int estate,Search search,BuildingPlacement p,double now)
+        {
+            if(!Eligible(estate,out var territory) || !Nullable.Equals(territory.Owner,search.Owner)){searches.Remove(estate);return false;}
+            if(!IsSearchOriginCurrent(estate)){search.HasOrigin=false;search.Cursor=0;return false;}
+            // Reconcile an external authority before creating a duplicate building.
+            foreach(var existing in map.BuildingPlacements)
+                if(existing.Type==buildingType && S2MCampfireLayout.EstateAtBuilding(map,existing)==estate)world.UpsertBuilding(new AiBuilding(existing.Id,estate,buildingType));
+            if(!Eligible(estate,out _)){searches.Remove(estate);return false;}
             RefreshPlacementWorld();
-            if(!CanPlace(p,out float height)){search.Cursor=0;search.RetryAt=now+settings.RetrySeconds;return;}
-            p.RawY=height;
-            while(ids.Contains(nextId) || world.TryGetBuilding(nextId,out _))nextId--;
-            p.Id=nextId--;ids.Add(p.Id);
-            if(!inventory.TryReserveEstateGoods(estate,Goods.Wood,woodCost,out var cost))
-            {search.Cursor=0;search.RetryAt=now+settings.RetrySeconds;return;}
-            using var reservation=cost;
-            IPreparedAiBuilding view=null;IPreparedAiLabor preparedLabor=null;var before=map.BuildingPlacements;
+            if(!CanPlace(p,out float height)){search.Cursor=0;search.RetryAt=now+settings.RetrySeconds;return false;}
+            p.RawY=height;return true;
+        }
+        private void CancelPreparation(double now,Exception error=null)
+        {
+            var active=preparation;if(active==null)return;preparation=null;
+            active.Search.Preparing=false;active.View?.Dispose();active.Cost.Dispose();
+            if(error!=null)
+            {
+                if(active.Search.Cursor>=candidates.Count)active.Search.Cursor=0;
+                active.Search.RetryAt=now+settings.RetrySeconds;ConstructionFailed?.Invoke(active.Estate,error);
+            }
+        }
+        private void CompletePreparation(Preparation active,double now)
+        {
+            int estate=active.Estate;var p=active.Placement;var search=active.Search;var view=active.View;
+            IPreparedAiLabor preparedLabor=null;var before=map.BuildingPlacements;
             bool storage=false,blocker=false,staffing=false,published=false;
             try
             {
-                // Presentation is prepared inactive; a missing asset cannot leave an invisible store.
-                view=PreparePresentation?.Invoke(p);
-                if(!Eligible(estate,out var current) || !Nullable.Equals(current.Owner,search.Owner))
-                {view?.Dispose();searches.Remove(estate);return;}
                 if(buildingType=="Granary"){inventory.Register(p.Id,estate,StorageKind.Granary);storage=true;}
                 if(navigation!=null)
                 {
@@ -191,21 +227,29 @@ namespace Assets.Code.Stronghold2.MapLoading
             }
             catch(Exception error)
             {
-                view?.Dispose();views.Remove(p.Id);preparedLabor?.Dispose();laborViews.Remove(p.Id);map.BuildingPlacements=before;
+                views.Remove(p.Id);preparedLabor?.Dispose();laborViews.Remove(p.Id);map.BuildingPlacements=before;
                 if(published)world.RemoveBuilding(p.Id);
                 if(staffing)labor.RemoveUnstaffedBuilding(p.Id);
                 if(blocker)navigation.SetObstacle(ObstacleId(p.Id),default,0,false);
                 if(storage)inventory.TryRemoveEmptyBuilding(p.Id);
-                placementWorld=null;if(search.Cursor>=candidates.Count)search.Cursor=0;search.RetryAt=now+settings.RetrySeconds;
-                ConstructionFailed?.Invoke(estate,error);return;
+                placementWorld=null;CancelPreparation(now,error);return;
             }
-            cost.Commit();
-            BuildingCompleted?.Invoke(p);
+            preparation=null;search.Preparing=false;
+            active.Cost.Commit();active.Cost.Dispose();BuildingCompleted?.Invoke(p);
         }
         private static long ObstacleId(int id)=>(2L<<32)+(uint)id;
         private void RefreshPlacementWorld()
         {
             if(placementWorld!=null && ReferenceEquals(indexedBuildings,map.BuildingPlacements) && ReferenceEquals(indexedActors,map.Actors))return;
+            if(placementWorld!=null && ReferenceEquals(indexedActors,map.Actors) && indexedBuildings.Count<=map.BuildingPlacements.Count)
+            {
+                bool append=true;for(int i=0;i<indexedBuildings.Count;i++)if(!ReferenceEquals(indexedBuildings[i],map.BuildingPlacements[i])){append=false;break;}
+                if(append)
+                {
+                    for(int i=indexedBuildings.Count;i<map.BuildingPlacements.Count;i++){var added=map.BuildingPlacements[i];placementWorld.Reserve(added);ids.Add(added.Id);}
+                    indexedBuildings=map.BuildingPlacements;return;
+                }
+            }
             placementWorld=new S2MStartupBuildings.PlacementWorld(map,map.BuildingPlacements,map.Keeps,placementSettings);
             troopMask=placementWorld.CreateTroopMask(settings.TroopExclusionRadius,descriptor.Width*.5f+1.5f,descriptor.Height*.5f+1.5f);
             indexedBuildings=map.BuildingPlacements;indexedActors=map.Actors;
@@ -229,7 +273,7 @@ namespace Assets.Code.Stronghold2.MapLoading
         public void InvalidatePlacement()=>placementWorld=null;
         public virtual void Dispose()
         {
-            if(disposed)return;disposed=true;pending.Clear();queued.Clear();searches.Clear();
+            if(disposed)return;disposed=true;CancelPreparation(0);pending.Clear();queued.Clear();searches.Clear();
             foreach(var view in views.Values)view.Dispose();views.Clear();
             foreach(var view in laborViews.Values)view.Dispose();laborViews.Clear();
         }

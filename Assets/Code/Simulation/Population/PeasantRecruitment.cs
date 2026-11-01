@@ -24,6 +24,7 @@ namespace Assets.Code.Simulation.Population
     public float SeatHeading { get; }
     public float Heading { get => Movement.Heading; internal set => Movement.Heading=value; }
     public MapPoint Position { get => Movement.Position; internal set => Movement.Position=value; }
+    internal int NavigationRevision=-1;
     private PeasantState recruitmentState;
     private float recruitmentTime;
     public PeasantState State
@@ -86,7 +87,7 @@ namespace Assets.Code.Simulation.Population
     private void Tick(Peasant p,float seconds)
     {
       if(p.Worker.State==WorkerState.Removed)return;
-      if(p.Job!=null) { p.Worker.Advance(seconds,settings.WalkSpeedCellsPerSecond);return; }
+      if(p.Job!=null) { p.Worker.Advance(seconds,settings.WalkSpeedCellsPerSecond,navigation);return; }
       float remaining=seconds;
       while(remaining>0)
       {
@@ -106,6 +107,11 @@ namespace Assets.Code.Simulation.Population
         }
         else if(p.State==PeasantState.Running)
         {
+          if(p.NavigationRevision!=navigation.Revision)
+          {
+            bool affected=p.Movement.RouteMayHaveChanged(navigation,p.NavigationRevision);p.NavigationRevision=navigation.Revision;
+            if(affected && !p.Movement.CanContinue(navigation)){Plan(p);continue;}
+          }
           float before=remaining;p.Movement.Advance(ref remaining,settings.RunSpeedCellsPerSecond);p.StateTime+=before-remaining;
           if(!p.Movement.IsFollowingPath) { p.Movement.Place(p.Seat,p.SeatHeading);Change(p,PeasantState.Seated); }
           else break;
@@ -115,6 +121,7 @@ namespace Assets.Code.Simulation.Population
     }
     private void Plan(Peasant p)
     {
+      p.NavigationRevision=navigation.Revision;
       if(navigation.TryFindPath(p.Position,p.Seat,out var path)) { p.Movement.Follow(path);Change(p,PeasantState.Running); }
       else Change(p,PeasantState.WaitingForPath);
     }

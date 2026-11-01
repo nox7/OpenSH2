@@ -411,3 +411,79 @@ side effects, stale-tree cancellation and rotated physical masks.
 `SawpitTerrainUnityValidation.cs` checks actual mesh/collider holes, chunk-boundary
 updates, overlapping leases, rotation/axis flips, presentation rollback, and six
 Chapter 8 tree-centred sawpits through the complete production/delivery loop.
+
+
+### Localized navigation and staged construction performance
+
+The original placement path invalidated connectivity globally, then flooded the
+entire 1,048,576-cell Chapter 8 navigation grid on the next reachability query.
+An isolated Unity probe measured 141–168 ms for that work. The replacement keeps
+exact connected components inside **32×32 navigation-cell tiles** (8×8 map cells
+at resolution four), joined by real traversable edges across tile boundaries.
+
+Obstacle changes mark only touched tiles and a one-cell halo. The halo is required:
+blocking an orthogonal side cell can invalidate a diagonal edge whose endpoints
+lie in neighbouring tiles. Rebuilding removes old boundary links, relabels the dirty
+tiles and reconnects their boundaries using the same height, obstacle and diagonal
+rules as A*. Reachability traverses a much smaller component graph and caches those
+results until topology changes. No global cell flood is performed after a small
+building/trunk change. `ConnectivityCellsRebuilt` and `ConnectivityTilesRebuilt`
+expose actual work for diagnostics. `Main` explicitly calls `PrepareConnectivity`
+after registering foliage and before starting populations, so even estate-only
+maps pay the one-time initialization cost during loading.
+
+`ChangedNear` stores local topology revision stamps. Workers, recruits, woodcutters
+and ox teams first test whether their remaining routes intersect changed tiles.
+A supercover tile traversal tests each segment, avoiding map-sized bounding-box scans for long diagonal routes. Only affected routes need exact traversal validation/replanning. Workers stop and
+retry if a closed gateway disconnects a job; reopening it restores reachability.
+A* still finds paths on the original detailed grid, and its smoothing checks remain
+unchanged. The tile graph is an exact connectivity index, not a coarser movement
+approximation. Ordinary ground/cart navigation and reference-counted overlapping
+blockers remain intact.
+
+Native building meshes, materials, GPU uploads and collision baking are prepared
+once at map loading and owned by hidden map-lifetime resource holders. Runtime
+building instances share those resources. `S2MBuildingRenderer.BeginRender`
+exposes setup, exterior, interior, parts, collision and binding stages; the normal
+static `Render` API drains those stages synchronously during loading.
+`S2MAiBuildingPresentation.BeginPreparation` instead keeps its container inactive
+and exposes `IStagedAiBuilding` for one-stage-at-a-time construction.
+
+Main's construction planner rotates all policies and performs **one start, stage
+advance or final activation per advancing frame**. Costs are reserved through
+preparation, but no map/inventory/building/job/navigation records are published
+until activation. Every advance revalidates authority, goals and the site. A site
+that changes height is prepared again; capture, failure, a new blocking building,
+loss of available labor or a felled target cancels it and releases its reservation.
+No partial building can obstruct workers or open a terrain hole. Empty-cost
+reservations are independent no-op holds, so free granaries cannot interfere with
+concurrently reserved housing/sawpit wood. Runtime building IDs come from one
+world allocation sequence, including unpublished preparations.
+
+Append-only building additions update the shared placement masks locally instead
+of reconstructing whole-world masks per policy. Source-list replacement/removal
+or explicit invalidation still rebuilds that index. Current worker cells are
+maintained alongside the population render update and checked by footprint at
+placement time, preventing activation on a moving worker without scanning all
+residents for every candidate.
+
+Validation:
+
+- `LocalizedNavigationValidation.cs`: randomized add/remove/overlap edits across
+  tile boundaries, compared against an independent cell BFS with height/diagonal
+  rules; detailed A* and smoothed-segment validity; gateway closure/reopening and
+  cached worker route recovery; million-cell locality/performance checks.
+- `StagedConstructionValidation.cs`: one stage per action, inactive/unpublished
+  preparation, exact held/spent costs, capture/failure/disposal cancellation,
+  concurrent unpublished IDs and free/paid reservation independence.
+- `BuildingLatencyUnityValidation.cs`: native shared-mesh identity, staged
+  construction of Chapter 8 granaries/hovels/sawpits, production/delivery,
+  terrain/collider rollback, stockpile presentation and GPU pool regressions.
+
+On the isolated Unity Chapter 8 run, 155 construction frame actions measured
+p50 **0.114 ms**, p95 **1.476 ms**, p99 **2.688 ms**, maximum **5.376 ms**. The largest
+navigation refresh processed 6,144 cells (including pending local foliage edits),
+rather than a million-cell flood. The standalone million-cell test measured
+p50 **0.451 ms**, p95 **0.871 ms** for small local edits, rebuilding at most four
+32×32 tiles per isolated footprint change. These are CPU construction/query
+measurements on the test machine, not whole-frame or GPU performance guarantees.

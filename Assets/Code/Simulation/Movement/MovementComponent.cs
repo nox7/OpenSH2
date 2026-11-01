@@ -13,6 +13,13 @@ namespace Assets.Code.Simulation.Movement
     private IReadOnlyList<MapPoint> path;
     private int waypoint;
     public double DistanceTravelled { get; private set; }
+    public bool RouteMayHaveChanged(NavigationGrid navigation,int sinceRevision)
+    {
+      var from=Position;
+      for(int i=waypoint;path!=null && i<path.Count;i++)
+      {if(navigation.ChangedNear(from,path[i],sinceRevision))return true;from=path[i];}
+      return false;
+    }
     public bool CanContinue(NavigationGrid navigation)
     {
       var from=Position;
