@@ -66,9 +66,8 @@ choice scenes aligned rather than changing their crop on hover. The help label
 uses an installed serif font, without copying a font into the project.
 
 Exit quits a player build or stops Play mode in the editor. Multiplayer, map
-editor, options and load remain disabled until their pages are implemented. Automatic test
-map loading is disabled. Future map navigation should hide/dispose the frontend,
-load the selected map, then enter `GameState.PLAYING` to advance simulation.
+editor, options and load remain disabled until their pages are implemented. Startup opens the frontend. Map loading is initiated by UI actions through
+`Main.LoadMapAsync`; there is no hardcoded test-map startup path.
 
 `Notes/tools/FrontendScreensUnityValidation.cs` checks Play/Back navigation,
 screen reuse, all descriptions/highlight artwork, focus/hover precedence, shared
@@ -92,10 +91,11 @@ Campaign opens `CampaignSelection`, with twelve original chapter map backgrounds
 chapter titles, faction symbols, selected text colors, and BMP/TGA button states.
 Activation selects a chapter; focus/hover highlights its control without changing
 persisted progress. Back returns to Path of War. Selection survives page revisits.
-The forward arrow is visible but disabled until mission loading is connected;
-its optional launch callback records an attempt only when actually launching.
+The forward arrow launches the selected chapter through `WarCampaignMaps.GetPath`,
+which resolves chapters 1–12 to `<installation>/maps/war_chapterX.s2m`. Chapter
+selection only previews; Play Mission records the attempt and begins loading.
 Hovering the forward arrow temporarily shows `Play Mission X` for the selected
-chapter, including while launch is disabled; pointer exit restores the chapter title.
+chapter; pointer exit restores the chapter title.
 Chapter 8 uses the original English game text, `Hawks Nest`.
 
 Per-user settings/progress live outside UI in `Assets/Code/UserData`. The versioned
@@ -119,3 +119,20 @@ partial progress and icons, persistence/backup recovery, testing-override isolat
 route/back/reuse, three viewport shapes, and resource cleanup. Use
 `-batchmode -executeMethod CampaignSelectionUnityValidation.Run` in the scratch
 project without `-quit`; screenshots go to `Temp/CampaignSelectionValidation`.
+
+Campaign loading hides the current page and displays a loading overlay before
+starting the asset pipeline. `Main.LoadMapAsync` initializes the selected world's
+terrain, buildings, water, scenery, actors, population, inventory and AI, then
+enters `GameState.PLAYING`. The frontend disposes its UI/video resources on success.
+Failures clean up partial world/runtime state and return to campaign selection
+with an error. Duplicate launch requests are ignored while loading; the map loader
+also rejects concurrent loads. Campaign victory detection is not implemented here,
+so launch records attempts without automatically recording completion.
+
+`Notes/tools/CampaignMapLaunchUnityValidation.cs` verifies all installed chapter
+paths, invalid chapter handling, UI failure/retry, a real chapter 1 launch,
+persisted attempt, simulation advancement, frontend disposal and world cleanup.
+Run with `-batchmode -executeMethod CampaignMapLaunchUnityValidation.Run` without
+`-quit` in a scratch project containing the code/plugins and the built
+`Tools/Granny2MeshConverter/bin/Release/net48` converter. Results are in
+`Temp/CampaignMapLaunchValidation`.

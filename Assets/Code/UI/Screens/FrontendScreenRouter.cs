@@ -27,6 +27,13 @@ namespace Assets.Code.UI.Screens
       current.Show();
     }
 
+    public void HideCurrent()
+    {
+      current?.Hide();
+      current = null;
+      CurrentScreen = null;
+    }
+
     public void Tick() => current?.Tick();
 
     public void Dispose()

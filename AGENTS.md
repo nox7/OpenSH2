@@ -12,7 +12,7 @@ UI and terrain videos are decoded directly from the original `.bik` files by emb
 Video conversion and its old CacheManager have been removed. Other asset-loading caches, such as converted models, remain with their respective asset loaders.
 
 ## Game Flow
-The game flow starts with a UnityGame object just named "Main" in a default scene. The Main has a script component attached to it which is the `Assets/Code/Main.cs` file. This file instantiates `Assets/Code/Game.cs` and starts `Assets/Code/UI/Frontend/FrontendController.cs`. The frontend plays the logo and intro with streaming audio and click-to-skip, then opens the main menu. Startup does not convert or cache videos. Automatic test-map loading is disabled.
+The game flow starts with a UnityGame object just named "Main" in a default scene. The Main has a script component attached to it which is the `Assets/Code/Main.cs` file. This file instantiates `Assets/Code/Game.cs` and starts `Assets/Code/UI/Frontend/FrontendController.cs`. The frontend plays the logo and intro with streaming audio and click-to-skip, then opens the main menu. Startup does not convert or cache videos. Maps are loaded only through UI initiation; the old hardcoded test-map harness has been removed. Campaign Play Mission maps chapters 1–12 to the installed `maps/war_chapterX.s2m` files through `WarCampaignMaps`, then calls `Main.LoadMapAsync`. Loading uses `GameState.LOADING_MAP`; simulation begins in `PLAYING` after initialization succeeds.
 
 ### Main Menu
 The main menu is a UI that has videos looping in the background. There are two video player UIs going on here. The most background element is a video playing the "MainMenuBackground" video (in a loop). Layered on top of it will be another video player that players "MainMenuCurtainOpen". Once that "MainMenuCurtainOpen" is _finished_ then "MainMenuCurtainIdle" plays in its plays in loop.
@@ -28,5 +28,5 @@ Versioned per-OS-user configuration/progress is in `Assets/Code/UserData`, store
 is under `UI/Screens/CampaignSelection` with matching UXML/USS; War's Campaign button
 opens it. The temporary `CampaignProgress.CompleteAllForLocalTesting` override makes
 all chapters completed for current local testing without changing stored progress.
-Record attempted/completed missions through `UserProfileStore` when actual mission
-startup/victory is implemented. Chapter selection alone must not change progress.
+Campaign launch records attempts through `UserProfileStore`; victory handling must call
+`CompleteWarChapter` once implemented. Chapter selection alone must not change progress.

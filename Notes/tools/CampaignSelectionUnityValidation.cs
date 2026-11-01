@@ -95,7 +95,7 @@ public static class CampaignSelectionUnityValidation
       else if(stage==3&&Time.frameCount>frame+4)
       {
         Check(root.Q("campaign-selection-screen").resolvedStyle.display==DisplayStyle.Flex,"Campaign route");
-        Check(!root.Q<Button>("campaign-continue").enabledSelf,"Unimplemented mission launch should be unavailable");
+        Check(root.Q<Button>("campaign-continue").enabledSelf,"Campaign mission launch is disabled");
         var texture=root.Q<Button>("campaign-chapter-1").Q(className:"normal-art").resolvedStyle.backgroundImage.texture;
         Check(texture!=null&&texture.width==251&&texture.height==44,"BMP artwork not loaded");
         previewTexture=texture;

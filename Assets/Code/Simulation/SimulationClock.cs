@@ -16,6 +16,13 @@ namespace Assets.Code.Simulation
     public double ElapsedSeconds { get; private set; }
     public float DeltaTime { get; private set; }
 
+    public void Reset()
+    {
+      IsPaused = false;
+      DeltaTime = 0;
+      ElapsedSeconds = 0;
+    }
+
     public void Advance(float seconds)
     {
       if (float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds < 0)

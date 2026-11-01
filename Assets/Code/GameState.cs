@@ -10,6 +10,7 @@ namespace Assets.Code
     LOADING_ASSETS = 1,
     INTRO_VIDEOS = 10,
     MAIN_MENU = 15,
+    LOADING_MAP = 18,
     PLAYING = 20,
   }
 }

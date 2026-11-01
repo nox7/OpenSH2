@@ -29,10 +29,13 @@ namespace Assets.Code.UI.Frontend
     private FrontendViewport viewport;
     private FrontendScreenRouter screenRouter;
     private bool skipRequested;
+    private bool mapLoading;
+    private System.Func<int, System.Threading.Tasks.Task> loadCampaign;
 
-    internal void Begin(Game game)
+    internal void Begin(Game game, System.Func<int, System.Threading.Tasks.Task> loadCampaign)
     {
       this.game = game;
+      this.loadCampaign = loadCampaign;
       panel = ScriptableObject.CreateInstance<PanelSettings>();
       panel.name = "OpenSH2 Frontend Panel";
       panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("OpenSH2/Frontend/FrontendTheme");
@@ -64,8 +67,43 @@ namespace Assets.Code.UI.Frontend
         () => screenRouter.Navigate(FrontendScreenId.WarPeace),
         () => screenRouter.Navigate(FrontendScreenId.CampaignSelection)));
       screenRouter.Register(FrontendScreenId.CampaignSelection, () => new CampaignSelectionScreen(root.Q("campaign-selection-screen"),
-        () => screenRouter.Navigate(FrontendScreenId.PathOfWarSelection), new UserProfileStore()));
+        () => screenRouter.Navigate(FrontendScreenId.PathOfWarSelection), new UserProfileStore(),
+        chapter => { if (!mapLoading) StartCoroutine(LaunchCampaign(chapter)); }));
       StartCoroutine(Startup());
+    }
+
+    private IEnumerator LaunchCampaign(int chapter)
+    {
+      mapLoading = true;
+      screenRouter.HideCurrent();
+      game.State = GameState.LOADING_MAP;
+      loading.Q<Label>().text = $"Loading Mission {chapter}…";
+      Show(loading);
+      // Give the loading overlay a rendered frame before the synchronous asset-loading stages.
+      yield return null;
+      yield return null;
+      System.Threading.Tasks.Task task;
+      try { task = loadCampaign(chapter); }
+      catch (System.Exception error) { CampaignLoadFailed(error); yield break; }
+      while (!task.IsCompleted) yield return null;
+      if (task.IsFaulted || task.IsCanceled)
+      {
+        CampaignLoadFailed(task.Exception?.GetBaseException() ?? new System.OperationCanceledException("Map loading was interrupted."));
+        yield break;
+      }
+      mapLoading = false;
+      // Hide and dispose all frontend video/artwork resources after the world is ready.
+      enabled = false;
+    }
+
+    private void CampaignLoadFailed(System.Exception error)
+    {
+      mapLoading = false;
+      game.State = GameState.MAIN_MENU;
+      Show(screenHost);
+      screenRouter.Navigate(FrontendScreenId.CampaignSelection);
+      document.rootVisualElement.Q<Label>("campaign-title").text = $"Unable to load mission: {error.Message}";
+      Debug.LogWarning($"Campaign map loading failed: {error.Message}");
     }
 
     private IEnumerator Startup()

@@ -110,7 +110,8 @@ public class Main : MonoBehaviour
   {
     if (GetComponent<AtmosphereController>() == null) gameObject.AddComponent<AtmosphereController>();
     if (Game.GetInstance() == null) Game.Initialize();
-    gameObject.AddComponent<FrontendController>().Begin(Game.GetInstance());
+    gameObject.AddComponent<FrontendController>().Begin(Game.GetInstance(),
+      chapter => LoadMapAsync(WarCampaignMaps.GetPath(chapter)));
   }
 
   // Update is called once per frame
@@ -132,11 +133,22 @@ public class Main : MonoBehaviour
   [Tooltip("Startup keeps and estate flagpole/store placement. Applied when the map loads.")]
   [SerializeField] private StartupBuildingSettings startupBuildingSettings = new();
 
-  // Retained for future map-loading UI integration; startup no longer calls this test harness.
-  private async void RunTests()
+  private GameObject mapWorld;
+  public bool IsLoadingMap { get; private set; }
+  public string LoadedMapPath { get; private set; }
+
+  /// <summary>Load a UI-selected map; simulation begins only after the complete world is ready.</summary>
+  public async Task LoadMapAsync(string mapPath)
   {
+    if (IsLoadingMap) throw new System.InvalidOperationException("A map is already loading.");
+    if (!System.IO.File.Exists(mapPath)) throw new System.IO.FileNotFoundException("The selected map was not found.", mapPath);
+    var game = Game.GetInstance() ?? throw new System.InvalidOperationException("Game is not initialized.");
+    IsLoadingMap = true;
+    game.State = GameState.LOADING_MAP;
     try
     {
+      ClearMap();
+      game.Simulation.Reset();
       var loadTimer = System.Diagnostics.Stopwatch.StartNew();
       double previousStage = 0d;
       var loadStages = new System.Collections.Generic.List<string>();
@@ -146,9 +158,8 @@ public class Main : MonoBehaviour
         loadStages.Add($"{name} {elapsed - previousStage:F3}s");
         previousStage = elapsed;
       }
-      string testFilePath = "C:\\Users\\garet\\Documents\\Stronghold 2\\Maps\\war_chapter8.s2m";
-      string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
-      var mapFile = S2MFileLoader.Load(testFilePath);
+      string gameInstallPath = Constants.GamePath;
+      var mapFile = S2MFileLoader.Load(mapPath);
       RecordStage("map decoding");
       S2MStartupBuildings.Apply(mapFile,gameInstallPath,startupBuildingSettings);
       foreach(var issue in mapFile.StartupPlacementIssues) Debug.LogWarning(issue);
@@ -167,7 +178,7 @@ public class Main : MonoBehaviour
       S2MTerrainTextureData terrainTextures = new S2MTerrainTextureAssetLoader().Load(
         mapFile, gameInstallPath, buildingData.PrimaryHeightCells, buildingData.SurfaceOverrides);
       RecordStage("terrain textures");
-      var mapWorld = new GameObject("S2M Map World");
+      mapWorld = new GameObject("S2M Map World");
       mapWorld.transform.SetParent(transform, worldPositionStays: false);
       mapWorld.transform.localScale = Vector3.one * gameScale;
       S2MLiveryContext.Create(mapFile, gameInstallPath, mapWorld.transform, liverySettings);
@@ -242,11 +253,11 @@ public class Main : MonoBehaviour
         {woodcutter.ConfigureHarvest(harvestResources,woodcuttingSettings);woodcutter.ConfigureStorage(inventory,stockpiles);}
       S2MActorData actorData = await new S2MActorAssetLoader().LoadAsync(mapFile, gameInstallPath,
         actorRenderSettings.Overrides, actorRenderSettings.AnimationSamplesPerSecond, placements:laborPlan.StartupActors,assembly:horseCartSettings);
-      if (this == null || mapWorld == null) return;
+      if (this == null || mapWorld == null) throw new System.OperationCanceledException("Map loading was interrupted.");
       S2MActorRenderer.Render(actorData, mapWorld.transform, terrainSettings, actorRenderSettings, unitModelScale).Clock = Game.GetInstance().Simulation;
       var populationData = await S2MCampfirePopulationLoader.LoadRecruitsAsync(mapFile, gameInstallPath,
         recruitmentPlans, actorRenderSettings.AnimationSamplesPerSecond,jobs:laborPlan.Jobs,assembly:horseCartSettings,includeRuntimeWoodcutters:estateSawpitSettings.Enabled);
-      if (this == null || mapWorld == null) return;
+      if (this == null || mapWorld == null) throw new System.OperationCanceledException("Map loading was interrupted.");
       var populationRoot = new GameObject("Estate Population"); populationRoot.transform.SetParent(mapWorld.transform, false);
       var populationController=populationRoot.AddComponent<S2MPopulationController>();
       populationController.Initialize(mapFile, navigation, recruitmentPlans,
@@ -293,14 +304,20 @@ public class Main : MonoBehaviour
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; rendered {vegetationData.SupportedInstanceCount} scenery placements including {vegetationData.Grass.Count} grass cards ({vegetationData.InactiveInstanceCount} inactive, {vegetationData.UnsupportedInstanceCount} unsupported records).");
       foreach (string issue in vegetationData.Issues) Debug.LogWarning(issue);
+      LoadedMapPath = System.IO.Path.GetFullPath(mapPath);
+      game.State = GameState.PLAYING;
     }
-    catch (System.Exception exception)
+    catch
     {
-      Debug.LogException(exception);
+      ClearMap();
+      game.Simulation.Reset();
+      game.State = GameState.MAIN_MENU;
+      throw;
     }
+    finally { IsLoadingMap = false; }
   }
 
-  private void OnDestroy()
+  private void ClearMap()
   {
     kingdomStockpiles?.Dispose();
     estateSawpits?.Dispose();
@@ -309,6 +326,12 @@ public class Main : MonoBehaviour
     buildingConstruction?.Dispose();
     aiRuntime?.Dispose();
     var game=Game.GetInstance();
-    if(game!=null && game.AI==aiRuntime)game.AI=null;
+    if(game!=null) { if(game.AI==aiRuntime)game.AI=null; game.Inventory=null; }
+    kingdomStockpiles=null; estateSawpits=null; estateHousing=null; estateConstruction=null;
+    buildingConstruction=null; constructionPlanner=null; aiRuntime=null; Labor=null;
+    LoadedMapPath=null;
+    if(mapWorld!=null) { mapWorld.SetActive(false); Destroy(mapWorld); mapWorld=null; }
   }
+
+  private void OnDestroy() { ClearMap(); }
 }
