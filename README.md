@@ -17,11 +17,15 @@ There have been no reverse engineering or decompilation processes in the making 
 Studies, such as research on the file formats, will be found in the `Notes` directory.
 
 ## Current Status
-The project currently can play the intro videos (after auto-converting them to MP4 and WebM for alpha) and has the start of a UI library for runtime rendering the TGA textures as UI. Alignment and scaling is being worked on and in parallel so is .s2m binary format decoding.
+The project currently has half the game selection UIs finished, .s2m files decoded and implemented, video players embedded, livery implemented, AI simulation partially implemented, maps fully rendered, animations implemented, some jobs and workers implemented, updated shaders and lighting.
 
-<img width="1912" height="987" alt="image" src="https://github.com/user-attachments/assets/e5730f8b-00a3-49be-9d5b-af50a28fbe85" />
+<img width="1293" height="644" alt="image" src="https://github.com/user-attachments/assets/61124e41-80bc-4809-8834-6bde5ea2e765" />
 
-<img width="1374" height="546" alt="image" src="https://github.com/user-attachments/assets/c33e8d99-812e-49ed-bf12-df7b2b39a64b" />
+<img width="1065" height="593" alt="image" src="https://github.com/user-attachments/assets/eacf8d45-f654-447c-9640-05630478fef4" />
+
+<img width="1053" height="593" alt="image" src="https://github.com/user-attachments/assets/f9dde7ff-9357-467c-a678-a57b6feca9d1" />
+
+<img width="1056" height="594" alt="image" src="https://github.com/user-attachments/assets/55cb9948-b2c6-46c4-87f6-b730e247d9b0" />
 
 ## Bugs Fixed - Or Will Be Fixed
 The following bugs are known and will be fixed in OpenSH2.
