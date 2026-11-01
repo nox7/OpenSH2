@@ -27,6 +27,7 @@ namespace Assets.Code.Simulation.Labor
     public float SawRawHeight { get; private set; }
     public int? StockpileId { get; private set; }
     private IReadOnlyList<WoodDeliveryPoint> stockpiles;
+    public IReadOnlyList<WoodDeliveryPoint> DeliveryPoints=>stockpiles??Array.Empty<WoodDeliveryPoint>();
     public void ConfigureProduction(MapPoint sawPosition,float heading,IReadOnlyList<WoodDeliveryPoint> destinations,MapPoint? buildingPosition=null,float? sawRawHeight=null)
     { SawPosition=sawPosition;SawHeading=heading;SawRawHeight=sawRawHeight??RawHeight;BuildingPosition=buildingPosition??sawPosition;stockpiles=destinations??throw new ArgumentNullException(nameof(destinations)); }
     public bool CarryingLog { get; private set; }

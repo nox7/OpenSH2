@@ -10,6 +10,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
 {
   public static class S2MCampfirePopulationLoader
   {
+    public const int RuntimeCartTemplateId=-1000000000;
+    public const int RuntimeSawLogTemplateId=RuntimeCartTemplateId ^ (1<<30);
     public const string AnimationFolder = "meshes/units/animations/worker/";
     public const string HovelClip = AnimationFolder + "hovel_peasant.GR2";
     public const string StandClip = AnimationFolder + "church_standup.GR2";
@@ -19,24 +21,31 @@ namespace Assets.Code.Stronghold2.AssetLoading
 
     public static Task<S2MActorData> LoadRecruitsAsync(S2MFile map, string installation,
       IReadOnlyList<IReadOnlyList<Peasant>> plans, int samplesPerSecond = 15, string converterPath = null, string cacheDirectory = null,
-      IReadOnlyList<LaborJob> jobs = null,HorseCartAssemblySettings assembly = null)
+      IReadOnlyList<LaborJob> jobs = null,HorseCartAssemblySettings assembly = null,bool includeRuntimeWoodcutters=false)
     {
-      return new S2MActorAssetLoader().LoadAsync(map,installation,Overrides(assembly),samplesPerSecond,converterPath,cacheDirectory,CreateRecruitPlacements(plans,jobs,assembly));
+      return new S2MActorAssetLoader().LoadAsync(map,installation,Overrides(assembly),samplesPerSecond,converterPath,cacheDirectory,CreateRecruitPlacements(plans,jobs,assembly,includeRuntimeWoodcutters));
     }
 
-    public static IReadOnlyList<ActorPlacement> CreateRecruitPlacements(IReadOnlyList<IReadOnlyList<Peasant>> plans,IReadOnlyList<LaborJob> jobs=null,HorseCartAssemblySettings assembly=null)
+    public static IReadOnlyList<ActorPlacement> CreateRecruitPlacements(IReadOnlyList<IReadOnlyList<Peasant>> plans,IReadOnlyList<LaborJob> jobs=null,HorseCartAssemblySettings assembly=null,bool includeRuntimeWoodcutters=false)
     {
       var result=new List<ActorPlacement>();
       foreach(var plan in plans)foreach(var p in plan)
         foreach(string type in new[] { "CampfirePeasant"+(-p.Id-1)%3,"HovelRecruit","StandingRecruit","RunningRecruit","WaitingRecruit" })
-          result.Add(new ActorPlacement { Id=p.Id,Type=type,RawX=p.Spawn.X*1024,RawZ=p.Spawn.Z*1024,OnMap=true,AnimationLoops=true });
-      if(jobs!=null && jobs.Count>0)
+          result.Add(new ActorPlacement { Id=p.Id,EstateId=p.EstateId,Type=type,RawX=p.Spawn.X*1024,RawZ=p.Spawn.Z*1024,OnMap=true,AnimationLoops=true });
+      if(includeRuntimeWoodcutters || jobs!=null && jobs.Count>0)
       {
         var catalog=new LaborPresentationCatalog(assembly);var roles=new HashSet<LaborRole>();
-        foreach(var job in jobs)roles.Add(job.Role);
+        if(jobs!=null)foreach(var job in jobs)roles.Add(job.Role);
+        if(includeRuntimeWoodcutters)roles.Add(LaborRole.Woodcutter);
         foreach(var role in roles)foreach(var plan in plans)foreach(var p in plan)
           result.AddRange(catalog.Get(role).WorkerPlacements(p));
-        foreach(var job in jobs)result.AddRange(catalog.Get(job.Role).EquipmentPlacements(job));
+        if(jobs!=null)foreach(var job in jobs)result.AddRange(catalog.Get(job.Role).EquipmentPlacements(job));
+      }
+      if(includeRuntimeWoodcutters)
+      {
+        if(result.Exists(p=>p.Id==RuntimeCartTemplateId || p.Id==RuntimeSawLogTemplateId))throw new System.InvalidOperationException("Runtime equipment template ID collision.");
+        var sample=new WoodcutterJob(0,0,RuntimeCartTemplateId,default,default,0,0);
+        result.AddRange(new WoodcutterPresentation(assembly).EquipmentPlacements(sample));
       }
       return result;
     }

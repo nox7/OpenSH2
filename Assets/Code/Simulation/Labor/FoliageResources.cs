@@ -58,6 +58,63 @@ namespace Assets.Code.Simulation.Labor
         Walking.SetObstacle((1L<<32)+tree.Id,tree.Position,tree.Radius,true);
       }
     }
+    /// <summary>A resumable nearest-standing-tree query over the shared spatial buckets. Never reserves a worker's resource.</summary>
+    public NearestTreeSearch FindNearestTree(MapPoint origin,bool bushes=false)=>new NearestTreeSearch(this,origin,bushes);
+    public sealed class NearestTreeSearch : IDisposable
+    {
+      private readonly FoliageResources owner;private readonly MapPoint origin;private readonly bool bushes;
+      private readonly IEnumerator<List<FoliageResource>> buckets;
+      private List<FoliageResource> current;private int cursor;
+      private double distance=double.PositiveInfinity;
+      public FoliageResource Result { get; private set; }
+      public bool Complete { get; private set; }
+      internal NearestTreeSearch(FoliageResources owner,MapPoint origin,bool bushes)
+      {this.owner=owner;this.origin=origin;this.bushes=bushes;buckets=VisitBuckets().GetEnumerator();}
+      // One step visits one bucket or examines one resource, so a host can enforce its own work budget.
+      public void Step()
+      {
+        if(Complete)return;
+        if(current!=null && cursor<current.Count)
+        {
+          var tree=current[cursor++];
+          if(tree.Bush!=bushes || tree.State!=FoliageState.Available && tree.State!=FoliageState.Reserved)return;
+          double dx=tree.Position.X-origin.X,dz=tree.Position.Z-origin.Z,d=dx*dx+dz*dz;
+          if(d<distance || d==distance && (Result==null || tree.Id<Result.Id)){Result=tree;distance=d;}
+          return;
+        }
+        if(!buckets.MoveNext()){Complete=true;buckets.Dispose();return;}
+        current=buckets.Current;cursor=0;
+      }
+      private IEnumerable<List<FoliageResource>> VisitBuckets()
+      {
+        int cx=(int)Math.Floor(origin.X/BucketSize),cz=(int)Math.Floor(origin.Z/BucketSize);
+        int maxX=(int)Math.Ceiling(owner.Walking.Width/(double)owner.Walking.Resolution/BucketSize)-1;
+        int maxZ=(int)Math.Ceiling(owner.Walking.Height/(double)owner.Walking.Resolution/BucketSize)-1;
+        int limit=Math.Max(Math.Max(Math.Abs(cx),Math.Abs(cz)),Math.Max(Math.Abs(maxX-cx),Math.Abs(maxZ-cz)));
+        for(int ring=0;ring<=limit;ring++)
+        {
+          if(ring==0){owner.buckets.TryGetValue((cx,cz),out var first);yield return first;}
+          else
+          {
+            for(int x=Math.Max(0,cx-ring);x<=Math.Min(maxX,cx+ring);x++)
+            {
+              if(cz-ring>=0){owner.buckets.TryGetValue((x,cz-ring),out var north);yield return north;}
+              if(cz+ring<=maxZ){owner.buckets.TryGetValue((x,cz+ring),out var south);yield return south;}
+            }
+            for(int z=Math.Max(0,cz-ring+1);z<=Math.Min(maxZ,cz+ring-1);z++)
+            {
+              if(cx-ring>=0){owner.buckets.TryGetValue((cx-ring,z),out var west);yield return west;}
+              if(cx+ring<=maxX){owner.buckets.TryGetValue((cx+ring,z),out var east);yield return east;}
+            }
+          }
+          double edge=Math.Min(Math.Min(origin.X-(cx-ring)*BucketSize,(cx+ring+1)*BucketSize-origin.X),
+            Math.Min(origin.Z-(cz-ring)*BucketSize,(cz+ring+1)*BucketSize-origin.Z));
+          if(Result!=null && edge*edge>distance)yield break;
+        }
+      }
+      public void Dispose(){buckets.Dispose();Complete=true;}
+    }
+
     public bool TryReserveNearest(int worker,MapPoint origin,out WoodcuttingRoute route)
       => TryReserveNearest(worker,origin,origin,out route);
     public bool TryReserveNearest(int worker,MapPoint origin,MapPoint homeOrigin,out WoodcuttingRoute route)

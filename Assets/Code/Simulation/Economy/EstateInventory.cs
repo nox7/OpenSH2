@@ -77,6 +77,54 @@ namespace Assets.Code.Simulation.Economy
     private readonly Dictionary<int,EstateResources> estates=new();
     private readonly Dictionary<int,BuildingStorage> byId=new();
     private readonly List<BuildingStorage> stores=new();
+    private readonly Dictionary<(int Building,Goods Goods),int> reserved=new();
+    private readonly Dictionary<(int Estate,Goods Goods),int> estateReserved=new();
+    private readonly HashSet<int> initialWoodGranted=new();
+    public long AvailableAmount(int estate,Goods goods)=>Amount(estate,goods)-(estateReserved.TryGetValue((estate,goods),out int n)?n:0);
+    private long Available(BuildingStorage store,Goods goods)=>store.Amount(goods)-(reserved.TryGetValue((store.BuildingId,goods),out int n)?n:0);
+    public bool TryGrantInitialWood(int estate,int amount)
+    {
+      if(amount<0)throw new ArgumentOutOfRangeException(nameof(amount));
+      if(initialWoodGranted.Contains(estate))return false;
+      var candidates=Estate(estate).Buildings;long space=0;foreach(var store in candidates)space+=Math.Min(amount,store.FreeCapacity(Goods.Wood));
+      if(space<amount)return false;
+      var changed=new List<BuildingStorage>();int left=amount;
+      foreach(var store in candidates)
+      {int take=(int)Math.Min(left,store.FreeCapacity(Goods.Wood));if(take<=0)continue;store.Change(Goods.Wood,take);left-=take;changed.Add(store);if(left==0)break;}
+      estates[estate].Totals[(int)Goods.Wood]+=amount;initialWoodGranted.Add(estate);foreach(var store in changed)Changed?.Invoke(store);return true;
+    }
+    public bool TryReserveEstateGoods(int estate,Goods goods,int amount,out GoodsReservation reservation)
+    {
+      reservation=null;if(amount<0 || AvailableAmount(estate,goods)<amount)return false;
+      Estate(estate);
+      var parts=new List<(BuildingStorage Store,int Amount)>();int left=amount;
+      foreach(var store in estates[estate].Buildings)
+      {int take=(int)Math.Min(left,Available(store,goods));if(take<=0)continue;parts.Add((store,take));left-=take;if(left==0)break;}
+      if(left!=0)return false;
+      foreach(var p in parts){var key=(p.Store.BuildingId,goods);reserved[key]=(reserved.TryGetValue(key,out int n)?n:0)+p.Amount;}
+      var estateKey=(estate,goods);estateReserved[estateKey]=(estateReserved.TryGetValue(estateKey,out int held)?held:0)+amount;
+      reservation=new GoodsReservation(this,estate,goods,amount,parts);return true;
+    }
+    public sealed class GoodsReservation : IDisposable
+    {
+      private EstateInventory owner;private readonly int estate,amount;private readonly Goods goods;
+      private readonly List<(BuildingStorage Store,int Amount)> parts;
+      internal GoodsReservation(EstateInventory owner,int estate,Goods goods,int amount,List<(BuildingStorage,int)> parts)
+      {this.owner=owner;this.estate=estate;this.goods=goods;this.amount=amount;this.parts=parts;}
+      public void Commit()
+      {
+        if(owner==null)throw new ObjectDisposedException(nameof(GoodsReservation));
+        var current=owner;foreach(var p in parts)p.Store.Change(goods,-p.Amount);current.estates[estate].Totals[(int)goods]-=amount;
+        Release();foreach(var p in parts)current.Changed?.Invoke(p.Store);
+      }
+      private void Release()
+      {
+        foreach(var p in parts){var key=(p.Store.BuildingId,goods);int n=owner.reserved[key]-p.Amount;if(n==0)owner.reserved.Remove(key);else owner.reserved[key]=n;}
+        var e=(estate,goods);int remaining=owner.estateReserved[e]-amount;if(remaining==0)owner.estateReserved.Remove(e);else owner.estateReserved[e]=remaining;
+        owner=null;
+      }
+      public void Dispose(){if(owner!=null)Release();}
+    }
     public IReadOnlyList<BuildingStorage> Buildings { get; }
     public event Action<BuildingStorage> Changed;
     public StockpileDeliverySettings DeliverySettings { get; }
@@ -106,13 +154,13 @@ namespace Assets.Code.Simulation.Economy
     }
     public bool TryWithdraw(int building,Goods goods,int amount)
     {
-      if(amount<=0 || !byId.TryGetValue(building,out var store) || store.Amount(goods)<amount)return false;
+      if(amount<=0 || !byId.TryGetValue(building,out var store) || Available(store,goods)<amount)return false;
       store.Change(goods,-amount);estates[store.EstateId].Totals[(int)goods]-=amount;Changed?.Invoke(store);return true;
     }
     public bool TryTransfer(int from,int to,Goods goods,int amount)
     {
       if(from==to || !byId.TryGetValue(from,out var source) || !byId.TryGetValue(to,out var target) || amount<=0
-        || source.Amount(goods)<amount || !target.CanAccept(goods,amount)
+        || Available(source,goods)<amount || !target.CanAccept(goods,amount)
         || (source.EstateId!=target.EstateId && !CanDeposit(to,target.EstateId,goods,amount)))return false;
       source.Change(goods,-amount);target.Change(goods,amount);
       estates[source.EstateId].Totals[(int)goods]-=amount;estates[target.EstateId].Totals[(int)goods]+=amount;

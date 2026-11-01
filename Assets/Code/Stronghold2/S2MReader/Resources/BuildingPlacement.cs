@@ -3,6 +3,12 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
   /// <summary>Common Building metadata, independent of a building's decoded mesh/gameplay state.</summary>
   public class BuildingPlacement : S2Object
   {
+    public int? StartupEstateId { get; internal set; }
+    /// <summary>Explicit appearance for runtime housing; authored selectors remain decoded from the file.</summary>
+    public int? HovelAppearance { get; internal set; }
+    public int? RuntimeEstateId { get; internal set; }
+    public bool IsRuntimeGenerated=>IsStartupGenerated || RuntimeEstateId.HasValue;
+    public bool IsStartupGenerated=>StartupEstateId.HasValue;
     public float RawX { get; internal set; }
     public float RawY { get; internal set; }
     public float RawZ { get; internal set; }

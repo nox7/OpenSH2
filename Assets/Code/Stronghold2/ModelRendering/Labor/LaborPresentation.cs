@@ -53,7 +53,7 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
     public virtual IEnumerable<ActorPlacement> WorkerPlacements(Peasant actor)
     {
       foreach(string type in new[]{TravelingActorType,WorkingActorType})
-        yield return new ActorPlacement { Id=actor.Id,Type=type,OnMap=true,RawX=actor.Spawn.X*1024,RawZ=actor.Spawn.Z*1024,AnimationLoops=true };
+        yield return new ActorPlacement { Id=actor.Id,EstateId=actor.EstateId,Type=type,OnMap=true,RawX=actor.Spawn.X*1024,RawZ=actor.Spawn.Z*1024,AnimationLoops=true };
     }
     public virtual float WalkingAnimationRate(float walkSpeed) => walkSpeed;
     // Jobs with harvesting, hauling, forging, etc. can supply phase-specific clips/timers here.

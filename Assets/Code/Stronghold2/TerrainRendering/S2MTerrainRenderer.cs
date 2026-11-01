@@ -25,6 +25,8 @@ namespace Assets.Code.Stronghold2.TerrainRendering
 
       settings ??= new S2MTerrainSettings();
       Validate(map.HeightLayer, settings);
+      // Runtime edits own a mutable overlay; retain the loader mask as the immutable baseline.
+      settings.TerrainCutoutCells=settings.TerrainCutoutCells!=null?(bool[])settings.TerrainCutoutCells.Clone():new bool[map.HeightLayer.Width*map.HeightLayer.Height];
       byte[] surfaceMaterialIds = S2MTerrainSurfaceMaterialGrid.Create(map, settings.PrimaryHeightCells, settings.SurfaceOverrides);
 
       var root = new GameObject(string.IsNullOrWhiteSpace(terrainName) ? "S2M Terrain" : terrainName);
@@ -51,6 +53,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       }
 
       root.AddComponent<S2MGeneratedTerrainResources>().Initialize(generatedMeshes, generatedMaterial);
+      root.AddComponent<S2MTerrainEdits>().Initialize(map,settings);
       return root;
     }
 
@@ -77,12 +80,14 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       var neighbourTintNorth = new List<Vector4>(cellCount * 4);
       var colors = new List<Color32>(cellCount * 4);
       var triangles = new List<int>(cellCount * 6);
+      var triangleStarts=new int[cellCount];var triangleCounts=new int[cellCount];
 
       for (int z = startZ; z < startZ + chunkHeight; z++)
       {
         for (int x = startX; x < startX + chunkWidth; x++)
         {
           int cellIndex = z * map.HeightLayer.Width + x;
+          int localCell=(z-startZ)*chunkWidth+x-startX,triangleStart=triangles.Count;
           // Skip before ordinary/cliff geometry is emitted. The collider shares
           // this mesh, so no invisible terrain remains across a building's pit.
           if (settings.TerrainCutoutCells?[cellIndex] ?? false) continue;
@@ -92,6 +97,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
               neighbourTintWest, neighbourTintEast, neighbourTintSouth, neighbourTintNorth,
               colors, map, surfaceMaterialIds, settings, cellIndex, x, z, triangles))
           {
+            triangleStarts[localCell]=triangleStart;triangleCounts[localCell]=triangles.Count-triangleStart;
             continue;
           }
 
@@ -101,6 +107,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
           AddVertex(vertices, normals, textureCoordinates, cellData, neighbourMaterialIds, neighbourTintWest, neighbourTintEast, neighbourTintSouth, neighbourTintNorth, colors, map, surfaceMaterialIds, settings, cellIndex, x, z + 1, 0);
           AddVertex(vertices, normals, textureCoordinates, cellData, neighbourMaterialIds, neighbourTintWest, neighbourTintEast, neighbourTintSouth, neighbourTintNorth, colors, map, surfaceMaterialIds, settings, cellIndex, x + 1, z + 1, 1);
           AddCellTriangles(triangles, vertexStart, settings.FlipX ^ settings.FlipZ);
+          triangleStarts[localCell]=triangleStart;triangleCounts[localCell]=triangles.Count-triangleStart;
         }
       }
 
@@ -130,6 +137,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       chunk.AddComponent<MeshFilter>().sharedMesh = mesh;
       chunk.AddComponent<MeshRenderer>().sharedMaterial = material;
       if (settings.GenerateMeshColliders) chunk.AddComponent<MeshCollider>().sharedMesh = mesh;
+      chunk.AddComponent<S2MTerrainChunk>().Initialize(mesh,startX,startZ,chunkWidth,chunkHeight,triangles.ToArray(),triangleStarts,triangleCounts);
       return chunk;
     }
 

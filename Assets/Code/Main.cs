@@ -83,6 +83,20 @@ public class Main : MonoBehaviour
   [SerializeField] private Assets.Code.Simulation.Population.PopulationSettings populationSettings = new();
   [Tooltip("Horse/cart assembly offsets and saw-pit seat alignment. Reload the map to apply.")]
   [SerializeField] private HorseCartAssemblySettings horseCartSettings = new();
+  [Tooltip("AI scheduling uses simulation time and bounded work budgets.")]
+  [SerializeField] private Assets.Code.Simulation.AI.AiSettings aiSettings = new();
+  private S2MAiRuntime aiRuntime;
+  [Tooltip("Estate granary auto-construction. Respects the map's building-placement policy. Reload the map to change search settings.")]
+  [SerializeField] private EstateGranarySettings estateGranarySettings = new();
+  private S2MEstateGranaryConstruction estateConstruction;
+  [Tooltip("Estate housing search and one-time starting wood. Header population level sets the hovel ceiling; each hovel costs six wood.")]
+  [SerializeField] private EstateHovelSettings estateHovelSettings=new();
+  private S2MEstateHovelConstruction estateHousing;
+  private EstateConstructionPlanner estatePlanner;
+  [Tooltip("Estate sawpit placement and optional wood-profile target override. Cost: three wood; staffing: one worker.")]
+  [SerializeField] private EstateSawpitSettings estateSawpitSettings=new();
+  private S2MEstateSawpitConstruction estateSawpits;
+  public S2MAiRuntime AI => aiRuntime;
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void Start()
@@ -104,6 +118,8 @@ public class Main : MonoBehaviour
 #endif
     game.Simulation.Speed = float.IsNaN(gameSpeed) || float.IsInfinity(gameSpeed) ? 1 : Mathf.Max(0,gameSpeed);
     game.Simulation.Advance(Time.unscaledDeltaTime);
+    game.AI?.Scheduler.Advance(game.Simulation.DeltaTime);
+    if(game.Simulation.DeltaTime>0 && aiSettings.Enabled)estatePlanner?.CommitPending(game.Simulation.ElapsedSeconds);
     return;
 
     if (game.State == GameState.NONE)
@@ -164,6 +180,9 @@ public class Main : MonoBehaviour
     }
   }
 
+  [Tooltip("Startup keeps and estate flagpole/store placement. Applied when the map loads.")]
+  [SerializeField] private StartupBuildingSettings startupBuildingSettings = new();
+
   private async void RunTests()
   {
     try
@@ -181,6 +200,9 @@ public class Main : MonoBehaviour
       string gameInstallPath = "C:\\Steam\\steamapps\\common\\Stronghold 2";
       var mapFile = S2MFileLoader.Load(testFilePath);
       RecordStage("map decoding");
+      S2MStartupBuildings.Apply(mapFile,gameInstallPath,startupBuildingSettings);
+      foreach(var issue in mapFile.StartupPlacementIssues) Debug.LogWarning(issue);
+      RecordStage("startup buildings");
       if (gameScale <= 0f) throw new System.InvalidOperationException("Game scale must be positive.");
       if (!(treeModelScale > 0f) || float.IsInfinity(treeModelScale))
         throw new System.InvalidOperationException("Tree model scale must be finite and positive.");
@@ -268,13 +290,40 @@ public class Main : MonoBehaviour
       if (this == null || mapWorld == null) return;
       S2MActorRenderer.Render(actorData, mapWorld.transform, terrainSettings, actorRenderSettings, unitModelScale).Clock = Game.GetInstance().Simulation;
       var populationData = await S2MCampfirePopulationLoader.LoadRecruitsAsync(mapFile, gameInstallPath,
-        recruitmentPlans, actorRenderSettings.AnimationSamplesPerSecond,jobs:laborPlan.Jobs,assembly:horseCartSettings);
+        recruitmentPlans, actorRenderSettings.AnimationSamplesPerSecond,jobs:laborPlan.Jobs,assembly:horseCartSettings,includeRuntimeWoodcutters:estateSawpitSettings.Enabled);
       if (this == null || mapWorld == null) return;
       var populationRoot = new GameObject("Estate Population"); populationRoot.transform.SetParent(mapWorld.transform, false);
       var populationController=populationRoot.AddComponent<S2MPopulationController>();
       populationController.Initialize(mapFile, navigation, recruitmentPlans,
         populationData, terrainSettings, actorRenderSettings, populationSettings, Game.GetInstance().Simulation, unitModelScale,laborPlan.Jobs,horseCartSettings,laborPlan.Buildings);
       Labor=populationController.Labor;
+      estateConstruction?.Dispose();
+      estateHousing?.Dispose();estateSawpits?.Dispose();
+      estateSawpits=null;estateConstruction=null;estateHousing=null;estatePlanner=null;
+      aiRuntime?.Dispose();
+      aiRuntime=S2MAiRuntime.Create(mapFile,inventory,gameInstallPath,aiSettings,Game.GetInstance().Simulation.ElapsedSeconds,Labor);
+      Game.GetInstance().AI=aiRuntime;
+      S2MEstateHovelConstruction.InitializeEstateResources(mapFile,aiRuntime.World,inventory,estateHovelSettings.InitialWood);
+      if(estateGranarySettings.Enabled || estateHovelSettings.Enabled || estateSawpitSettings.Enabled)
+      {
+        var presentation=new S2MAiBuildingPresentation(mapFile,gameInstallPath,mapWorld.transform,terrainSettings,buildingRenderSettings);
+        estateConstruction=new S2MEstateGranaryConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateGranarySettings);
+        estateConstruction.PreparePresentation=presentation.Prepare;
+        estateConstruction.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
+        estateConstruction.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} granary construction failed: {error.Message}");
+        estateHousing=new S2MEstateHovelConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateHovelSettings);
+        estateHousing.PreparePresentation=presentation.Prepare;
+        estateHousing.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
+        estateHousing.BuildingCompleted+=populationController.AuthorizeHovel;
+        estateHousing.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} hovel construction failed: {error.Message}");
+        estateSawpits=new S2MEstateSawpitConstruction(mapFile,aiRuntime.World,inventory,gameInstallPath,navigation,Labor,startupBuildingSettings,estateSawpitSettings,foliage:harvestResources);
+        estateSawpits.PreparePresentation=presentation.Prepare;
+        estateSawpits.AdditionalPlacementRule=populationController.PreservesRecruitmentSeats;
+        estateSawpits.PrepareLabor=p=>populationController.PrepareSawpit(p,harvestResources,woodcuttingSettings,inventory);
+        estateSawpits.ConstructionFailed+=(estate,error)=>Debug.LogWarning($"Estate {estate} sawpit construction failed: {error.Message}");
+        estatePlanner=new EstateConstructionPlanner(estateConstruction,estateHousing,estateSawpits);
+        aiRuntime.Scheduler.SetPlanner(estatePlanner);
+      }
       RecordStage("placed actors and animations");
       Debug.Log($"Rendered {actorData.PlacedCount}/{mapFile.Actors.Count} placed actors ({actorData.InactiveCount} inactive).");
       foreach (string issue in actorData.Issues) Debug.LogWarning("Actor: " + issue);
@@ -293,5 +342,14 @@ public class Main : MonoBehaviour
   {
     await game.videoManager.PlayFullscreenBinkVideo(VideoFilePaths.FireflyLogo, fadeOutMs: 300);
     await game.videoManager.PlayFullscreenBinkVideo(VideoFilePaths.Intro, fadeOutMs: 300);
+  }
+  private void OnDestroy()
+  {
+    estateSawpits?.Dispose();
+    estateHousing?.Dispose();
+    estateConstruction?.Dispose();
+    aiRuntime?.Dispose();
+    var game=Game.GetInstance();
+    if(game!=null && game.AI==aiRuntime)game.AI=null;
   }
 }

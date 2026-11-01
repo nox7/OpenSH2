@@ -30,7 +30,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
       ["PoleturnerWorkshop"] = "poleturner_hut", ["SawPit"] = "saw_pit",
       ["ServantsQuarters"] = "servants_quarters_pantry", ["SheepFarm"] = "farm_sheep",
       ["Signpost"] = "signpost", ["SmallGateHouse"] = "gatehouse_small",
-      ["Solar"] = "queens_solar", ["Stables"] = "stable", ["StockPile"] = "stockpile",
+      ["Solar"] = "queens_solar", ["Stables"] = "stable", ["StockPile"] = "stockpile", ["VillageFlagPole"] = "flagpole_village_centre",
       ["StoneBarracks"] = "barrack_stone", ["StoneQuarry"] = "quarry",
       ["TannerWorkshop"] = "tanner_workshop", ["TortureBlock"] = "torture_block",
       ["TortureBrandingChair"] = "torture_branding", ["TortureBurningPost"] = "torture_burning",
@@ -59,6 +59,8 @@ namespace Assets.Code.Stronghold2.AssetLoading
       }
       if (placement.Type == "Hovel")
       {
+        if(placement.HovelAppearance is int appearance && appearance>=0 && appearance<6)
+        {relativePath=$"meshes/buildings/hovel{appearance+1}.bdg";return true;}
         // Final counted 28-byte Hovel body: appearance selector at body offset 4.
         if (payload != null)
         {
@@ -96,6 +98,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
       "MediumGateHouse" => new[] { "gatehouse_medium_foundation.GR2", "gatehouse_medium_porticulis.GR2" },
       "LargeGateHouse" => new[] { "gatehouse_large_foundation.GR2", "gatehouse_large_bridge.GR2",
         "gatehouse_large_mechanism.GR2", "gatehouse_large_chain.GR2", "gatehouse_large_porticulis.GR2" },
+      "VillageFlagPole" => new[] { "flag_keep.GR2" },
       "Mill" => new[] { "windmill_wings.GR2", "windmill_shaft.GR2" },
       "PitchRig" => new[] { "pitch_rig_scooping.GR2" },
       "DairyFarm" => new[] { "farm_dairy_parts.GR2" },

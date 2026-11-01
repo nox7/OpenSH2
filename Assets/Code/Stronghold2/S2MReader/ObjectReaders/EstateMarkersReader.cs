@@ -1,74 +1,25 @@
-﻿using Assets.Code.Stronghold2.S2MReader.Resources;
+using System;
 using System.IO;
-
+using Assets.Code.Stronghold2.S2MReader.Resources;
+using Assets.Code.Stronghold2.S2MReader.Enums;
 namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
 {
-  internal class EstateMarkersReader : ObjectReader
-  {
-    public EstateMarkersReader(S2Object obj) : base(obj)
+    internal sealed class EstateMarkersReader : ObjectReader
     {
-
-    }
-
-    public override S2Object Read(BinaryReader reader)
-    {
-      EstateMarkers obj = new();
-
-      // Read first 4 bytes. 84 01 00 00
-      reader.ReadInt32();
-
-      // Read next 4 bytes (20 00 00 00)
-      reader.ReadInt32();
-
-      // Read next 4 00 bytes
-      reader.ReadInt32();
-
-      // Read next 4 00 bytes
-      reader.ReadInt32();
-
-      // Read next 4 00 bytes
-      reader.ReadInt32();
-
-      // Read single 00 byte
-      reader.ReadByte();
-
-      // Now we will begin reading the flag locations and their marker type
-      // There are 16 flags to read
-      for (int i = 0; i < 16; i++)
-      {
-        EstateMarkerFlag flag = new();
-        flag.X = reader.ReadByte();
-        flag.Y = reader.ReadByte();
-
-        // Read null separator byte
-        reader.ReadByte();
-
-        flag.X2 = reader.ReadInt16();
-        flag.Y2 = reader.ReadInt16();
-
-        int type = reader.ReadInt32();
-        if (type == 1)
+        public EstateMarkersReader(S2Object obj) : base(obj) { }
+        public override S2Object Read(BinaryReader reader)
         {
-          flag.Type = Enums.EstateType.Estate;
+            var payload = ReadPayloadToTrailer(reader); var result = new EstateMarkers();
+            using var r = new BinaryReader(new MemoryStream(payload, false));
+            int bytes = r.ReadInt32(), count = r.ReadInt32();
+            if (count < 0 || count > 32 || bytes != 4 + count * 12 || bytes > payload.Length - 4) throw new InvalidDataException("Invalid counted estate marker table.");
+            for (int estate = 0; estate < count; estate++)
+            {
+                int packed = r.ReadInt32(), x = r.ReadInt16(), z = r.ReadInt16(), kind = r.ReadInt32();
+                if (kind < 0 || kind > 2) throw new InvalidDataException("Unknown estate marker kind.");
+                result.Markers.Add(new EstateMarkerFlag { EstateId = estate, PackedLocation = packed, X = x, Y = z, Type = (EstateType)kind });
+            }
+            return result;
         }
-        else if (type == 2)
-        {
-          flag.Type = Enums.EstateType.Castle;
-        }
-
-        // Read null terminator byte (00)
-        reader.ReadByte();
-        obj.Markers.Add(flag);
-      }
-
-      // Read 179 unknown bytes
-      // We don't know what these do
-      reader.ReadBytes(179);
-
-      // Read 4 object-terminator bytes (AF1EFFFF)
-      reader.ReadInt32();
-
-      return obj;
     }
-  }
 }

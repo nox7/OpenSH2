@@ -6,11 +6,48 @@ using Assets.Code.Simulation.Population;
 namespace Assets.Code.Simulation.Labor
 {
   /// <summary>Estate-scoped vacancy polling. Assignment reserves one worker slot atomically.</summary>
-  public sealed class LaborManager
+  public sealed class LaborManager : IDisposable
   {
     public IReadOnlyList<LaborJob> Jobs { get; }
     public IReadOnlyList<LaborBuilding> Buildings { get; }
     private readonly Dictionary<int,LaborBuilding> buildingsById=new();
+    private readonly List<LaborBuilding> registeredBuildings=new();
+    private readonly List<LaborJob> registeredJobs=new();
+    private readonly Dictionary<int,List<LaborBuilding>> byEstate=new();
+    private readonly Dictionary<int,LaborDemand> demand=new();
+    private readonly Dictionary<int,List<PeasantRecruitment>> populationByEstate=new();
+    public event Action<int,LaborDemand> StaffingChanged;
+    public LaborDemand GetLaborDemand(int estate)=>demand.TryGetValue(estate,out var value)?value:default;
+    public LaborSupply GetLaborSupply(int estate)
+    {
+      int alive=0,available=0,pending=0,removed=0;bool has=false;
+      if(!populationByEstate.TryGetValue(estate,out var groups))return default;
+      foreach(var group in groups)
+      {
+        has=true;
+        pending+=System.Math.Max(0,group.SpawnLimit-group.SpawnedCount);
+        for(int i=0;i<group.SpawnedCount;i++)
+        {
+          var p=group.Peasants[i];if(p.State==PeasantState.Removed){removed++;continue;}
+          alive++;if(p.Job==null)available++;
+        }
+      }
+      return new LaborSupply(alive,available,pending,removed,has);
+    }
+    private void RefreshDemand(int estate)
+    {
+      int missingBuildings=0,required=0,assigned=0,arrived=0,unknown=0;
+      if(byEstate.TryGetValue(estate,out var list))foreach(var b in list)
+      {if(!b.StaffingConfigured){unknown++;continue;}required+=b.MaximumWorkers;assigned+=b.TotalWorkers;arrived+=b.ArrivedWorkers;if(!b.IsFullyStaffed)missingBuildings++;}
+      var summary=new LaborDemand(missingBuildings,required,assigned,arrived,unknown);
+      demand[estate]=summary;StaffingChanged?.Invoke(estate,summary);
+    }
+    private void OnStaffingChanged(LaborJob job)=>RefreshDemand(job.EstateId);
+    private void Index(LaborBuilding b)
+    {
+      if(!byEstate.TryGetValue(b.EstateId,out var list))byEstate.Add(b.EstateId,list=new());list.Add(b);
+      foreach(var job in b.Jobs)job.StaffingChanged+=OnStaffingChanged;
+    }
     public bool TryGetBuilding(int id,out LaborBuilding building)=>buildingsById.TryGetValue(id,out building);
     private readonly IReadOnlyList<PeasantRecruitment> kingdoms;
     private readonly NavigationGrid navigation;
@@ -18,13 +55,39 @@ namespace Assets.Code.Simulation.Labor
     private double untilPoll;
     public LaborManager(IReadOnlyList<LaborJob> jobs,IReadOnlyList<PeasantRecruitment> kingdoms,NavigationGrid navigation,PopulationSettings settings,IReadOnlyList<LaborBuilding> buildings=null)
     {
-      settings.Validate();Jobs=jobs;this.kingdoms=kingdoms;this.navigation=navigation;this.settings=settings;untilPoll=settings.JobAssignmentIntervalSeconds;
+      settings.Validate();registeredJobs.AddRange(jobs);Jobs=registeredJobs.AsReadOnly();this.kingdoms=kingdoms;this.navigation=navigation;this.settings=settings;untilPoll=settings.JobAssignmentIntervalSeconds;
+      foreach(var group in kingdoms)
+      {
+        if(group.Peasants.Count==0)continue;int estate=group.Peasants[0].EstateId;
+        if(!populationByEstate.TryGetValue(estate,out var groups))populationByEstate.Add(estate,groups=new());groups.Add(group);
+      }
       if(buildings==null)
       {
         var groups=new Dictionary<int,List<LaborJob>>();foreach(var job in jobs){if(!groups.TryGetValue(job.BuildingId,out var slots))groups.Add(job.BuildingId,slots=new List<LaborJob>());slots.Add(job);}
         var generated=new List<LaborBuilding>();foreach(var pair in groups)generated.Add(pair.Value[0].Building??new LaborBuilding(pair.Key,pair.Value[0].EstateId,pair.Value));buildings=generated.AsReadOnly();
       }
-      Buildings=buildings;foreach(var building in buildings)buildingsById.Add(building.BuildingId,building);
+      registeredBuildings.AddRange(buildings);Buildings=registeredBuildings.AsReadOnly();foreach(var building in buildings)buildingsById.Add(building.BuildingId,building);
+      foreach(var building in buildings)Index(building);foreach(int estate in byEstate.Keys)RefreshDemand(estate);
+    }
+    public void RegisterPassiveBuilding(int id,int estate)=>RegisterBuilding(new LaborBuilding(id,estate,Array.Empty<LaborJob>()));
+    public void RegisterBuilding(LaborBuilding building)
+    {
+      if(building==null)throw new ArgumentNullException(nameof(building));
+      if(buildingsById.ContainsKey(building.BuildingId))throw new ArgumentException("Building already registered.");
+      buildingsById.Add(building.BuildingId,building);registeredBuildings.Add(building);registeredJobs.AddRange(building.Jobs);
+      Index(building);RefreshDemand(building.EstateId);
+    }
+    /// <summary>Remove an unstaffed runtime registration, including its job slots, during construction rollback.</summary>
+    public bool RemoveUnstaffedBuilding(int id)
+    {
+      if(!buildingsById.TryGetValue(id,out var b)||b.TotalWorkers!=0)return false;
+      foreach(var job in b.Jobs){job.StaffingChanged-=OnStaffingChanged;registeredJobs.Remove(job);}
+      buildingsById.Remove(id);registeredBuildings.Remove(b);byEstate[b.EstateId].Remove(b);RefreshDemand(b.EstateId);return true;
+    }
+    public bool RemovePassiveBuilding(int id)
+    {
+      if(!buildingsById.TryGetValue(id,out var b)||b.MaximumWorkers!=0)return false;
+      return RemoveUnstaffedBuilding(id);
     }
     public void Advance(float seconds)
     {
@@ -38,6 +101,11 @@ namespace Assets.Code.Simulation.Labor
         remaining-=step;untilPoll-=step;
         if(untilPoll<=.000001) { Assign();untilPoll=settings.JobAssignmentIntervalSeconds; }
       }
+    }
+    public void Dispose()
+    {
+      foreach(var job in Jobs)job.StaffingChanged-=OnStaffingChanged;
+      StaffingChanged=null;
     }
     private void Assign()
     {

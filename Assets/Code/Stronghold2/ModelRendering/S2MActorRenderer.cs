@@ -39,6 +39,11 @@ namespace Assets.Code.Stronghold2.ModelRendering
   {
     private readonly List<DrawBatch> draws = new();
     private readonly Dictionary<int, List<(DrawBatch batch, int index)>> actors = new();
+    private readonly Dictionary<DrawBatch,List<DrawBatch>> clonePools=new();
+    private readonly HashSet<int> clonedActors=new();
+    private int nextRuntimeId=-1000001;
+    public int ClonedActorCount=>clonedActors.Count;
+    public bool HasActor(int id)=>actors.ContainsKey(id);
     private S2MActorRenderSettings settings;
     private Material templateMaterial;
     private float modelScaleMultiplier;
@@ -162,6 +167,47 @@ namespace Assets.Code.Stronghold2.ModelRendering
         }
     }
 
+    /// <summary>Reserve an ID pair for a runtime cart and its saw-log without colliding with preloaded actors.</summary>
+    public int AllocateEquipmentPair()
+    {
+      while(actors.ContainsKey(nextRuntimeId) || actors.ContainsKey(nextRuntimeId^(1<<30)))nextRuntimeId--;
+      return nextRuntimeId--;
+    }
+    /// <summary>Instance every preloaded variant using shared meshes, materials and GPU poses. Allocates draw storage in chunks.</summary>
+    public void CloneActor(int sourceId,int id,int estate)
+    {
+      if(actors.ContainsKey(id))throw new ArgumentException("Actor ID is already registered.");
+      if(!actors.TryGetValue(sourceId,out var source) || clonedActors.Contains(sourceId))throw new ArgumentException("A preloaded source actor is required.");
+      var pieces=new List<(DrawBatch batch,int index)>();
+      foreach(var piece in source)
+      {
+        var original=piece.batch;
+        if(!clonePools.TryGetValue(original,out var pools))clonePools.Add(original,pools=new());
+        DrawBatch draw=null;
+        foreach(var pool in pools)if(pool.FreeSlots.Count>0 || pool.RuntimeUsed<pool.Local.Length){draw=pool;break;}
+        if(draw==null)
+        {
+          const int size=64;
+          draw=new DrawBatch{Local=new Matrix4x4[size],World=new Matrix4x4[size],Playback=new Vector4[size],VisiblePlayback=new Vector4[size],
+            Livery=new Vector4[size],VisibleLivery=new Vector4[size],Visible=new bool[size],PartTransform=original.PartTransform,
+            SpinAxis=original.SpinAxis,SpinPivot=original.SpinPivot,AssetScale=original.AssetScale,AnimationPath=original.AnimationPath,
+            Variant=original.Variant,HoldPose=original.HoldPose,Meshes=original.Meshes,Materials=original.Materials,Properties=new MaterialPropertyBlock()};
+          pools.Add(draw);draws.Add(draw);
+        }
+        int slot=draw.FreeSlots.Count>0?draw.FreeSlots.Pop():draw.RuntimeUsed++;
+        draw.Local[slot]=original.Local[piece.index];draw.Playback[slot]=original.Playback[piece.index];draw.Visible[slot]=false;
+        draw.Livery[slot]=livery!=null?livery.ResolveActor(new ActorPlacement{EstateId=estate}).Data:original.Livery[piece.index];
+        pieces.Add((draw,slot));
+      }
+      actors.Add(id,pieces);clonedActors.Add(id);
+    }
+    public bool RemoveClonedActor(int id)
+    {
+      if(!clonedActors.Remove(id))return false;
+      foreach(var piece in actors[id]){piece.batch.Visible[piece.index]=false;piece.batch.FreeSlots.Push(piece.index);}
+      actors.Remove(id);return true;
+    }
+
     /// <summary>Changes an existing placed actor without allocating a skeleton or a scene object. Position is local to the map root.</summary>
     public bool SetTransform(int id, Vector3 position, Quaternion rotation, Vector3 scale, float motionDegrees = 0)
     {
@@ -272,6 +318,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
 
     private sealed class DrawBatch
     {
+      public readonly Stack<int> FreeSlots=new();
+      public int RuntimeUsed;
       public Matrix4x4[] Local, World;
       public Matrix4x4 PartTransform;
       public Vector3 SpinAxis, SpinPivot;

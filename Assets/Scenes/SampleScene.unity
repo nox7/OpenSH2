@@ -413,14 +413,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac1a93cb122118f4eb31118b562bd1d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Main
+  gameSpeed: 1
   gameScale: 1
   treeModelScale: 0.5
   vegetationModelScale: 0.5
   rockModelScale: 0.5
   naturalStoneModelScale: 0.5
   naturalStoneTextureBrightness: 3
-  grassModelScale: 0.5
+  grassModelScale: 1
   cropModelScale: 0.5
+  unitModelScale: 0.35
   vegetationRenderSettings:
     HorizontalCellSize: 1
     HeightUnitScale: 0.0009765625
@@ -433,20 +435,30 @@ MonoBehaviour:
       ConvertZUpToUnityYUp: 1
       DoubleSided: 1
       UseFoliageMaterials: 1
+      UseModelSway: 0
       OpaqueShader: {fileID: 0}
       TextureBrightness: 1
       AlphaCutoff: 0.53333336
       FallbackMaterial: {fileID: 0}
+    TreeSway:
+      Enabled: 1
+      Strength: 1
+      Speed: 1
     GrassSize: 1
     GrassAlphaCutoff: 0.35
   buildingRenderSettings:
     ViewMode: 0
+    AmbientAnimations:
+      Enabled: 1
+      SamplesPerSecond: 15
+      PlaybackSpeed: 1
+      RandomizePhase: 0
+      Overrides: []
     ViewCamera: {fileID: 0}
     InteriorOpenDistance: 12
     InteriorCloseHysteresis: 2
   wallRenderSettings:
     RenderBattlements: 1
-    StoneWalkRise: 0.08
     StoneParapetHeight: 0.22
     StoneMerlonHeight: 0.28
     ParapetWidth: 0.18
@@ -454,6 +466,116 @@ MonoBehaviour:
     WoodParapetWidth: 0.25
     WoodParapetHeight: 0.18
     WoodSpikeHeight: 0.5
+  actorRenderSettings:
+    AnimationSamplesPerSecond: 15
+    ModelUnitScale: 0.01
+    ModelScale: 1
+    CellsPerBatch: 16
+    Animate: 1
+    CastShadows: 1
+    ReceiveShadows: 1
+    RandomizeLoopPhase: 1
+    CrestTexture: {fileID: 0}
+    CrestColor: {r: 0.6, g: 0.6, b: 0.65, a: 1}
+    Overrides: []
+    Shader: {fileID: 0}
+  liverySettings:
+    Enabled: 1
+    UseSavedLivery: 1
+    UseSavedColorOrder: 1
+    LocalPlayerUsesRed: 1
+    UnassignedColor: {r: 0.6, g: 0.6, b: 0.65, a: 1}
+    FlipNativeCrestVertically: 1
+    PaletteOverrides: []
+    EstateOverrides: []
+  woodcuttingSettings:
+    SearchRadiusCells: 0
+    RetrySeconds: 5
+    CartSpeedCellsPerSecond: 1
+    CartParkingDistance: 6
+    DismountDistance: 1.25
+    ChopDistance: 1.1
+    TreeTrunkRadius: 0.3
+    BushRadius: 0.15
+    FallSeconds: 1.5
+    SawingSeconds: 18
+    FellingCycles: 3
+    ChoppingCycles: 2
+    LogsPerTree: 6
+    LogsPerBush: 1
+    LogPileScale: 1
+    WheelRadius: 1.03
+  quarrySettings:
+    MaximumStone: 48
+    CycleDurationSeconds: 9.325
+    InitialLoadingSeconds: 5.675
+    RockStageFractions:
+    - 0.2
+    - 0.4
+    - 0.6
+    - 0.8
+    StoneLayout:
+      GridColumns: 3
+      GridRows: 3
+      BlockSpacing: 0.22
+      LayerHeight: 0.14
+      OffsetX: 1.18
+      OffsetY: 0.076
+      OffsetZ: -0.292
+  ironMineSettings:
+    MaximumIron: 10
+    CycleSeconds: 39.425
+    PileOffsetX: 1.75
+    PileOffsetY: 0.125
+    PileOffsetZ: 0.29882812
+  oxHaulingSettings:
+    HandlerSpeedCellsPerSecond: 0.85
+    OxSpeedCellsPerSecond: 1.5
+    FollowDistance: 1
+    HandlerPickupRadius: 2
+    RetrySeconds: 2
+    LoadSecondsPerStone: 0.5
+    LoadSecondsPerIron: 0.25
+    OxModelScale: 1.25
+    CapacityStone: 16
+    CapacityIron: 8
+  storageSettings:
+    StockpilePallets: 30
+    PalletCapacities: []
+  stockpileDeliverySettings:
+    SecondsPerItem: 0.15
+  stockpileVisualSettings:
+    Enabled: 1
+    Overrides: []
+  populationSettings:
+    PreferSavedWalkingSurfaces: 1
+    SpawnIntervalSeconds: 3
+    HovelSeatedSeconds: 2
+    RunSpeedCellsPerSecond: 2
+    WalkSpeedCellsPerSecond: 0.85
+    FirstRingRadius: 0.9
+    RingSpacing: 0.55
+    SeatSpacing: 0.65
+    KeepStairBaseOffset: 0.35
+    HovelDoorOffset: 0.25
+    MaximumStepHeight: 0.4
+    JobAssignmentIntervalSeconds: 3
+  horseCartSettings:
+    HorseForwardOffset: 2.75
+    SawingSeatOffset: {x: 0.02, y: -0.8, z: -1.1}
+    SawingSeatEulerAngles: {x: 0, y: 0, z: 0}
+    LogLoadOffset: {x: 0, y: 0, z: -0.75}
+  startupBuildingSettings:
+    Enabled: 1
+    DefaultKeepSize: 2
+    KeepSearchRadius: 6
+    EstateSearchRadius: 10
+    StoreSearchRadius: 40
+    KeepEntranceX: 2
+    KeepEntranceZ: -1
+    StockpileOffsetX: -4
+    StockpileOffsetZ: 0
+    MaximumHeightVariation: 512
 --- !u!4 &742588518
 Transform:
   m_ObjectHideFlags: 0

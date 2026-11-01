@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Assets.Code.Stronghold2.S2MReader.Enums
 {
-  internal enum EstateType
-  {
-    Estate,
-    Castle,
-  }
+  public enum EstateType { None = 0, Estate = 1, Castle = 2 }
 }

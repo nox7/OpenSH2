@@ -10,6 +10,8 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public float RawZ { get; internal set; }
     public float HeadingDegrees { get; internal set; }
     public bool OnMap { get; internal set; }
+    /// <summary>Decoded Soldier inheritance, independent of team, mount, model and navigation layer.</summary>
+    public bool IsSoldier { get; internal set; }
     public int AnimationId { get; internal set; }
     public float AnimationTime { get; internal set; }
     public float AnimationRate { get; internal set; } = 1;

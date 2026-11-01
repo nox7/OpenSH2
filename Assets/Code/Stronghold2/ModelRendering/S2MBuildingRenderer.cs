@@ -72,8 +72,12 @@ namespace Assets.Code.Stronghold2.ModelRendering
           {
             var state=Assets.Code.Stronghold2.MapLoading.S2MGatePartState.Resolve(data.Map,batch.Placements[i],part);
             var instance=instances[i];partStates.Add(state);
-            partInstances.Add(new Granny2ModelInstance(instance.Name,instance.Position+Vector3.up*state.Lift*terrainSettings.HorizontalCellSize,
-              instance.EulerAngles,instance.Scale,instance.Sway));
+            bool estateFlag=batch.Placements[i].Type=="VillageFlagPole" && System.IO.Path.GetFileName(part.SourcePath).Equals("flag_keep.GR2",StringComparison.OrdinalIgnoreCase);
+            // The support mesh includes the mast. The separate cloth uses a fixed world turn
+            // and the native origin offset (544,512,512) in raw map units.
+            var flagOffset=estateFlag?new Vector3(.53125f*terrainSettings.HorizontalCellSize,512*terrainSettings.HeightUnitScale,.5f*terrainSettings.HorizontalCellSize):Vector3.zero;
+            partInstances.Add(new Granny2ModelInstance(instance.Name,instance.Position+flagOffset+Vector3.up*state.Lift*terrainSettings.HorizontalCellSize,
+              estateFlag?new Vector3(0,180,0):instance.EulerAngles,instance.Scale,instance.Sway));
           }
           GameObject rendered = null;
           if (settings.AmbientAnimations.Enabled && batch.AmbientAnimations.TryGetValue(part.SourcePath, out var animation))

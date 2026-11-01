@@ -1,4 +1,4 @@
-﻿using Assets.Code.Stronghold2.S2MReader.Enums;
+using Assets.Code.Stronghold2.S2MReader.Enums;
 using Assets.Code.Utilities;
 using System;
 using System.Collections.Generic;
@@ -38,6 +38,10 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public Bridges Bridges { get; internal set; }
     /// <summary>Decoded Map tag 14; retains backing stride independently of playable map size.</summary>
     public WallLayer WallLayer { get; internal set; }
+    public bool StartupBuildingsInitialized { get; internal set; }
+    public IReadOnlyList<BuildingPlacement> StartupBuildings { get; internal set; } = Array.Empty<BuildingPlacement>();
+    public IReadOnlyList<string> StartupPlacementIssues { get; internal set; } = Array.Empty<string>();
+    public IReadOnlyList<EstateMarkerFlag> EstateMarkers { get; internal set; } = Array.Empty<EstateMarkerFlag>();
     public IReadOnlyList<Keep> Keeps { get; internal set; } = Array.Empty<Keep>();
     public IReadOnlyList<BuildingPlacement> BuildingPlacements { get; internal set; } = Array.Empty<BuildingPlacement>();
     /// <summary>Complete zlib payloads in their original S2M file order.</summary>

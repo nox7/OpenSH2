@@ -48,7 +48,10 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
             actor.AnimationTime = F(b, p + 12); actor.AnimationLoops = b[p + 16] != 0;
           }
           if (section == "Soldier" && field == 0 && length >= 65)
+          {
+            actor.IsSoldier = true;
             actor.PendingPlayer = I(b, p + 61);
+          }
           if (section == "S2Actor" && field == 0 && length >= 29)
             actor.SavedLivery = I(b, p + 25);
           if (obj.Type == "Knight" && section == "Knight" && field == 0 && length == 11)

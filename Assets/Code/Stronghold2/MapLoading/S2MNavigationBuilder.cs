@@ -36,6 +36,22 @@ namespace Assets.Code.Stronghold2.MapLoading
       }
       foreach (var building in map.BuildingPlacements)
       {
+        if(building.IsRuntimeGenerated)
+        {
+          // Runtime buildings have no cells in the saved ContextLayer. Supply their
+          // logical footprints, keeping the stockpile's one-tile central aisle open.
+          var f=S2MBuildingFootprint.FromPlacement(building);double angle=building.RotationDegrees*Math.PI/180;
+          float width=UnrotatedWidth(building);
+          for(int gz=Math.Max(0,f.MinZ*Resolution);gz<Math.Min(size,f.MaxZExclusive*Resolution);gz++)
+            for(int gx=Math.Max(0,f.MinX*Resolution);gx<Math.Min(size,f.MaxXExclusive*Resolution);gx++)
+            {
+              float dx=(gx+.5f)/Resolution-building.MapX,dz=(gz+.5f)/Resolution-building.MapZ;
+              double localX=dx*Math.Cos(angle)-dz*Math.Sin(angle);
+              if(building.Type=="StockPile" && localX>=Math.Floor(width/2) && localX<Math.Floor(width/2)+1)continue;
+              blocked[gz*size+gx]=physicalBarriers[gz*size+gx]=true;
+            }
+          continue;
+        }
         if (GroundBuildings.Contains(building.Type)) continue;
         if(savedSurfaces)
         {

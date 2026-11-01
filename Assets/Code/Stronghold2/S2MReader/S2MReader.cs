@@ -85,6 +85,7 @@ namespace Assets.Code.Stronghold2.S2MReader
           if (parsed is Bridges bridges) MapFile.Bridges = bridges;
           if (i == 2 && parsed is RawS2Object mapObject && parsed.Type == "Map")
             MapFile.WallLayer = WallLayerReader.Read(mapObject.Payload);
+          if (parsed is EstateMarkers markers) MapFile.EstateMarkers=markers.Markers.AsReadOnly();
           if (parsed is Keep keep) keeps.Add(keep);
           if (parsed is HeightLayer heightLayer)
           {

@@ -7,6 +7,7 @@ namespace Assets.Code.Simulation.Labor
   /// <summary>Shared employment contract. Building subclasses own arrival and future work mechanics.</summary>
   public abstract class LaborJob
   {
+    public event System.Action<LaborJob> StaffingChanged;
     public LaborBuilding Building { get; internal set; }
     public virtual void CompleteWorkStep() { }
     public abstract LaborRole Role { get; }
@@ -23,11 +24,12 @@ namespace Assets.Code.Simulation.Labor
     protected LaborJob(int buildingId,int estateId,MapPoint approach,MapPoint workPosition,float heading,float rawHeight)
     { BuildingId=buildingId;EstateId=estateId;Approach=approach;WorkPosition=workPosition;WorkHeading=heading;RawHeight=rawHeight; }
     internal bool TryReserve(int actorId)
-    { if(WorkerId.HasValue)return false;WorkerId=actorId;return true; }
+    { if(WorkerId.HasValue)return false;WorkerId=actorId;StaffingChanged?.Invoke(this);return true; }
     internal void Arrive(WorkerComponent worker)
     {
       OnWorkerArrived(worker);
       IsOccupied=true;
+      StaffingChanged?.Invoke(this);
     }
     protected virtual void OnWorkerArrived(WorkerComponent worker)
       => worker.Movement.Place(WorkPosition,WorkHeading);
@@ -37,6 +39,7 @@ namespace Assets.Code.Simulation.Labor
     {
       if(WorkerId!=worker.ActorId)return;
       WorkerId=null;IsOccupied=false;OnWorkerRemoved(worker);
+      StaffingChanged?.Invoke(this);
     }
     protected virtual void OnWorkerRemoved(WorkerComponent worker) { }
   }

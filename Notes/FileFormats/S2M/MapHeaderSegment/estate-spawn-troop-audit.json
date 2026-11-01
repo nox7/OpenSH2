@@ -1,0 +1,369 @@
+{
+  "map": "estate-spawn-test.s2m",
+  "estate": 8,
+  "marker": {
+    "estate": 8,
+    "x": 234,
+    "z": 103,
+    "kind": 1
+  },
+  "model": "Pole: 3x3 clear area, clockwise square rings, 2D centre (x+2,z+2), radius 6; stockpile: nearest feasible marker(-4,0), 7x5 plus front/back border, pole area reserved.",
+  "limitations": "Combat types Archer/Spearman treated as enemies; stockpile tie-breaking and full diplomacy are not recovered.",
+  "results": [
+    {
+      "save": "estate-spawn-test-sim.sh2",
+      "troops": [
+        {
+          "type": "Archer",
+          "x": 238.5,
+          "z": 104.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        }
+      ],
+      "added_troops": [
+        [
+          "Archer",
+          238.5,
+          104.5
+        ]
+      ],
+      "actual_pole": [
+        231.0,
+        100.0
+      ],
+      "predicted_pole": [
+        231,
+        100
+      ],
+      "pole_without_troop_check": [
+        234,
+        103
+      ],
+      "pole_with_3d_distance": [
+        231,
+        100
+      ],
+      "actual_stockpile": [
+        230.0,
+        103.0
+      ],
+      "predicted_stockpile": [
+        230,
+        103
+      ],
+      "match": true,
+      "previous_pole_rejected_by": [],
+      "walls_sha256": "172d89441b112da65f4a16a460ec949804127e5d99a60bf1fc2f91cd1641018d"
+    },
+    {
+      "save": "estate-spawn-test-sim-2.sh2",
+      "troops": [
+        {
+          "type": "Archer",
+          "x": 227.5,
+          "z": 103.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 238.5,
+          "z": 104.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        }
+      ],
+      "added_troops": [
+        [
+          "Archer",
+          227.5,
+          103.5
+        ]
+      ],
+      "actual_pole": [
+        231.0,
+        106.0
+      ],
+      "predicted_pole": [
+        231,
+        106
+      ],
+      "pole_without_troop_check": [
+        234,
+        103
+      ],
+      "pole_with_3d_distance": [
+        231,
+        100
+      ],
+      "actual_stockpile": [
+        230.0,
+        99.0
+      ],
+      "predicted_stockpile": [
+        230,
+        99
+      ],
+      "match": true,
+      "previous_pole_rejected_by": [
+        {
+          "type": "Archer",
+          "x": 227.5,
+          "z": 103.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1,
+          "distance_squared": 32.5
+        }
+      ],
+      "walls_sha256": "172d89441b112da65f4a16a460ec949804127e5d99a60bf1fc2f91cd1641018d"
+    },
+    {
+      "save": "estate-spawn-test-sim-3.sh2",
+      "troops": [
+        {
+          "type": "Archer",
+          "x": 232.5,
+          "z": 110.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 227.5,
+          "z": 103.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 238.5,
+          "z": 104.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        }
+      ],
+      "added_troops": [
+        [
+          "Archer",
+          232.5,
+          110.5
+        ]
+      ],
+      "actual_pole": [
+        231.0,
+        99.0
+      ],
+      "predicted_pole": [
+        231,
+        99
+      ],
+      "pole_without_troop_check": [
+        234,
+        103
+      ],
+      "pole_with_3d_distance": [
+        231,
+        100
+      ],
+      "actual_stockpile": [
+        230.0,
+        103.0
+      ],
+      "predicted_stockpile": [
+        230,
+        103
+      ],
+      "match": true,
+      "previous_pole_rejected_by": [
+        {
+          "type": "Archer",
+          "x": 232.5,
+          "z": 110.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1,
+          "distance_squared": 6.5
+        }
+      ],
+      "walls_sha256": "172d89441b112da65f4a16a460ec949804127e5d99a60bf1fc2f91cd1641018d"
+    },
+    {
+      "save": "estate-spawn-test-sim-4.sh2",
+      "troops": [
+        {
+          "type": "Archer",
+          "x": 232.5,
+          "z": 110.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 230.5,
+          "z": 96.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 227.5,
+          "z": 103.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 228.5,
+          "z": 96.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 238.5,
+          "z": 104.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        }
+      ],
+      "added_troops": [
+        [
+          "Archer",
+          228.5,
+          96.5
+        ],
+        [
+          "Archer",
+          230.5,
+          96.5
+        ]
+      ],
+      "actual_pole": [
+        237.0,
+        109.0
+      ],
+      "predicted_pole": [
+        237,
+        109
+      ],
+      "pole_without_troop_check": [
+        234,
+        103
+      ],
+      "pole_with_3d_distance": [
+        231,
+        100
+      ],
+      "actual_stockpile": [
+        230.0,
+        102.0
+      ],
+      "predicted_stockpile": [
+        230,
+        102
+      ],
+      "match": true,
+      "previous_pole_rejected_by": [
+        {
+          "type": "Archer",
+          "x": 230.5,
+          "z": 96.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1,
+          "distance_squared": 26.5
+        }
+      ],
+      "walls_sha256": "172d89441b112da65f4a16a460ec949804127e5d99a60bf1fc2f91cd1641018d"
+    },
+    {
+      "save": "estate-spawn-test-sim-final.sh2",
+      "troops": [
+        {
+          "type": "Archer",
+          "x": 232.5,
+          "z": 110.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 230.5,
+          "z": 96.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 227.5,
+          "z": 103.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 228.5,
+          "z": 96.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Spearman",
+          "x": 233.5,
+          "z": 111.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        },
+        {
+          "type": "Archer",
+          "x": 238.5,
+          "z": 104.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1
+        }
+      ],
+      "added_troops": [
+        [
+          "Spearman",
+          233.5,
+          111.5
+        ]
+      ],
+      "actual_pole": [
+        241.0,
+        96.0
+      ],
+      "predicted_pole": [
+        241,
+        96
+      ],
+      "pole_without_troop_check": [
+        234,
+        103
+      ],
+      "pole_with_3d_distance": [
+        231,
+        100
+      ],
+      "actual_stockpile": [
+        230.0,
+        103.0
+      ],
+      "predicted_stockpile": [
+        230,
+        103
+      ],
+      "match": true,
+      "previous_pole_rejected_by": [
+        {
+          "type": "Spearman",
+          "x": 233.5,
+          "z": 111.5,
+          "raw_height": 2048.0,
+          "navigation_layer": 1,
+          "distance_squared": 30.5
+        }
+      ],
+      "walls_sha256": "172d89441b112da65f4a16a460ec949804127e5d99a60bf1fc2f91cd1641018d"
+    }
+  ]
+}

@@ -1,0 +1,304 @@
+{
+  "map": "war_chapter8.s2m",
+  "save": "war-chapter8-after-sim.sh2",
+  "markers": [
+    {
+      "estate": 1,
+      "x": 175,
+      "z": 89,
+      "kind": 2
+    },
+    {
+      "estate": 2,
+      "x": 24,
+      "z": 27,
+      "kind": 2
+    },
+    {
+      "estate": 3,
+      "x": 215,
+      "z": 29,
+      "kind": 2
+    },
+    {
+      "estate": 4,
+      "x": 237,
+      "z": 79,
+      "kind": 1
+    },
+    {
+      "estate": 5,
+      "x": 123,
+      "z": 117,
+      "kind": 1
+    },
+    {
+      "estate": 6,
+      "x": 223,
+      "z": 112,
+      "kind": 1
+    },
+    {
+      "estate": 7,
+      "x": 104,
+      "z": 151,
+      "kind": 1
+    },
+    {
+      "estate": 8,
+      "x": 213,
+      "z": 164,
+      "kind": 1
+    },
+    {
+      "estate": 9,
+      "x": 236,
+      "z": 230,
+      "kind": 1
+    },
+    {
+      "estate": 10,
+      "x": 60,
+      "z": 188,
+      "kind": 2
+    },
+    {
+      "estate": 11,
+      "x": 183,
+      "z": 222,
+      "kind": 2
+    }
+  ],
+  "initial_buildings": [
+    {
+      "type": "Granary",
+      "object_id": 565254600,
+      "building_slot": 22,
+      "reference_serial": 41,
+      "x": 54.0,
+      "z": 18.0,
+      "raw_height": 1706.0,
+      "yaw": 0.0,
+      "width": 3,
+      "depth": 3
+    },
+    {
+      "type": "StockPile",
+      "object_id": 566628448,
+      "building_slot": 44,
+      "reference_serial": 63,
+      "x": 44.0,
+      "z": 28.0,
+      "raw_height": 1706.0,
+      "yaw": 270.0,
+      "width": 5,
+      "depth": 7
+    },
+    {
+      "type": "Granary",
+      "object_id": 566637136,
+      "building_slot": 85,
+      "reference_serial": 370,
+      "x": 213.0,
+      "z": 21.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 3,
+      "depth": 3
+    },
+    {
+      "type": "Granary",
+      "object_id": 566649056,
+      "building_slot": 209,
+      "reference_serial": 246,
+      "x": 155.0,
+      "z": 224.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 3,
+      "depth": 3
+    },
+    {
+      "type": "StockPile",
+      "object_id": 566652248,
+      "building_slot": 220,
+      "reference_serial": 257,
+      "x": 181.0,
+      "z": 214.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    },
+    {
+      "type": "StockPile",
+      "object_id": 566667704,
+      "building_slot": 274,
+      "reference_serial": 312,
+      "x": 173.0,
+      "z": 79.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    },
+    {
+      "type": "Granary",
+      "object_id": 566669920,
+      "building_slot": 280,
+      "reference_serial": 318,
+      "x": 197.0,
+      "z": 77.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 3,
+      "depth": 3
+    }
+  ],
+  "added_buildings": [
+    {
+      "type": "StockPile",
+      "object_id": 291269000,
+      "building_slot": 18,
+      "reference_serial": 378,
+      "x": 236.0,
+      "z": 82.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    },
+    {
+      "type": "StockPile",
+      "object_id": 291269976,
+      "building_slot": 19,
+      "reference_serial": 379,
+      "x": 122.0,
+      "z": 120.0,
+      "raw_height": 0.005189333576709032,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    },
+    {
+      "type": "VillageFlagPole",
+      "object_id": 289293760,
+      "building_slot": 52,
+      "reference_serial": 371,
+      "x": 237.0,
+      "z": 79.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 1,
+      "depth": 1
+    },
+    {
+      "type": "VillageFlagPole",
+      "object_id": 289288248,
+      "building_slot": 54,
+      "reference_serial": 372,
+      "x": 123.0,
+      "z": 117.0,
+      "raw_height": 0.008010291494429111,
+      "yaw": 0.0,
+      "width": 1,
+      "depth": 1
+    },
+    {
+      "type": "VillageFlagPole",
+      "object_id": 289290368,
+      "building_slot": 55,
+      "reference_serial": 373,
+      "x": 223.0,
+      "z": 112.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 1,
+      "depth": 1
+    },
+    {
+      "type": "VillageFlagPole",
+      "object_id": 289295032,
+      "building_slot": 56,
+      "reference_serial": 374,
+      "x": 104.0,
+      "z": 151.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 1,
+      "depth": 1
+    },
+    {
+      "type": "VillageFlagPole",
+      "object_id": 289290792,
+      "building_slot": 57,
+      "reference_serial": 375,
+      "x": 220.0,
+      "z": 158.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 1,
+      "depth": 1
+    },
+    {
+      "type": "VillageFlagPole",
+      "object_id": 289291640,
+      "building_slot": 58,
+      "reference_serial": 376,
+      "x": 236.0,
+      "z": 230.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 1,
+      "depth": 1
+    },
+    {
+      "type": "StockPile",
+      "object_id": 1093979392,
+      "building_slot": 63,
+      "reference_serial": 380,
+      "x": 222.0,
+      "z": 115.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    },
+    {
+      "type": "StockPile",
+      "object_id": 1093983784,
+      "building_slot": 66,
+      "reference_serial": 381,
+      "x": 103.0,
+      "z": 154.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    },
+    {
+      "type": "StockPile",
+      "object_id": 1093976464,
+      "building_slot": 86,
+      "reference_serial": 382,
+      "x": 209.0,
+      "z": 164.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    },
+    {
+      "type": "StockPile",
+      "object_id": 1093981344,
+      "building_slot": 87,
+      "reference_serial": 383,
+      "x": 232.0,
+      "z": 233.0,
+      "raw_height": 0.0,
+      "yaw": 0.0,
+      "width": 7,
+      "depth": 5
+    }
+  ]
+}

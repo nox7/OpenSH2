@@ -1,16 +1,13 @@
-﻿using Assets.Code.Stronghold2.S2MReader.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
+using Assets.Code.Stronghold2.S2MReader.Enums;
 namespace Assets.Code.Stronghold2.S2MReader.Resources
 {
-  internal class EstateMarkerFlag
+  public sealed class EstateMarkerFlag
   {
-    public int X { get; set; }
-    public int Y { get; set; }
-    public int X2 { get; set; }
-    public int Y2 { get; set; }
-    public EstateType Type { get; set; }
+    public int EstateId { get; internal set; }
+    public int PackedLocation { get; internal set; }
+    public int X { get; internal set; }
+    public int Y { get; internal set; }
+    public int Z => Y;
+    public EstateType Type { get; internal set; }
   }
 }

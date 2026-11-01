@@ -40,6 +40,23 @@ namespace Assets.Code.Simulation.Navigation
     }
     private bool Open(int index) => walkable[index] && obstacleCounts[index] == 0;
     public bool IsWalkable(MapPoint p) => Index(p, out int index) && Open(index);
+    /// <summary>Exact logical building footprint; does not add model or cart clearance.</summary>
+    public void SetRectangularObstacle(long id,float minX,float minZ,float maxX,float maxZ)
+    {
+      if(obstacles.ContainsKey(id))throw new ArgumentException("Obstacle already registered.");
+      if(float.IsNaN(minX)||float.IsNaN(minZ)||float.IsNaN(maxX)||float.IsNaN(maxZ)
+        ||float.IsInfinity(minX)||float.IsInfinity(minZ)||float.IsInfinity(maxX)||float.IsInfinity(maxZ)
+        ||maxX<=minX||maxZ<=minZ)throw new ArgumentOutOfRangeException();
+      var cells=new List<int>();
+      for(int z=Math.Max(0,(int)Math.Floor(minZ*Resolution));z<Math.Min(Height,(int)Math.Ceiling(maxZ*Resolution));z++)
+        for(int x=Math.Max(0,(int)Math.Floor(minX*Resolution));x<Math.Min(Width,(int)Math.Ceiling(maxX*Resolution));x++)
+        {
+          float px=(x+.5f)/Resolution,pz=(z+.5f)/Resolution;
+          if(px<minX||pz<minZ||px>=maxX||pz>=maxZ)continue;
+          int i=z*Width+x;cells.Add(i);obstacleCounts[i]++;
+        }
+      obstacles.Add(id,cells);regions=null;Revision++;
+    }
     /// <summary>Reference-counted dynamic blockers cannot accidentally reopen walls or overlapping trees.</summary>
     public void SetObstacle(long id,MapPoint center,float radius,bool enabled)
     {

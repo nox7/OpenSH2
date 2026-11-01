@@ -11,14 +11,15 @@ namespace Assets.Code.Simulation.Population
   public sealed class Peasant
   {
     public int Id { get; }
-    public int SourceBuildingId { get; }
+    public int SourceBuildingId { get; private set; }
     public int EstateId { get; }
     public MovementComponent Movement { get; }
     public WorkerComponent Worker { get; }
     public LaborJob Job => Worker.Job;
+    public bool IsEstateResident { get; }
     public bool FromHovel { get; }
-    public MapPoint Spawn { get; }
-    public MapPoint Exit { get; }
+    public MapPoint Spawn { get; private set; }
+    public MapPoint Exit { get; private set; }
     public MapPoint Seat { get; }
     public float SeatHeading { get; }
     public float Heading { get => Movement.Heading; internal set => Movement.Heading=value; }
@@ -31,18 +32,27 @@ namespace Assets.Code.Simulation.Population
       internal set => recruitmentState=value;
     }
     public float StateTime { get => Job==null ? recruitmentTime : Worker.StateTime; internal set => recruitmentTime=value; }
-    public Peasant(int id,int sourceBuildingId,bool fromHovel,MapPoint spawn,MapPoint exit,MapPoint seat,float seatHeading,float heading,int estateId=-1)
+    public void ConfigureHovel(int source,MapPoint spawn,MapPoint exit,float heading)
     {
-      Id=id;SourceBuildingId=sourceBuildingId;FromHovel=fromHovel;Spawn=spawn;Exit=exit;Seat=seat;SeatHeading=seatHeading;EstateId=estateId;
+      if(State!=PeasantState.Unspawned)throw new InvalidOperationException("Only unborn recruits can change their source.");
+      SourceBuildingId=source;Spawn=spawn;Exit=exit;Movement.Place(spawn,heading);
+    }
+    public Peasant(int id,int sourceBuildingId,bool fromHovel,MapPoint spawn,MapPoint exit,MapPoint seat,float seatHeading,float heading,int estateId=-1,bool isEstateResident=false)
+    {
+      IsEstateResident=isEstateResident;Id=id;SourceBuildingId=sourceBuildingId;FromHovel=fromHovel;Spawn=spawn;Exit=exit;Seat=seat;SeatHeading=seatHeading;EstateId=estateId;
       Movement=new MovementComponent(spawn,heading);Worker=new WorkerComponent(id,Movement);
     }
   }
 
+  // Housing authorizes dormant recruits without creating individual renderers or reloading animation assets.
   /// <summary>Timed estate recruitment and movement. Rendering consumes this state, never owns it.</summary>
   public sealed class PeasantRecruitment
   {
     public IReadOnlyList<Peasant> Peasants { get; }
     public int SpawnedCount { get; private set; }
+    public int SpawnLimit { get; private set; }
+    public void SetSpawnLimit(int count)
+    {if(count<0||count>Peasants.Count)throw new ArgumentOutOfRangeException(nameof(count));SpawnLimit=count;}
     private readonly NavigationGrid navigation;
     private readonly PopulationSettings settings;
     private readonly float standDuration;
@@ -51,6 +61,7 @@ namespace Assets.Code.Simulation.Population
     {
       settings.Validate(); if(!(standDuration>0) || float.IsInfinity(standDuration))throw new ArgumentOutOfRangeException(nameof(standDuration));
       Peasants=peasants; this.navigation=navigation; this.settings=settings; this.standDuration=standDuration; timeUntilSpawn=settings.SpawnIntervalSeconds;
+      SpawnLimit=peasants.Count;
     }
     public void Advance(float seconds)
     {
@@ -59,10 +70,10 @@ namespace Assets.Code.Simulation.Population
       float remaining=seconds;
       while(remaining>0)
       {
-        float step=SpawnedCount<Peasants.Count ? Math.Min(remaining,(float)timeUntilSpawn) : remaining;
+        float step=SpawnedCount<SpawnLimit ? Math.Min(remaining,(float)timeUntilSpawn) : remaining;
         for(int i=0;i<SpawnedCount;i++) Tick(Peasants[i],step);
         remaining-=step;
-        if(SpawnedCount>=Peasants.Count)break;
+        if(SpawnedCount>=SpawnLimit)break;
         timeUntilSpawn-=step;
         if(timeUntilSpawn<=.000001)
         {

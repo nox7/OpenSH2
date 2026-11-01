@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Assets.Code.Simulation.AI;
 using Assets.Code.Simulation.Navigation;
 using Assets.Code.Simulation.Population;
 using Assets.Code.Stronghold2.S2MReader.Resources;
@@ -41,7 +43,39 @@ namespace Assets.Code.Stronghold2.MapLoading
         if(recruits.Count!=camp.Population.Capacity)throw new InvalidOperationException($"Keep {camp.Keep.Id} has insufficient walkable campfire seating.");
         result.Add(recruits.AsReadOnly());
       }
+      var profiles=S2MAiRuntime.ReadProfiles(map);
+      var keepEstates=new HashSet<int>(map.Keeps.Select(k=>S2MCampfireLayout.EstateAtBuilding(map,k)));
+      foreach(var flag in map.BuildingPlacements.Where(b=>b.Type=="VillageFlagPole"))
+      {
+        int estate=S2MCampfireLayout.EstateAtBuilding(map,flag);if(estate<0 || keepEstates.Contains(estate))continue;
+        profiles.TryGetValue(estate,out var profile);
+        int code=profile.Production??-1,maximum=code<0?0:code<8?1:code<15?2:3;
+        int authored=map.BuildingPlacements.Count(b=>b.Type=="Hovel" && S2MCampfireLayout.EstateAtBuilding(map,b)==estate);
+        int capacity=Math.Max(maximum,authored)*CampfirePopulation.PeasantsPerHovel;if(capacity==0)continue;
+        var recruits=new List<Peasant>();
+        var candidates=new CampfirePopulation(flag.Id,estate,capacity/8+32,settings);
+        foreach(var candidate in candidates.Seats)
+        {
+          if(recruits.Count==capacity)break;
+          var seat=new MapPoint(flag.MapX+.5f+candidate.X,flag.MapZ+.5f+candidate.Z);
+          if(!navigation.IsWalkable(seat))continue;
+          recruits.Add(new Peasant(id--,flag.Id,true,seat,seat,seat,candidate.HeadingDegrees,0,estate,true));
+        }
+        if(recruits.Count!=capacity)throw new InvalidOperationException($"Estate {estate} has insufficient flagpole seating.");
+        result.Add(recruits.AsReadOnly());
+      }
       return result;
+    }
+
+    public static void ConfigureHovel(Peasant peasant,BuildingPlacement source,NavigationGrid navigation,PopulationSettings settings)
+    {
+      float width=S2MNavigationBuilder.UnrotatedWidth(source);
+      var inside=S2MNavigationBuilder.BuildingPoint(source,width*.5f,.6f);
+      var door=S2MNavigationBuilder.BuildingPoint(source,width*.5f,-settings.HovelDoorOffset);
+      if(!navigation.TryNearest(door,2,out var exit))throw new InvalidOperationException($"Hovel {source.Id} has no walkable exit.");
+      if(!navigation.CanReach(exit,peasant.Seat))ResolveHovelExit(source,navigation,settings,peasant.Seat,ref inside,ref exit);
+      float heading=(float)(Math.Atan2(exit.X-inside.X,exit.Z-inside.Z)*180/Math.PI);
+      peasant.ConfigureHovel(source.Id,inside,exit,heading);
     }
 
     private static void ResolveHovelExit(BuildingPlacement source,NavigationGrid navigation,PopulationSettings settings,

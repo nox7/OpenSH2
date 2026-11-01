@@ -170,7 +170,13 @@ namespace Assets.Code.Stronghold2.ModelRendering
       return Choice(color, crest, false);
     }
 
-    public S2MLivery ResolveBuilding(BuildingPlacement building) => ResolveEstate(S2MCampfireLayout.EstateAtBuilding(map, building));
+    public S2MLivery ResolveBuilding(BuildingPlacement building)
+    {
+      int id=S2MCampfireLayout.EstateAtBuilding(map,building);
+      if(building.Type=="VillageFlagPole" && (!Ownership.Estates.TryGetValue(id,out var estate) || estate.Lord<=0 && estate.PlayerNumber<0))
+        return Choice(-1,-1,false);
+      return ResolveEstate(id);
+    }
 
     internal void Configure(Material material, string model, string texture, int group, int teamGroup)
     {
@@ -189,6 +195,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       string path = model.Replace('\\', '/');
       int meshes = path.LastIndexOf("/meshes/", StringComparison.OrdinalIgnoreCase);
       if (meshes >= 0) path = path.Substring(meshes + 1);
+      if(Path.GetFileName(path).Equals("flag_keep.GR2",StringComparison.OrdinalIgnoreCase))return S2MLiveryMaterial.Crest;
       string key = path + "|" + Path.GetFileNameWithoutExtension((texture ?? "").Replace('\\', '/'));
       if (mappings.TryGetValue(key, out var kind)) return kind;
       return group == teamGroup ? S2MLiveryMaterial.Color : S2MLiveryMaterial.None;
@@ -254,7 +261,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
         else
         {
           pixels = new Color32[128 * 128];
-          for (int p = 0; p < pixels.Length; p++) pixels[p] = i == NeutralCrest ? (Color32)Settings.UnassignedColor : new Color32(255, 255, 255, 255);
+          for (int p = 0; p < pixels.Length; p++)
+            pixels[p] = i == NeutralCrest && ((p % 128) / 64 + (p / 128) / 64) % 2 == 0
+              ? new Color32(0, 0, 0, 255) : new Color32(255, 255, 255, 255);
           if (i < NeutralCrest) Debug.LogWarning("Missing lord crest: " + file);
         }
         texture.SetPixels32(pixels); texture.Apply(true, false);

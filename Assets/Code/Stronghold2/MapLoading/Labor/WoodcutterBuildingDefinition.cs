@@ -13,7 +13,7 @@ namespace Assets.Code.Stronghold2.MapLoading.Labor
     {
       var anchor=S2MNavigationBuilder.BuildingPoint(building,-.5f,.5f);ActorPlacement legacy=null;
       foreach(var actor in map.Actors)
-        if(actor.OnMap && actor.Type=="HorseCart" && !suppressed.Contains(actor.Id)
+        if(!building.RuntimeEstateId.HasValue && actor.OnMap && actor.Type=="HorseCart" && !suppressed.Contains(actor.Id)
           && MapPoint.Distance(anchor,new MapPoint(actor.RawX/1024,actor.RawZ/1024))<.25f) { legacy=actor;break; }
       if(legacy!=null)suppressed.Add(legacy.Id);
       float yaw=legacy?.HeadingDegrees ?? building.RotationDegrees,radians=yaw*(float)Math.PI/180;

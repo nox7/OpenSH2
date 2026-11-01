@@ -46,6 +46,8 @@ namespace Assets.Code.Stronghold2.MapLoading
 
     public static int EstateAtBuilding(S2MFile map, BuildingPlacement building)
     {
+      if(building.RuntimeEstateId.HasValue)return building.RuntimeEstateId.Value;
+      if(building.StartupEstateId.HasValue)return building.StartupEstateId.Value;
       // Model origins can sit exactly on an estate boundary. Sample inside the reserved footprint.
       int turns = ((int)Math.Round(building.RotationDegrees / 90) % 4 + 4) % 4;
       float x = building.MapX + (turns == 2 || turns == 3 ? -.5f : .5f) * building.FootprintWidth;

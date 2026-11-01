@@ -4,6 +4,8 @@ using Assets.Code.Simulation;
 using Assets.Code.Simulation.Navigation;
 using Assets.Code.Simulation.Population;
 using Assets.Code.Simulation.Labor;
+using Assets.Code.Simulation.Economy;
+using Assets.Code.Stronghold2.MapLoading.Labor;
 using Assets.Code.Stronghold2.ModelRendering.Labor;
 using Assets.Code.Stronghold2.AssetLoading;
 using Assets.Code.Stronghold2.MapLoading;
@@ -18,11 +20,16 @@ namespace Assets.Code.Stronghold2.ModelRendering
   public sealed class S2MPopulationController : MonoBehaviour
   {
     public IReadOnlyList<PeasantRecruitment> Kingdoms => kingdoms;
+    public IReadOnlyList<PeasantRecruitment> Territories => kingdoms;
+    private NavigationGrid navigation;
+    private bool[] recruitmentSeats;
+    private readonly HashSet<int> authorizedHovels=new();
     public LaborManager Labor { get; private set; }
     private readonly List<PeasantRecruitment> kingdoms = new();
     private readonly Dictionary<int,PeasantState> shown = new();
     private readonly Dictionary<int,(LaborRole role,string variant,int revision,float rate)> shownWork = new();
     private S2MActorRenderer actors;
+    private S2MActorData presentationData;
     private SimulationClock clock;
     private S2MFile map;
     private S2MTerrainSettings terrain;
@@ -37,8 +44,14 @@ namespace Assets.Code.Stronghold2.ModelRendering
       SimulationClock clock,float unitScale=1,IReadOnlyList<LaborJob> jobs=null,HorseCartAssemblySettings assembly=null,IReadOnlyList<LaborBuilding> laborBuildings=null)
     {
       if(data.Issues.Count>0)throw new InvalidOperationException("Recruitment animation assets failed: "+string.Join("; ",data.Issues));
-      this.map=map; this.terrain=terrain; this.clock=clock; buildingEquipmentScale=terrain.HorizontalCellSize/(S2MBuildingRenderer.ModelUnitsPerCell*renderSettings.ModelUnitScale); scale=renderSettings.ModelScale*unitScale;
+      presentationData=data;this.navigation=navigation;this.map=map; this.terrain=terrain; this.clock=clock; buildingEquipmentScale=terrain.HorizontalCellSize/(S2MBuildingRenderer.ModelUnitsPerCell*renderSettings.ModelUnitScale); scale=renderSettings.ModelScale*unitScale;
       this.settings=settings;
+      recruitmentSeats=new bool[map.MapSize*map.MapSize];
+      foreach(var plan in plans)foreach(var p in plan)
+      {
+        int x=(int)Math.Floor(p.Seat.X),z=(int)Math.Floor(p.Seat.Z);
+        if(x>=0 && z>=0 && x<map.MapSize && z<map.MapSize)recruitmentSeats[z*map.MapSize+x]=true;
+      }
       presentations=new LaborPresentationCatalog(assembly);
       foliage=transform.parent!=null?transform.parent.GetComponentInChildren<S2MFoliageHarvestView>():null;
       float standDuration=0;
@@ -48,14 +61,80 @@ namespace Assets.Code.Stronghold2.ModelRendering
       actors=S2MActorRenderer.Render(data,transform,terrain,renderSettings,unitScale); actors.name="Recruiting Peasants"; actors.Clock=clock;
       foreach(var plan in plans)
       {
-        kingdoms.Add(new PeasantRecruitment(plan,navigation,settings,standDuration));
+        var recruitment=new PeasantRecruitment(plan,navigation,settings,standDuration);
+        if(plan.Count>0 && plan[0].IsEstateResident)recruitment.SetSpawnLimit(0);
+        kingdoms.Add(recruitment);
         foreach(var p in plan){actors.HideActor(p.Id);p.Worker.Removed+=OnWorkerRemoved;}
       }
+      actors.HideActor(S2MCampfirePopulationLoader.RuntimeCartTemplateId);actors.HideActor(S2MCampfirePopulationLoader.RuntimeSawLogTemplateId);
+      foreach(var building in map.BuildingPlacements)if(building.Type=="Hovel")AuthorizeHovel(building);
       if(jobs!=null)
       {
         foreach(var job in jobs)presentations.Get(job.Role).ConfigureJob(job,data);
         Labor=new LaborManager(jobs,kingdoms,navigation,settings,laborBuildings);
         foreach(var job in jobs)foreach(var equipment in presentations.Get(job.Role).Equipment(job))actors.HideActor(equipment.ActorId);
+      }
+    }
+    public IPreparedAiLabor PrepareSawpit(BuildingPlacement placement,FoliageResources resources,WoodcuttingSettings woodSettings,EstateInventory inventory)
+    {
+      int id=actors.AllocateEquipmentPair();
+      var job=(WoodcutterJob)new WoodcutterBuildingDefinition().Create(map,placement,navigation,id,new HashSet<int>());
+      bool reachable=false;
+      foreach(var group in kingdoms)
+      {
+        if(group.Peasants.Count==0 || group.Peasants[0].EstateId!=job.EstateId)continue;
+        for(int i=0;i<group.SpawnedCount;i++)
+        {
+          var peasant=group.Peasants[i];
+          if(peasant.Job==null && peasant.State!=PeasantState.Removed && navigation.CanReach(peasant.Seat,job.Approach)){reachable=true;break;}
+        }
+        if(reachable)break;
+      }
+      if(!reachable)throw new InvalidOperationException("Sawpit has no route from its estate's recruitment area.");
+      bool canDeliver=false;
+      foreach(var point in job.DeliveryPoints)if(navigation.CanReach(job.Approach,point.Position)){canDeliver=true;break;}
+      if(!canDeliver)throw new InvalidOperationException("Sawpit has no route to a same-estate stockpile.");
+      job.ConfigureHarvest(resources,woodSettings);job.ConfigureStorage(inventory);
+      presentations.Get(job.Role).ConfigureJob(job,presentationData);
+      try
+      {
+        actors.CloneActor(S2MCampfirePopulationLoader.RuntimeCartTemplateId,job.CartActorId,job.EstateId);
+        actors.CloneActor(S2MCampfirePopulationLoader.RuntimeSawLogTemplateId,job.SawLogActorId,job.EstateId);
+        return new PreparedSawpit(this,new LaborBuilding(placement.Id,job.EstateId,new[]{job}),job);
+      }
+      catch{actors.RemoveClonedActor(job.CartActorId);actors.RemoveClonedActor(job.SawLogActorId);throw;}
+    }
+    private sealed class PreparedSawpit : IPreparedAiLabor
+    {
+      public LaborBuilding Building { get; }
+      private S2MPopulationController owner;
+      private readonly WoodcutterJob job;
+      public PreparedSawpit(S2MPopulationController owner,LaborBuilding building,WoodcutterJob job){this.owner=owner;Building=building;this.job=job;}
+      public void Show(){} // Equipment appears only after the worker reaches its job.
+      public void Dispose()
+      {
+        if(owner==null)return;
+        owner.actors.RemoveClonedActor(job.CartActorId);owner.actors.RemoveClonedActor(job.SawLogActorId);
+        owner.shownEquipment.Remove(job.CartActorId);owner.shownEquipment.Remove(job.SawLogActorId);owner=null;
+      }
+    }
+    public bool PreservesRecruitmentSeats(BuildingPlacement building)
+    {
+      var footprint=S2MBuildingFootprint.FromPlacement(building);
+      for(int z=footprint.MinZ;z<footprint.MaxZExclusive;z++)for(int x=footprint.MinX;x<footprint.MaxXExclusive;x++)
+        if(x>=0 && z>=0 && x<map.MapSize && z<map.MapSize && recruitmentSeats[z*map.MapSize+x])return false;
+      return true;
+    }
+    public void AuthorizeHovel(BuildingPlacement building)
+    {
+      if(building.Type!="Hovel" || authorizedHovels.Contains(building.Id))return;
+      int estate=S2MCampfireLayout.EstateAtBuilding(map,building);
+      foreach(var group in kingdoms)
+      {
+        if(group.Peasants.Count==0 || !group.Peasants[0].IsEstateResident || group.Peasants[0].EstateId!=estate)continue;
+        int start=group.SpawnLimit,end=Math.Min(group.Peasants.Count,start+CampfirePopulation.PeasantsPerHovel);
+        for(int i=start;i<end;i++)S2MRecruitmentPlan.ConfigureHovel(group.Peasants[i],building,navigation,settings);
+        group.SetSpawnLimit(end);authorizedHovels.Add(building.Id);return;
       }
     }
     private void Update() { if(actors!=null)Advance(clock.DeltaTime); }
@@ -148,6 +227,6 @@ namespace Assets.Code.Stronghold2.ModelRendering
       }
     }
     private void OnDestroy()
-    {foreach(var kingdom in kingdoms)foreach(var peasant in kingdom.Peasants)peasant.Worker.Removed-=OnWorkerRemoved;}
+    {Labor?.Dispose();foreach(var kingdom in kingdoms)foreach(var peasant in kingdom.Peasants)peasant.Worker.Removed-=OnWorkerRemoved;}
   }
 }

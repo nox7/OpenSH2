@@ -168,3 +168,19 @@ Do not lower all terrain to a model's minimum bound, interpret zero alternate pl
 | SawPit | 861269880 | 185,68 | 0 | 2 / 2 |
 
 All 84 per-instance measurements are retained in [TerrainCutoutAudit.csv](TerrainCutoutAudit.csv). Heights in that file are raw S2M units; empty HeightLayer columns indicate a missing decoded layer, not zero.
+
+
+## Runtime sawpit construction
+
+AI-built sawpits have no saved tag-18 cells at their new coordinates. Their native
+1×2 physical mask is therefore added as a runtime terrain overlay when the loaded
+building becomes visible. It is rotated about the native model origin, independent
+of placement/worker clearance. The overlay does not edit source Landscape or
+HeightLayer arrays. Removing/rolling back the runtime presentation releases that
+mask while preserving authorized saved cutouts.
+
+The terrain renderer records each cell's triangle range once. A new opening
+removes those indices from the affected chunk meshes and updates their colliders;
+releasing it restores the indices. This also handles subdivided cliff cells without
+assuming every cell has only two triangles. Geometry outside those chunks and all
+terrain texture/material resources are retained.

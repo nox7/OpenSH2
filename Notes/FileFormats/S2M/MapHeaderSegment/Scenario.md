@@ -42,3 +42,12 @@
 	- 0 = AI places buildings
 	- 1 = Use map buildings
 - +4 bytes = unknown
+
+### Population-level interpretation in the runtime
+
+The production code also sets the estate housing ceiling: 0–7 = Small (one hovel),
+8–14 = Medium (two), 15–19 = Large (three). A hovel provides eight population slots.
+Modern Scenario payloads use counted tagged arrays (field 4 = production codes,
+field 5 = AI construction policy); these can have 21 entries and must not be read
+using the legacy fixed 16-entry offsets above. `S2MAiRuntime.ReadProfiles` retains
+the native code and `AiTerritory.PopulationLevel` exposes the tier.
