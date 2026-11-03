@@ -37,7 +37,9 @@ namespace Assets.Code.Stronghold2.MapLoading
         private sealed class Search
         {
             public AiFaction? Owner;
-            public int Cursor;
+            public IBuildingSiteSearch Sites;
+            public int StrategyRevision;
+            public BuildingSiteCandidate Candidate;
             public double RetryAt;
             public BuildingPlacement Ready;
             public MapPoint Origin;
@@ -69,18 +71,23 @@ namespace Assets.Code.Stronghold2.MapLoading
         protected virtual int RotationQuarterTurns(AiTerritory territory)=>0;
         protected virtual bool PolicyPlacementAllowed(BuildingPlacement placement)=>true;
         private bool AdditionalRules(BuildingPlacement placement)=>PolicyPlacementAllowed(placement) && (AdditionalPlacementRule?.Invoke(placement)??true);
-        private readonly List<(int X,int Z)> candidates;
+        private readonly IBuildingSiteStrategy generalSites;
+        private readonly Dictionary<int,IBuildingSiteStrategy> siteStrategies=new();
+        private readonly Dictionary<int,int> strategyRevisions=new();
+        private readonly Dictionary<int,(Assets.Code.Stronghold2.Castles.AicCastleLayout Layout,byte Kind,bool Fallback,Func<int,bool> Slots)> blueprintStrategies=new();
         private readonly Dictionary<int,EstateMarkerFlag> markers;
         private readonly Dictionary<int,Search> searches=new();
         private readonly Queue<int> pending=new();
         private readonly HashSet<int> queued=new();
         private bool disposed;
         private S2MBuildingConstructionService.Operation preparation;
+        private bool advancingPreparation;
         private Search preparingSearch;
         public int CompletedCount { get; private set; }
         public long CandidateTests { get; private set; }
         public int PendingCount=>pending.Count+(preparation!=null?1:0);
         public event Action<int,Exception> ConstructionFailed;
+        public event Action<BuildingPlacement,BuildingSiteCandidate> SiteCompleted;
         public Func<BuildingPlacement,IPreparedAiLabor> PrepareLabor { get; set; }
         public Func<BuildingPlacement,IPreparedAiBuilding> PrepareBindings { get; set; }
         public Func<BuildingPlacement,bool> AdditionalPlacementRule { get; set; }
@@ -97,10 +104,33 @@ namespace Assets.Code.Stronghold2.MapLoading
             this.buildingType=buildingType;definition=S2MBuildingDefinition.Load(installation,buildingType);descriptor=definition.Descriptor;
             ownsConstruction=construction==null;this.construction=construction??new S2MBuildingConstructionService(map,world,inventory,navigation,labor,this.placementSettings);
             this.construction.RegisterDefinition(definition);
-            candidates=S2MStartupBuildings.Candidates(this.settings.SearchRadius,false);
+            generalSites=new GeneralBuildingSiteStrategy(S2MStartupBuildings.Candidates(this.settings.SearchRadius,false));
             markers=map.EstateMarkers.Where(m=>m.Type==EstateType.Estate).ToDictionary(m=>m.EstateId);
 
         }
+        private int StrategyRevision(int estate)=>strategyRevisions.TryGetValue(estate,out int revision)?revision:0;
+        /// <summary>Per-goal/per-territory strategy switch. Cancels old unpublished work and releases its held costs.</summary>
+        public void SetPlacementStrategy(int estate,IBuildingSiteStrategy strategy)
+        {
+            if(disposed)throw new ObjectDisposedException(GetType().Name);
+            bool has=siteStrategies.TryGetValue(estate,out var existing);
+            if(strategy==null && !has || has && ReferenceEquals(existing,strategy))return;
+            blueprintStrategies.Remove(estate);
+            if(strategy==null)siteStrategies.Remove(estate);else siteStrategies[estate]=strategy;
+            strategyRevisions[estate]=StrategyRevision(estate)+1;
+            if(!advancingPreparation && preparation!=null && preparation.Building.RuntimeEstateId==estate){preparation.Cancel();preparation=null;preparingSearch.Preparing=false;preparingSearch=null;}
+            RemoveSearch(estate);if(world.TryGet(estate,out _))world.Notify(estate,AiChange.Profile);
+        }
+        public void UseBlueprintPlacement(int estate,Assets.Code.Stronghold2.Castles.AicCastleLayout layout,byte nativeKind,bool allowGeneralFallback=true,Func<int,bool> slotAvailable=null)
+        {
+            if(disposed)throw new ObjectDisposedException(GetType().Name);
+            if(blueprintStrategies.TryGetValue(estate,out var previous) && ReferenceEquals(previous.Layout,layout) && previous.Kind==nativeKind && previous.Fallback==allowGeneralFallback && Equals(previous.Slots,slotAvailable))return;
+            IBuildingSiteStrategy strategy=new BlueprintBuildingSiteStrategy(layout,nativeKind,slotAvailable);
+            SetPlacementStrategy(estate,allowGeneralFallback?new FallbackBuildingSiteStrategy(strategy,generalSites):strategy);
+            blueprintStrategies[estate]=(layout,nativeKind,allowGeneralFallback,slotAvailable);
+        }
+        private void RemoveSearch(int estate)
+        {if(searches.TryGetValue(estate,out var search)){search.Sites?.Dispose();searches.Remove(estate);}}
         private bool Eligible(int estate,out AiTerritory territory)
         {
             territory=null;
@@ -111,28 +141,35 @@ namespace Assets.Code.Stronghold2.MapLoading
         public void Evaluate(in AiEvaluation evaluation)
         {
             int estate=evaluation.Territory.Id;
-            if(!Eligible(estate,out var t)){searches.Remove(estate);return;}
+            if(!Eligible(estate,out var t)){RemoveSearch(estate);return;}
             if((evaluation.Work&AiWork.Economy)==0 && (evaluation.Changes&(AiChange.Buildings|AiChange.Ownership|AiChange.Profile))==0)return;
             if(!searches.TryGetValue(estate,out var search) || !Nullable.Equals(search.Owner,t.Owner))
-                searches[estate]=search=new Search{Owner=t.Owner};
+            {RemoveSearch(estate);searches[estate]=search=new Search{Owner=t.Owner,StrategyRevision=StrategyRevision(estate)};}
             if(search.Ready!=null || search.Preparing || evaluation.Now<search.RetryAt)return;
-            if(search.HasOrigin && !IsSearchOriginCurrent(estate)){search.HasOrigin=false;search.Cursor=0;}
+            if(search.HasOrigin && !IsSearchOriginCurrent(estate)){search.HasOrigin=false;search.Sites?.Dispose();search.Sites=null;}
             if(!search.HasOrigin)
             {
                 if(!TrySearchOrigin(evaluation,out search.Origin))return;
-                search.HasOrigin=true;search.Cursor=0;
+                search.HasOrigin=true;
             }
-            var p=definition.Propose(estate,0,0,RotationQuarterTurns(t));
-            while(search.Cursor<candidates.Count && evaluation.Budget.TrySpend())
+            if(search.Sites==null)
             {
-                CandidateTests++;
-                var offset=candidates[search.Cursor++];
-                p.RawX=(search.Origin.X+offset.X)*1024;
-                p.RawZ=(search.Origin.Z+offset.Z)*1024;
-                if(!CanPlace(p,out float height))continue;
-                p.RawY=height;search.Ready=p;if(queued.Add(estate))pending.Enqueue(estate);return;
+                var context=new BuildingSiteContext(estate,definition,search.Origin,RotationQuarterTurns(t));
+                search.Sites=(siteStrategies.TryGetValue(estate,out var strategy)?strategy:generalSites).Begin(context);
             }
-            if(search.Cursor==candidates.Count){search.Cursor=0;search.RetryAt=evaluation.Now+settings.RetrySeconds;}
+            var p=definition.Propose(estate,0,0);
+            while(evaluation.Budget.TrySpend())
+            {
+                var step=search.Sites.Step(out var candidate);
+                if(step==BuildingSiteStep.Complete){search.Sites.Dispose();search.Sites=null;search.RetryAt=evaluation.Now+settings.RetrySeconds;return;}
+                if(step==BuildingSiteStep.Skipped)continue;
+                CandidateTests++;
+                int turn=(candidate.Rotation%4+4)%4;
+                p.RawX=candidate.X*1024f;p.RawZ=candidate.Z*1024f;p.RotationDegrees=turn*90;
+                p.FootprintWidth=turn%2==0?descriptor.Width:descriptor.Height;p.FootprintHeight=turn%2==0?descriptor.Height:descriptor.Width;
+                if(!CanPlace(p,out float height))continue;
+                p.RawY=height;search.Ready=p;search.Candidate=candidate;if(queued.Add(estate))pending.Enqueue(estate);return;
+            }
         }
         /// <summary>Call once per construction frame action. Starts, advances one inactive preparation stage, or commits a ready building.</summary>
         public void CommitPending(double now)
@@ -147,22 +184,24 @@ namespace Assets.Code.Stronghold2.MapLoading
                 {
                     foreach(var existing in map.BuildingPlacements)
                         if(existing.Type==buildingType && S2MCampfireLayout.EstateAtBuilding(map,existing)==estate)world.UpsertBuilding(new AiBuilding(existing.Id,estate,buildingType));
-                    return Eligible(estate,out var territory) && Nullable.Equals(territory.Owner,search.Owner) && IsSearchOriginCurrent(estate);
+                    return search.StrategyRevision==StrategyRevision(estate) && Eligible(estate,out var territory) && Nullable.Equals(territory.Owner,search.Owner) && IsSearchOriginCurrent(estate);
                 }
                 if(!construction.TrySubmit(new BuildingConstructionRequest{Definition=definition,Placement=proposal,ValidateIntent=Intent,
                     TroopExclusionRadius=settings.TroopExclusionRadius,AdditionalPlacementRule=AdditionalRules,
                     PreparePresentation=PreparePresentation,PrepareLabor=PrepareLabor,PrepareBindings=PrepareBindings,ValidateAfterNavigation=ValidateAfterNavigation},out preparation))
-                {search.Cursor=0;search.HasOrigin=false;search.RetryAt=now+settings.RetrySeconds;return;}
+                {search.Sites?.Dispose();search.Sites=null;search.HasOrigin=false;search.RetryAt=now+settings.RetrySeconds;return;}
                 preparingSearch=search;search.Preparing=true;
             }
-            preparation.Advance();
+            advancingPreparation=true;
+            try{preparation.Advance();}finally{advancingPreparation=false;}
+            if(preparation.Status==BuildingConstructionStatus.Preparing && preparingSearch.StrategyRevision!=StrategyRevision(preparation.Building.RuntimeEstateId.Value))preparation.Cancel();
             if(preparation.Status==BuildingConstructionStatus.Preparing)return;
             var finished=preparation;preparation=null;preparingSearch.Preparing=false;
             if(finished.Status==BuildingConstructionStatus.Completed)
-            {CompletedCount++;searches.Remove(finished.Building.RuntimeEstateId.Value);BuildingCompleted?.Invoke(finished.Building);}
+            {var candidate=preparingSearch.Candidate;CompletedCount++;RemoveSearch(finished.Building.RuntimeEstateId.Value);preparingSearch=null;BuildingCompleted?.Invoke(finished.Building);SiteCompleted?.Invoke(finished.Building,candidate);}
             else
             {
-                if(finished.Error==null || preparingSearch.Cursor>=candidates.Count){preparingSearch.Cursor=0;preparingSearch.HasOrigin=false;}preparingSearch.RetryAt=now+settings.RetrySeconds;
+                if(finished.Error==null){preparingSearch.Sites?.Dispose();preparingSearch.Sites=null;preparingSearch.HasOrigin=false;}preparingSearch.RetryAt=now+settings.RetrySeconds;
                 if(finished.Error!=null)ConstructionFailed?.Invoke(finished.Building.RuntimeEstateId.Value,finished.Error);
             }
             preparingSearch=null;
@@ -171,7 +210,7 @@ namespace Assets.Code.Stronghold2.MapLoading
         {var result=construction.Placement.Check(p,settings.TroopExclusionRadius,AdditionalRules);height=result.RawHeight;return result.Allowed;}
         public void InvalidatePlacement()=>construction.Placement.Invalidate();
         public virtual void Dispose()
-        {if(disposed)return;disposed=true;preparation?.Cancel();preparation=null;pending.Clear();queued.Clear();searches.Clear();if(ownsConstruction)construction.Dispose();}
+        {if(disposed)return;disposed=true;preparation?.Cancel();preparation=null;pending.Clear();queued.Clear();foreach(var search in searches.Values)search.Sites?.Dispose();searches.Clear();siteStrategies.Clear();strategyRevisions.Clear();blueprintStrategies.Clear();if(ownsConstruction)construction.Dispose();}
     }
     /// <summary>Compatibility specialization for estate goals; generic execution also serves kingdoms and future player commands.</summary>
     public abstract class S2MEstateBuildingConstruction : S2MBuildingConstructionPolicy

@@ -120,7 +120,10 @@ ground navigation or treating all empty courtyard cells as solid obstacles.
 - Placement rejects occupied footprints, water, walls, terrain cutouts, invalid
   walking surfaces and excessive slope. Failures are reported through
   `StartupPlacementIssues`, rather than overlapping existing buildings.
-- `StartupBuildingSettings` on Main controls startup, keep size, offsets, search
+- Missing AI keeps use a selected AIC's family and resolved tile/model transform;
+  existing keeps are preserved. See `Notes/FileFormats/AIC.md` for anchoring and
+  fallback rules. Human/unselected keeps retain the configurable default.
+- `StartupBuildingSettings` on Main controls startup, default keep size, offsets, search
   radii and permitted ground height variation. Placement runs once per loaded map.
 - New buildings receive unique runtime IDs and explicit estate IDs. Their logical
   navigation footprints preserve the stockpile's central one-tile aisle.

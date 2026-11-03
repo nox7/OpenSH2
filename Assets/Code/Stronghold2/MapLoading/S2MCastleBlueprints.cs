@@ -26,9 +26,13 @@ namespace Assets.Code.Stronghold2.MapLoading
     public sealed class S2MCastleBlueprints : IDisposable
     {
         private readonly AiWorld world;
+        private readonly S2MFile map;
+        internal AiWorld World=>world;
+        internal bool OwnsMap(S2MFile source)=>!disposed && ReferenceEquals(map,source);
         private readonly S2MLiveryOwnership ownership;
         private readonly Dictionary<string,AicCastleBlueprint> loaded=new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int,KingdomCastleBlueprints> kingdoms=new();
+        private readonly Dictionary<int,AicCastleLayout> layouts=new();
         private readonly List<AiBlueprintFile> files=new();private readonly List<string> issues=new();
         private readonly Dictionary<int,string[]> lordFiles=new();
         private readonly Dictionary<int,(string Key,int? Rotation)> overrides=new();
@@ -37,15 +41,17 @@ namespace Assets.Code.Stronghold2.MapLoading
         public int? WarChapter { get; }
         public IReadOnlyDictionary<string,AicCastleBlueprint> Loaded { get; }
         public IReadOnlyDictionary<int,KingdomCastleBlueprints> Kingdoms { get; }
+        public IReadOnlyDictionary<int,AicCastleLayout> Layouts { get; }
         public IReadOnlyList<AiBlueprintFile> Files { get; }
         public IReadOnlyList<string> Issues { get; }
 
         public S2MCastleBlueprints(S2MFile map,AiWorld world,string installation,CastleBlueprintSettings settings=null,int? warChapter=null)
         {
             if(map==null || world==null || installation==null)throw new ArgumentNullException();
-            settings??=new CastleBlueprintSettings();this.world=world;ownership=S2MLiveryOwnership.Read(map);useCampaign=settings.UseCampaignAssignments;
+            settings??=new CastleBlueprintSettings();this.map=map;this.world=world;ownership=S2MLiveryOwnership.Read(map);useCampaign=settings.UseCampaignAssignments;
             WarChapter=ResolveWarChapter(map.SourcePath,installation,warChapter);
             Loaded=new ReadOnlyDictionary<string,AicCastleBlueprint>(loaded);Kingdoms=new ReadOnlyDictionary<int,KingdomCastleBlueprints>(kingdoms);Files=files.AsReadOnly();Issues=issues.AsReadOnly();
+            Layouts=new ReadOnlyDictionary<int,AicCastleLayout>(layouts);
             foreach(var entry in settings.LordDesigns??new List<LordCastleDesigns>())
             {
                 if(entry==null || entry.Lord<0 || lordFiles.ContainsKey(entry.Lord))throw new ArgumentException("Lord blueprint sets must have distinct nonnegative lord IDs.");
@@ -60,6 +66,7 @@ namespace Assets.Code.Stronghold2.MapLoading
             }
             LoadFiles(Path.Combine(installation,"castles"));
             foreach(var territory in world.Territories.Values)Refresh(territory.Id);
+            foreach(var pair in map.StartupCastleLayouts)TrySetLayout(pair.Key,pair.Value);
             world.Changed+=OnWorldChanged;
         }
         private void LoadFiles(string folder)
@@ -95,6 +102,7 @@ namespace Assets.Code.Stronghold2.MapLoading
         {if((changes&(AiChange.Ownership|AiChange.Removed))!=0)Refresh(estate);}
         private void Refresh(int estate)
         {
+            layouts.Remove(estate);
             if(!world.TryGet(estate,out var territory)){kingdoms.Remove(estate);return;}
             if(territory.Kind!=AiTerritoryKind.Kingdom || territory.Controller!=AiController.Autonomous)
             {kingdoms.Remove(estate);SetKey(territory,null);return;}
@@ -122,8 +130,17 @@ namespace Assets.Code.Stronghold2.MapLoading
             if(disposed)throw new ObjectDisposedException(nameof(S2MCastleBlueprints));
             if(rotationQuarterTurns.HasValue && (rotationQuarterTurns<0 || rotationQuarterTurns>3))throw new ArgumentOutOfRangeException(nameof(rotationQuarterTurns));
             if(key==null || !kingdoms.TryGetValue(estate,out var current) || !loaded.TryGetValue(key,out var selected) || !current.Candidates.Contains(selected))return false;
+            if(!ReferenceEquals(selected,current.Selected) || rotationQuarterTurns!=current.RotationQuarterTurns)layouts.Remove(estate);
             kingdoms[estate]=new KingdomCastleBlueprints(estate,current.Lord,current.Candidates.ToList(),selected,rotationQuarterTurns,CastleBlueprintOrigin.RuntimeSelection,null);
             if(world.TryGet(estate,out var territory))SetKey(territory,selected.Key);return true;
+        }
+        public bool TrySetLayout(int estate,AicCastleLayout layout)
+        {
+            if(disposed)throw new ObjectDisposedException(nameof(S2MCastleBlueprints));
+            if(layout==null || !kingdoms.TryGetValue(estate,out var kingdom) || kingdom.Selected==null
+              || !string.Equals(layout.Blueprint.Key,kingdom.Selected.Key,StringComparison.OrdinalIgnoreCase)
+              || kingdom.RotationQuarterTurns.HasValue && kingdom.RotationQuarterTurns!=layout.RotationQuarterTurns)return false;
+            layouts[estate]=ReferenceEquals(layout.Blueprint,kingdom.Selected)?layout:layout.WithBlueprint(kingdom.Selected);return true;
         }
         private static int? ResolveWarChapter(string source,string installation,int? explicitChapter)
         {
@@ -144,6 +161,6 @@ namespace Assets.Code.Stronghold2.MapLoading
             return key!=null;
         }
         public void Dispose()
-        {if(disposed)return;disposed=true;world.Changed-=OnWorldChanged;kingdoms.Clear();loaded.Clear();}
+        {if(disposed)return;disposed=true;world.Changed-=OnWorldChanged;layouts.Clear();kingdoms.Clear();loaded.Clear();}
     }
 }

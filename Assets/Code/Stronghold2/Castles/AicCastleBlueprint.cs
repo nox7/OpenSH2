@@ -44,12 +44,17 @@ namespace Assets.Code.Stronghold2.Castles
         public IReadOnlyList<int> ListPointFlags { get; }
         public IReadOnlyList<byte> TrailingBytes { get; }
         public IReadOnlyList<AicBuildItem> Keeps { get; }
+        private readonly Dictionary<byte,IReadOnlyList<int>> kindIndices=new();
+        public IReadOnlyList<int> ItemsOfKind(byte kind)=>kindIndices.TryGetValue(kind,out var indices)?indices:Array.Empty<int>();
         public AicBuildItem? PrimaryKeep=>Keeps.Count==0?(AicBuildItem?)null:Keeps[Keeps.Count-1];
         internal AicCastleBlueprint(string key,int length,AicBuildItem[] items,int[] values,int unknown,AicPoint[] lists,AicPoint[] groups,int[] flags,byte[] trailing)
         {
             Key=key;ByteLength=length;Items=Array.AsReadOnly(items);Values=Array.AsReadOnly(values);UnknownValue=unknown;
             ListPoints=Array.AsReadOnly(lists);GroupPoints=Array.AsReadOnly(groups);ListPointFlags=Array.AsReadOnly(flags);TrailingBytes=Array.AsReadOnly(trailing);
             var keeps=new List<AicBuildItem>();foreach(var item in items)if(item.KeepKind.HasValue)keeps.Add(item);Keeps=keeps.AsReadOnly();
+            var index=new Dictionary<byte,List<int>>();
+            for(int i=0;i<items.Length;i++){byte kind=items[i].Kind;if(!index.TryGetValue(kind,out var list))index.Add(kind,list=new List<int>());list.Add(i);}
+            foreach(var pair in index)kindIndices.Add(pair.Key,pair.Value.AsReadOnly());
         }
         public AicPoint GetListPoint(int list,int point)
         {if((uint)list>=PointListCount || (uint)point>=PointsPerList)throw new ArgumentOutOfRangeException();return ListPoints[list*PointsPerList+point];}

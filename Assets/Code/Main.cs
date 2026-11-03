@@ -92,6 +92,7 @@ public class Main : MonoBehaviour
   [Tooltip("Castle blueprint candidate sets and per-kingdom overrides. Loaded once per map; does not enable blueprint construction.")]
   [SerializeField] private Assets.Code.Stronghold2.Castles.CastleBlueprintSettings castleBlueprintSettings = new();
   private S2MAiRuntime aiRuntime;
+  private S2MCastleBlueprints loadingBlueprints;
   [Tooltip("Estate granary auto-construction. Respects the map's building-placement policy. Reload the map to change search settings.")]
   [SerializeField] private EstateGranarySettings estateGranarySettings = new();
   private S2MEstateGranaryConstruction estateConstruction;
@@ -171,7 +172,8 @@ public class Main : MonoBehaviour
       string gameInstallPath = Constants.GamePath;
       var mapFile = S2MFileLoader.Load(mapPath);
       RecordStage("map decoding");
-      S2MStartupBuildings.Apply(mapFile,gameInstallPath,startupBuildingSettings);
+      loadingBlueprints=S2MAiRuntime.PrepareCastleBlueprints(mapFile,gameInstallPath,castleBlueprintSettings);
+      S2MStartupBuildings.Apply(mapFile,gameInstallPath,startupBuildingSettings,loadingBlueprints);
       foreach(var issue in mapFile.StartupPlacementIssues) Debug.LogWarning(issue);
       RecordStage("startup buildings");
       if (gameScale <= 0f) throw new System.InvalidOperationException("Game scale must be positive.");
@@ -277,7 +279,8 @@ public class Main : MonoBehaviour
       estateHousing?.Dispose();estateSawpits?.Dispose();kingdomStockpiles?.Dispose();buildingConstruction?.Dispose();
       estateSawpits=null;estateConstruction=null;estateHousing=null;constructionPlanner=null;kingdomStockpiles=null;buildingConstruction=null;
       aiRuntime?.Dispose();
-      aiRuntime=S2MAiRuntime.Create(mapFile,inventory,gameInstallPath,aiSettings,Game.GetInstance().Simulation.ElapsedSeconds,Labor,castleBlueprintSettings);
+      aiRuntime=S2MAiRuntime.Create(mapFile,inventory,gameInstallPath,aiSettings,Game.GetInstance().Simulation.ElapsedSeconds,Labor,castleBlueprintSettings,preparedBlueprints:loadingBlueprints);
+      loadingBlueprints=null;
       Game.GetInstance().AI=aiRuntime;
       S2MEstateHovelConstruction.InitializeEstateResources(mapFile,aiRuntime.World,inventory,estateHovelSettings.InitialWood);
       if(estateGranarySettings.Enabled || estateHovelSettings.Enabled || estateSawpitSettings.Enabled || kingdomStockpileSettings.Enabled)
@@ -349,6 +352,7 @@ public class Main : MonoBehaviour
     estateConstruction?.Dispose();
     buildingConstruction?.Dispose();
     aiRuntime?.Dispose();
+    loadingBlueprints?.Dispose();loadingBlueprints=null;
     var game=Game.GetInstance();
     if(game!=null) { if(game.AI==aiRuntime)game.AI=null; game.Inventory=null; }
     kingdomStockpiles=null; estateSawpits=null; estateHousing=null; estateConstruction=null;

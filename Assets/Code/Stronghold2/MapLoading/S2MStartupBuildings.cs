@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.ObjectModel;
+using Assets.Code.Stronghold2.Castles;
 using Assets.Code.Stronghold2.AssetLoading;
 using Assets.Code.Stronghold2.S2MReader.Resources;
 using Assets.Code.Stronghold2.S2MReader.Enums;
@@ -11,6 +13,8 @@ namespace Assets.Code.Stronghold2.MapLoading
     {
         public bool Enabled = true;
         public KeepSize DefaultKeepSize = KeepSize.Medium;
+        public int BlueprintKeepSearchRadius=12;
+        public bool AlignBlueprintAnchorsToEvenTiles=true;
         [UnityEngine.Tooltip("Maximum placement search distances in map cells. Searches stay inside the marker's estate.")]
         public int KeepSearchRadius = 6, EstateSearchRadius = 10, StoreSearchRadius = 40;
         [UnityEngine.Tooltip("Keep entrance offset from its model origin, in local map cells. The default matches the medium keep.")]
@@ -23,7 +27,7 @@ namespace Assets.Code.Stronghold2.MapLoading
         public float MaximumHeightVariation = 512;
         public void Validate()
         {
-            if (KeepSearchRadius < 0 || EstateSearchRadius < 0 || StoreSearchRadius < 0 || KeepSearchRadius > 64 || EstateSearchRadius > 64 || StoreSearchRadius > 128 || !Enum.IsDefined(typeof(KeepSize), DefaultKeepSize)) throw new ArgumentOutOfRangeException(nameof(StartupBuildingSettings));
+            if (KeepSearchRadius < 0 || BlueprintKeepSearchRadius<0 || BlueprintKeepSearchRadius>64 || EstateSearchRadius < 0 || StoreSearchRadius < 0 || KeepSearchRadius > 64 || EstateSearchRadius > 64 || StoreSearchRadius > 128 || !Enum.IsDefined(typeof(KeepSize), DefaultKeepSize)) throw new ArgumentOutOfRangeException(nameof(StartupBuildingSettings));
             foreach (float f in new[] { KeepEntranceX, KeepEntranceZ, StockpileOffsetX, StockpileOffsetZ, MaximumHeightVariation, EstateTroopExclusionRadius }) if (float.IsNaN(f) || float.IsInfinity(f)) throw new ArgumentOutOfRangeException(nameof(StartupBuildingSettings));
             if (MaximumHeightVariation < 0) throw new ArgumentOutOfRangeException(nameof(MaximumHeightVariation));
             if (EstateTroopExclusionRadius < 0 || EstateTroopExclusionRadius > 32) throw new ArgumentOutOfRangeException(nameof(EstateTroopExclusionRadius));
@@ -32,10 +36,14 @@ namespace Assets.Code.Stronghold2.MapLoading
     /// <summary>Deterministic, once-per-map simulation startup. The original map file is never edited.</summary>
     public static class S2MStartupBuildings
     {
-        public static void Apply(S2MFile map, string installation, StartupBuildingSettings settings = null)
+        public static void Apply(S2MFile map, string installation, StartupBuildingSettings settings = null,S2MCastleBlueprints blueprints=null)
         {
             if (map == null) throw new ArgumentNullException(nameof(map)); settings ??= new StartupBuildingSettings(); settings.Validate();
             if (map.StartupBuildingsInitialized || !settings.Enabled) return;
+            using var temporaryBlueprints=blueprints==null?S2MAiRuntime.PrepareCastleBlueprints(map,installation):null;
+            blueprints??=temporaryBlueprints;
+            if(!blueprints.OwnsMap(map))throw new ArgumentException("Castle blueprints belong to another map or were disposed.");
+            var castleLayouts=new Dictionary<int,AicCastleLayout>();
             var placements = new List<BuildingPlacement>(map.BuildingPlacements); var keeps = new List<Keep>(map.Keeps); var generated = new List<BuildingPlacement>(); var issues = new List<string>();
             var world = new PlacementWorld(map, placements, keeps, settings); var descriptors = new Dictionary<string, S2MBuildingDescriptor>(StringComparer.Ordinal);
             var ids = new HashSet<int>(map.S2GameObjects.Select(o => o.Id)); foreach (var p in placements) ids.Add(p.Id); foreach (var p in keeps) ids.Add(p.Id);
@@ -49,16 +57,51 @@ namespace Assets.Code.Stronghold2.MapLoading
                 if (marker.Type == EstateType.Castle)
                 {
                     if (keeps.Any(k => S2MCampfireLayout.EstateAtBuilding(map, k) == marker.EstateId)) continue;
-                    string stem = settings.DefaultKeepSize switch { KeepSize.Wooden => "keep_wooden", KeepSize.Small => "keep_small", KeepSize.Large => "keep_large", _ => "keep_medium" };
-                    var descriptor = Descriptor(stem); BuildingPlacement placed = null;
-                    for (int turn = 0; turn < 4 && placed == null; turn++)
+                    KeepSize size=settings.DefaultKeepSize;BuildingPlacement placed=null;AicCastleLayout layout=null;bool blueprintKeep=false;
+                    blueprints.Kingdoms.TryGetValue(marker.EstateId,out var kingdom);
+                    var selectedKeep=kingdom?.Selected?.PrimaryKeep;
+                    if(selectedKeep.HasValue)size=(KeepSize)((int)selectedKeep.Value.KeepKind.Value-20);
+                    if(selectedKeep is AicBuildItem keepItem && keepItem.RotationCode<=3)
+                    {
+                        blueprintKeep=true;
+                        size=(KeepSize)((int)keepItem.KeepKind.Value-20);
+                        var native=Descriptor(KeepStem(size));
+                        var turns=kingdom.RotationQuarterTurns.HasValue?new[]{kingdom.RotationQuarterTurns.Value}:new[]{0,1,2,3};
+                        foreach(var offset in Candidates(settings.BlueprintKeepSearchRadius,false))
+                        {
+                            int x=marker.X+offset.X,z=marker.Z+offset.Z;
+                            if(settings.AlignBlueprintAnchorsToEvenTiles && ((x&1)!=0 || (z&1)!=0))continue;
+                            foreach(int turn in turns)
+                            {
+                                var proposed=AicCastleLayout.AtKeepMarker(kingdom.Selected,x,z,turn);
+                                var site=proposed.Project(keepItem,native.Width,native.Height);
+                                placed=Find(marker,"Keep"+((int)size+1),native,site.ModelX,site.ModelZ,site.RotationQuarterTurns*90,0);
+                                if(placed!=null){layout=proposed;break;}
+                            }
+                            if(placed!=null)break;
+                        }
+                        // A constrained blueprint anchor may fail even when a nearby ordinary keep site is usable.
+                        if(placed==null)foreach(int turn in turns)
+                        {
+                            var proposed=AicCastleLayout.AtKeepMarker(kingdom.Selected,marker.X,marker.Z,turn);
+                            var site=proposed.Project(keepItem,native.Width,native.Height);
+                            placed=Find(marker,"Keep"+((int)size+1),native,site.ModelX,site.ModelZ,site.RotationQuarterTurns*90,settings.BlueprintKeepSearchRadius);
+                            if(placed==null)continue;
+                            layout=new AicCastleLayout(kingdom.Selected,proposed.OriginX+(int)placed.MapX-site.ModelX,proposed.OriginZ+(int)placed.MapZ-site.ModelZ,turn);
+                            issues.Add($"Estate {marker.EstateId} used a general keep site after blueprint anchor sites were blocked.");break;
+                        }
+                    }
+                    else if(kingdom?.Selected!=null)issues.Add($"Estate {marker.EstateId} blueprint has no supported keep entry/rotation; using general keep placement.");
+                    var descriptor = Descriptor(KeepStem(size));
+                    for (int turn = 0; turn < 4 && placed == null && !blueprintKeep; turn++)
                     {
                         double angle = turn * Math.PI / 2; float dx = (float)(settings.KeepEntranceX * Math.Cos(angle) + settings.KeepEntranceZ * Math.Sin(angle)); float dz = (float)(settings.KeepEntranceZ * Math.Cos(angle) - settings.KeepEntranceX * Math.Sin(angle));
                         placed = Find(marker, "Keep", descriptor, marker.X - dx, marker.Z - dz, turn * 90, settings.KeepSearchRadius);
                     }
-                    if (placed == null) { issues.Add($"No valid keep site for estate {marker.EstateId} within {settings.KeepSearchRadius} cells."); continue; }
-                    var keep = new Keep { Id = placed.Id, Type = "Keep" + ((int)settings.DefaultKeepSize + 1), Size = settings.DefaultKeepSize, RawX = placed.RawX, RawY = placed.RawY, RawZ = placed.RawZ, RotationDegrees = placed.RotationDegrees, FootprintWidth = placed.FootprintWidth, FootprintHeight = placed.FootprintHeight, StartupEstateId = marker.EstateId };
+                    if (placed == null) { issues.Add($"No valid keep site for estate {marker.EstateId} within {(blueprintKeep?settings.BlueprintKeepSearchRadius:settings.KeepSearchRadius)} cells."); continue; }
+                    var keep = new Keep { Id = placed.Id, Type = "Keep" + ((int)size + 1), Size = size, RawX = placed.RawX, RawY = placed.RawY, RawZ = placed.RawZ, RotationDegrees = placed.RotationDegrees, FootprintWidth = placed.FootprintWidth, FootprintHeight = placed.FootprintHeight, StartupEstateId = marker.EstateId };
                     keeps.Add(keep); placements.Add(keep); generated.Add(keep); world.Reserve(keep);
+                    if(layout!=null){castleLayouts[marker.EstateId]=layout;blueprints.TrySetLayout(marker.EstateId,layout);}
                     continue;
                 }
                 villages.Add(marker);
@@ -68,6 +111,7 @@ namespace Assets.Code.Stronghold2.MapLoading
             foreach (var marker in villages)
                 AddIfMissing(marker, "StockPile", "stockpile", marker.X + settings.StockpileOffsetX, marker.Z + settings.StockpileOffsetZ, settings.StoreSearchRadius);
             map.BuildingPlacements = placements.AsReadOnly(); map.Keeps = keeps.AsReadOnly(); map.StartupBuildings = generated.AsReadOnly(); map.StartupPlacementIssues = issues.AsReadOnly(); map.StartupBuildingsInitialized = true;
+            map.StartupCastleLayouts=new ReadOnlyDictionary<int,AicCastleLayout>(castleLayouts);
             void AddIfMissing(EstateMarkerFlag marker, string type, string stem, float x, float z, int radius)
             {
                 if (placements.Any(p => p.Type == type && S2MCampfireLayout.EstateAtBuilding(map, p) == marker.EstateId)) return;
@@ -93,6 +137,7 @@ namespace Assets.Code.Stronghold2.MapLoading
                 return null;
             }
         }
+        private static string KeepStem(KeepSize size)=>size switch{KeepSize.Wooden=>"keep_wooden",KeepSize.Small=>"keep_small",KeepSize.Large=>"keep_large",_=>"keep_medium"};
         internal static List<(int X, int Z)> Candidates(int radius, bool pole)
         {
             var result = new List<(int X, int Z)>((radius*2+1)*(radius*2+1)) { (0, 0) };

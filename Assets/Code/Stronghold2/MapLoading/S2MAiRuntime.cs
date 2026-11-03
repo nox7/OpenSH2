@@ -36,9 +36,24 @@ namespace Assets.Code.Stronghold2.MapLoading
             this.labor=labor;
             if(labor!=null){foreach(int id in world.Territories.Keys)world.SetLaborDemand(id,labor.GetLaborDemand(id));labor.StaffingChanged+=OnStaffingChanged;}
         }
-        public static S2MAiRuntime Create(S2MFile map, EstateInventory inventory,string installation,AiSettings settings=null,double initialTime=0,LaborManager labor=null,CastleBlueprintSettings blueprintSettings=null,int? warChapter=null)
+        public static S2MAiRuntime Create(S2MFile map, EstateInventory inventory,string installation,AiSettings settings=null,double initialTime=0,LaborManager labor=null,CastleBlueprintSettings blueprintSettings=null,int? warChapter=null,S2MCastleBlueprints preparedBlueprints=null)
         {
             if(map==null || inventory==null)throw new ArgumentNullException();
+            if(preparedBlueprints!=null && !preparedBlueprints.OwnsMap(map))throw new ArgumentException("Prepared blueprints belong to another map or were disposed.");
+            var blueprints=preparedBlueprints??PrepareCastleBlueprints(map,installation,blueprintSettings,warChapter);
+            var world=blueprints.World;
+            foreach(var b in map.BuildingPlacements.Concat<BuildingPlacement>(map.Keeps))
+            {int estate=S2MCampfireLayout.EstateAtBuilding(map,b);if(world.TryGet(estate,out _))world.UpsertBuilding(new AiBuilding(b.Id,estate,b.Type));}
+            return new S2MAiRuntime(world,inventory,blueprints,settings,initialTime,labor);
+        }
+        /// <summary>Prepare selection before startup placement; pass the same library to Create to transfer its map lifetime.</summary>
+        public static S2MCastleBlueprints PrepareCastleBlueprints(S2MFile map,string installation,CastleBlueprintSettings settings=null,int? warChapter=null)
+        {
+            if(map==null)throw new ArgumentNullException(nameof(map));
+            return new S2MCastleBlueprints(map,CreateWorld(map),installation,settings,warChapter);
+        }
+        private static AiWorld CreateWorld(S2MFile map)
+        {
             var world=new AiWorld();var ownership=S2MLiveryOwnership.Read(map);
             var kinds=new Dictionary<int,AiTerritoryKind>();
             if(map.RadarEstateLayer?.EstateIds!=null)foreach(byte id in map.RadarEstateLayer.EstateIds)
@@ -79,8 +94,7 @@ namespace Assets.Code.Stronghold2.MapLoading
                 }
             foreach(var b in map.BuildingPlacements)
             {int id=S2MCampfireLayout.EstateAtBuilding(map,b);if(world.TryGet(id,out _))world.UpsertBuilding(new AiBuilding(b.Id,id,b.Type));}
-            var blueprints=new S2MCastleBlueprints(map,world,installation,blueprintSettings,warChapter);
-            return new S2MAiRuntime(world,inventory,blueprints,settings,initialTime,labor);
+            return world;
         }
         private void OnStorageChanged(BuildingStorage storage)=>World.Notify(storage.EstateId,AiChange.Resources);
         private void OnStaffingChanged(int estate,LaborDemand demand)=>World.SetLaborDemand(estate,demand);

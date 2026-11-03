@@ -142,11 +142,26 @@ retain candidates for future site/strategy selection. Ownership changes update
 only the affected assignment, using the already loaded cache. See
 `Notes/FileFormats/AIC.md` for the binary layout and query API.
 
-Blueprint loading does not execute construction or change startup placement.
-Relative-site anchoring, fit, dependencies, stages, mutable completed/missing slots
-and save restoration of selected designs remain separate future placement work.
+The shared blueprint library is prepared before startup; missing selected AI keeps
+now use their design's keep type and resolved tile/model transform. The same
+library is transferred into the simulation runtime, retaining the anchor without
+reloading files. Existing keeps and ordinary human/unselected startup behavior
+are preserved. Full castle fit, dependencies, construction stages, mutable
+completed/missing slots and saved selection restoration remain future work.
 Runtime matching must use actual building IDs; destroyed slots become repair
 goals. No mesh, prefab or prerendered map is required.
+
+Site search is now independent of construction execution. Per-goal/per-territory
+`IBuildingSiteStrategy` searches provide candidates under the existing shared
+AI budget. General search, indexed blueprint slots and preferred/fallback
+composition are supported. Goals expose `UseBlueprintPlacement` and
+`SetPlacementStrategy`; null restores their general algorithm. A change cancels
+unpublished preparation and releases its resource holds. `SiteCompleted` reports
+the committed blueprint slot or general-site provenance. Space, economic and
+military policies can therefore mix or switch placement strategies without
+changing authority checks, costs, jobs, navigation or the staged command executor.
+Current estate/stockpile goals remain general by default; further blueprint
+construction has not been enabled.
 
 ## Incremental implementation plan
 

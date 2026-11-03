@@ -39,6 +39,8 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     /// <summary>Decoded Map tag 14; retains backing stride independently of playable map size.</summary>
     public WallLayer WallLayer { get; internal set; }
     public bool StartupBuildingsInitialized { get; internal set; }
+    public IReadOnlyDictionary<int,Assets.Code.Stronghold2.Castles.AicCastleLayout> StartupCastleLayouts { get; internal set; }
+      =new Dictionary<int,Assets.Code.Stronghold2.Castles.AicCastleLayout>();
     public IReadOnlyList<BuildingPlacement> StartupBuildings { get; internal set; } = Array.Empty<BuildingPlacement>();
     public IReadOnlyList<string> StartupPlacementIssues { get; internal set; } = Array.Empty<string>();
     public IReadOnlyList<EstateMarkerFlag> EstateMarkers { get; internal set; } = Array.Empty<EstateMarkerFlag>();

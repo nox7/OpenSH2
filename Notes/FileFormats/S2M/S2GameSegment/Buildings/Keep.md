@@ -35,16 +35,14 @@ reported wooden keep in the original game; it is a campaign/blueprint startup
 decision rather than a wooden/stone bit on the estate marker. The blueprint
 filename is not present as ASCII or UTF-16LE text in this map's decoded segments.
 
-OpenSH2 currently generates all missing castle-marker keeps using
-`StartupBuildingSettings.DefaultKeepSize` (Medium). That fallback explains
-Olaf's medium keep in our Chapter 6 load. A future blueprint-aware startup should
-resolve the campaign's selected design and its keep entry per kingdom, preserving
-already placed keeps and retaining the fallback where no design is known. Do not
-change the global default to Wooden to fix this one lord. Blueprint placement
-also affects the footprint and origin, so selecting the correct mesh alone is
-insufficient. The subsequent [AIC reader/library](../../../AIC.md) now retains
-the selected campaign blueprint and keep kind in memory; startup keep placement
-has not yet been changed to consume it.
+The earlier global `StartupBuildingSettings.DefaultKeepSize` (Medium) fallback
+caused Olaf's incorrect medium keep. Startup now prepares the
+[AIC library/layout](../../../AIC.md) before placing missing keeps and uses the
+selected AI design's keep family, footprint, rotation and resolved origin.
+Olaf in Chapter 6 is generated as Keep1 at (124,202), yaw 0, with a blueprint
+origin of (76,162). The selected wooden GR2 batch is verified by the native loader.
+Authored keeps remain untouched; the default still applies to human/unselected
+kingdoms. No other blueprint buildings or walls are placed yet.
 
 ## Types and assets
 
