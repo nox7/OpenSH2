@@ -6,6 +6,7 @@ using Assets.Code.Stronghold2.ModelRendering;
 using Assets.Code.Stronghold2.TerrainRendering;
 using Assets.Code.Stronghold2.Construction;
 using Assets.Code.UI.Frontend;
+using Assets.Code.Player;
 using Assets.Code.Lighting;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -88,6 +89,8 @@ public class Main : MonoBehaviour
   [SerializeField] private HorseCartAssemblySettings horseCartSettings = new();
   [Tooltip("AI scheduling uses simulation time and bounded work budgets.")]
   [SerializeField] private Assets.Code.Simulation.AI.AiSettings aiSettings = new();
+  [Tooltip("Castle blueprint candidate sets and per-kingdom overrides. Loaded once per map; does not enable blueprint construction.")]
+  [SerializeField] private Assets.Code.Stronghold2.Castles.CastleBlueprintSettings castleBlueprintSettings = new();
   private S2MAiRuntime aiRuntime;
   [Tooltip("Estate granary auto-construction. Respects the map's building-placement policy. Reload the map to change search settings.")]
   [SerializeField] private EstateGranarySettings estateGranarySettings = new();
@@ -132,6 +135,13 @@ public class Main : MonoBehaviour
 
   [Tooltip("Startup keeps and estate flagpole/store placement. Applied when the map loads.")]
   [SerializeField] private StartupBuildingSettings startupBuildingSettings = new();
+
+  [Tooltip("Local player's fixed-angle camera and controls. Distances and speeds use map units; editable live.")]
+  [SerializeField] private PlayerCameraSettings playerCameraSettings = new();
+  private LocalPlayerSession localPlayer;
+  private Camera previousBuildingViewCamera;
+  public Camera PlayerCamera => localPlayer?.Camera;
+  public PlayerCameraController PlayerControls => localPlayer?.Controls;
 
   private GameObject mapWorld;
   public bool IsLoadingMap { get; private set; }
@@ -267,7 +277,7 @@ public class Main : MonoBehaviour
       estateHousing?.Dispose();estateSawpits?.Dispose();kingdomStockpiles?.Dispose();buildingConstruction?.Dispose();
       estateSawpits=null;estateConstruction=null;estateHousing=null;constructionPlanner=null;kingdomStockpiles=null;buildingConstruction=null;
       aiRuntime?.Dispose();
-      aiRuntime=S2MAiRuntime.Create(mapFile,inventory,gameInstallPath,aiSettings,Game.GetInstance().Simulation.ElapsedSeconds,Labor);
+      aiRuntime=S2MAiRuntime.Create(mapFile,inventory,gameInstallPath,aiSettings,Game.GetInstance().Simulation.ElapsedSeconds,Labor,castleBlueprintSettings);
       Game.GetInstance().AI=aiRuntime;
       S2MEstateHovelConstruction.InitializeEstateResources(mapFile,aiRuntime.World,inventory,estateHovelSettings.InitialWood);
       if(estateGranarySettings.Enabled || estateHovelSettings.Enabled || estateSawpitSettings.Enabled || kingdomStockpileSettings.Enabled)
@@ -304,6 +314,15 @@ public class Main : MonoBehaviour
 
       Debug.Log($"Read S2M header: author={mapFile.Author}, type={mapFile.MapType}, balanced={mapFile.Balanced}, maxPlayers={mapFile.MaxPlayers}, version={mapFile.Version}; rendered {vegetationData.SupportedInstanceCount} scenery placements including {vegetationData.Grass.Count} grass cards ({vegetationData.InactiveInstanceCount} inactive, {vegetationData.UnsupportedInstanceCount} unsupported records).");
       foreach (string issue in vegetationData.Issues) Debug.LogWarning(issue);
+      var cameraBounds = new Bounds(mapWorld.transform.TransformPoint(new Vector3(mapFile.MapSize * .5f, 0, mapFile.MapSize * .5f)),
+        new Vector3(mapFile.MapSize * gameScale, 0, mapFile.MapSize * gameScale));
+      foreach (var surface in mapWorld.GetComponentsInChildren<CameraSurface>())
+        foreach (var renderer in surface.GetComponentsInChildren<Renderer>()) cameraBounds.Encapsulate(renderer.bounds);
+      previousBuildingViewCamera = buildingRenderSettings.ViewCamera;
+      localPlayer = new LocalPlayerSession(mapWorld.transform, cameraBounds,
+        S2MPlayerCameraStart.Resolve(mapFile, terrainSettings, mapWorld.transform), gameScale, playerCameraSettings);
+      buildingRenderSettings.ViewCamera = localPlayer.Camera;
+      RecordStage("local player camera/controls");
       LoadedMapPath = System.IO.Path.GetFullPath(mapPath);
       game.State = GameState.PLAYING;
     }
@@ -319,6 +338,11 @@ public class Main : MonoBehaviour
 
   private void ClearMap()
   {
+    if (localPlayer != null)
+    {
+      buildingRenderSettings.ViewCamera = previousBuildingViewCamera;
+      localPlayer.Dispose(); localPlayer = null;
+    }
     kingdomStockpiles?.Dispose();
     estateSawpits?.Dispose();
     estateHousing?.Dispose();

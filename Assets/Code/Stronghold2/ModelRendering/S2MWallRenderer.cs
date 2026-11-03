@@ -64,6 +64,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         || !Nonnegative(settings.StoneParapetHeight) || !Nonnegative(settings.StoneMerlonHeight))
         throw new ArgumentOutOfRangeException(nameof(settings), "Invalid wall render dimensions.");
       var root = new GameObject("S2M Walls");
+      root.AddComponent<Assets.Code.Player.CameraSurface>();
       if (parent != null) root.transform.SetParent(parent, false);
       if (map.WallLayer == null) return root;
       try

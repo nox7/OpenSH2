@@ -30,3 +30,21 @@ opens it. The temporary `CampaignProgress.CompleteAllForLocalTesting` override m
 all chapters completed for current local testing without changing stored progress.
 Campaign launch records attempts through `UserProfileStore`; victory handling must call
 `CompleteWarChapter` once implemented. Chapter selection alone must not change progress.
+
+## Local Player Camera
+After map initialization, `Main` creates `Player/LocalPlayerSession`, assigns its
+camera to `buildingRenderSettings.ViewCamera`, then enters PLAYING. Tune the live
+serialized `PlayerCameraSettings` on Main for angle/FOV, speed and ray-distance
+zoom limits. WASD follows the camera's heading on the ground plane (pitch does not
+add altitude); wheel input zooms in customizable steps (default 40 map units). Q/E
+and horizontal middle-button drag rotate the heading at customizable speeds. Panning
+preserves altitude unless a surface-ray zoom limit is violated. Movement/keyboard
+rotation use unscaled time. Pan speed ramps linearly from Initial Move Speed to
+Max Move Speed over Move Speed Interpolation Time; releasing movement resets the ramp. `CameraSurface` marks only
+terrain/building/wall renderer roots for surface ray hits, excluding foliage and
+actors. Map cleanup restores the scene camera and previous building-camera override.
+
+Camera rotation uses a separate terrain-only centre-ray pivot. Terrain roots mark
+`CameraSurface.IsTerrain`; buildings still constrain height/zoom but never define
+the orbit centre. Rays missing terrain use the lowest-terrain-height plane beyond
+the map edge, without clamping the rotation pivot to the map boundary.

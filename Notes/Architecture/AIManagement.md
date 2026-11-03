@@ -132,13 +132,21 @@ codes 0..19 into local production targets. `UseMapBuildings` is a policy constra
 that every future construction planner must respect, not permission to replace
 or supplement the authored layout automatically.
 
-The installed `castles/*.aic` files are cataloged once by stable filename and size.
-They are not parsed, assigned to lords by filename guesses, or interpreted as
-executable commands. `BlueprintKey` can later select a catalog entry. Introduce a
-versioned AIC decoder/cache and immutable blueprint representation before placement:
-relative sites, orientation/anchor, dependencies, stages and completed/missing slots.
-Runtime matching uses actual building IDs; destroyed slots become repair goals.
-No mesh, prefab or prerendered map is required.
+The installed `castles/*.aic` files are parsed once per loaded map into immutable
+blueprints and shared across autonomous kingdoms through
+`S2MAiRuntime.CastleBlueprints`. The reader retains ordered build items, local
+positions, rotation/group data, value/point/flag tables and unknown extension
+bytes. Configurable lord design sets provide candidates; known campaign rules or
+explicit overrides select a design and publish `BlueprintKey`. Other kingdoms
+retain candidates for future site/strategy selection. Ownership changes update
+only the affected assignment, using the already loaded cache. See
+`Notes/FileFormats/AIC.md` for the binary layout and query API.
+
+Blueprint loading does not execute construction or change startup placement.
+Relative-site anchoring, fit, dependencies, stages, mutable completed/missing slots
+and save restoration of selected designs remain separate future placement work.
+Runtime matching must use actual building IDs; destroyed slots become repair
+goals. No mesh, prefab or prerendered map is required.
 
 ## Incremental implementation plan
 

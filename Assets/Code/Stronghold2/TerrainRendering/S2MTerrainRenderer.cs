@@ -30,6 +30,7 @@ namespace Assets.Code.Stronghold2.TerrainRendering
       byte[] surfaceMaterialIds = S2MTerrainSurfaceMaterialGrid.Create(map, settings.PrimaryHeightCells, settings.SurfaceOverrides);
 
       var root = new GameObject(string.IsNullOrWhiteSpace(terrainName) ? "S2M Terrain" : terrainName);
+      root.AddComponent<Assets.Code.Player.CameraSurface>().IsTerrain = true;
       if (parent != null) root.transform.SetParent(parent, worldPositionStays: false);
 
       Material generatedMaterial = null;

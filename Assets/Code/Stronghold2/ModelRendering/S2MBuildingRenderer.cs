@@ -30,6 +30,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       settings ??= new S2MBuildingRenderSettings();
       settings.AmbientAnimations ??= new S2MBuildingAnimationSettings();
       var root = new GameObject("S2M Buildings");
+      root.AddComponent<Assets.Code.Player.CameraSurface>();
       if (parent != null) root.transform.SetParent(parent, false);
       return (root,RenderSteps(data,root,parent,terrainSettings,settings,factory??Granny2ModelRenderer.RenderInstances));
     }

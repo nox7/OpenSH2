@@ -7,6 +7,7 @@ using Assets.Code.Simulation.Economy;
 using Assets.Code.Simulation.Labor;
 using Assets.Code.Stronghold2.S2MReader.Enums;
 using Assets.Code.Stronghold2.S2MReader.Resources;
+using Assets.Code.Stronghold2.Castles;
 
 namespace Assets.Code.Stronghold2.MapLoading
 {
@@ -16,25 +17,26 @@ namespace Assets.Code.Stronghold2.MapLoading
         public readonly long Bytes;
         public AiBlueprintFile(string key,string path,long bytes){Key=key;Path=path;Bytes=bytes;}
     }
-    /// <summary>Catalog only: AIC layout decoding and placement are intentionally separate future work.</summary>
+    /// <summary>Map-local AI facts, scheduling and immutable castle blueprint data. Placement is a separate policy.</summary>
     public sealed class S2MAiRuntime : IDisposable
     {
         public AiWorld World { get; }
         public AiScheduler Scheduler { get; }
         public IReadOnlyList<AiBlueprintFile> Blueprints { get; }
+        public S2MCastleBlueprints CastleBlueprints { get; }
         private readonly EstateInventory inventory;
         private readonly LaborManager labor;
         private bool disposed;
-        private S2MAiRuntime(AiWorld world,EstateInventory inventory,List<AiBlueprintFile> blueprints,AiSettings settings,double initialTime,LaborManager labor)
+        private S2MAiRuntime(AiWorld world,EstateInventory inventory,S2MCastleBlueprints blueprints,AiSettings settings,double initialTime,LaborManager labor)
         {
-            World=world;this.inventory=inventory;Blueprints=blueprints.AsReadOnly();
+            World=world;this.inventory=inventory;CastleBlueprints=blueprints;Blueprints=blueprints.Files;
             // No planner is installed: indexing, scheduling and notifications only.
             Scheduler=new AiScheduler(world,new AiInventoryView(inventory),settings,initialTime:initialTime);
             inventory.Changed+=OnStorageChanged;
             this.labor=labor;
             if(labor!=null){foreach(int id in world.Territories.Keys)world.SetLaborDemand(id,labor.GetLaborDemand(id));labor.StaffingChanged+=OnStaffingChanged;}
         }
-        public static S2MAiRuntime Create(S2MFile map, EstateInventory inventory,string installation,AiSettings settings=null,double initialTime=0,LaborManager labor=null)
+        public static S2MAiRuntime Create(S2MFile map, EstateInventory inventory,string installation,AiSettings settings=null,double initialTime=0,LaborManager labor=null,CastleBlueprintSettings blueprintSettings=null,int? warChapter=null)
         {
             if(map==null || inventory==null)throw new ArgumentNullException();
             var world=new AiWorld();var ownership=S2MLiveryOwnership.Read(map);
@@ -77,16 +79,13 @@ namespace Assets.Code.Stronghold2.MapLoading
                 }
             foreach(var b in map.BuildingPlacements)
             {int id=S2MCampfireLayout.EstateAtBuilding(map,b);if(world.TryGet(id,out _))world.UpsertBuilding(new AiBuilding(b.Id,id,b.Type));}
-            var blueprints=new List<AiBlueprintFile>();
-            string folder=System.IO.Path.Combine(installation,"castles");
-            if(Directory.Exists(folder))foreach(string path in Directory.EnumerateFiles(folder,"*.aic").OrderBy(p=>p,StringComparer.OrdinalIgnoreCase))
-            {var file=new FileInfo(path);blueprints.Add(new AiBlueprintFile(file.Name,file.FullName,file.Length));}
+            var blueprints=new S2MCastleBlueprints(map,world,installation,blueprintSettings,warChapter);
             return new S2MAiRuntime(world,inventory,blueprints,settings,initialTime,labor);
         }
         private void OnStorageChanged(BuildingStorage storage)=>World.Notify(storage.EstateId,AiChange.Resources);
         private void OnStaffingChanged(int estate,LaborDemand demand)=>World.SetLaborDemand(estate,demand);
         public void Dispose()
-        {if(disposed)return;disposed=true;inventory.Changed-=OnStorageChanged;if(labor!=null)labor.StaffingChanged-=OnStaffingChanged;Scheduler.Dispose();}
+        {if(disposed)return;disposed=true;CastleBlueprints.Dispose();inventory.Changed-=OnStorageChanged;if(labor!=null)labor.StaffingChanged-=OnStaffingChanged;Scheduler.Dispose();}
 
         // Modern Scenario fields are counted arrays indexed by estate, not the legacy
         // reader's fixed 16-element convenience arrays. Keep native production codes intact.

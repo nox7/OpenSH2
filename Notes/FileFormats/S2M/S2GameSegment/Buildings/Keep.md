@@ -17,6 +17,35 @@ outside the local entrance. `S2MKeepAssetLoader` loads `camp_fire.GR2`, and
 `S2MCampfireRenderer` draws its base and animated fire texture independently of
 the keep's interior/exterior visibility.
 
+## Missing keeps and Chapter 6 AI blueprints
+
+The installed `maps/war_chapter6.s2m` contains one placed keep: `Keep3`, object
+948925640, at X/Z (221,200), footprint 8 by 9. This is beside estate 3's marker
+(223,199), not Olaf's estate 2 marker (123,203). Both markers are active castles.
+Olaf's keep therefore needs simulation startup placement; there is no placed
+Olaf keep whose subtype or hidden flag needs reinterpreting.
+
+The installed `castles/AIVChap6_Olaf.aic` has 90 build items. Its first item at
+file offset 4 has first word `0x00283014` and second word `0x00000001`. The low
+byte is building type 20 (wooden keep), with local X/Z (48,40), rotation 0.
+The reference project's `CampaignSetUps.WarChapter` case 5 (zero-based Chapter 6)
+assigns this filename to estate 2, and `AIVChap6_Edwin.aic` to estate 3. Its castle
+planner obtains the keep kind from the blueprint's keep entry. This supports the
+reported wooden keep in the original game; it is a campaign/blueprint startup
+decision rather than a wooden/stone bit on the estate marker. The blueprint
+filename is not present as ASCII or UTF-16LE text in this map's decoded segments.
+
+OpenSH2 currently generates all missing castle-marker keeps using
+`StartupBuildingSettings.DefaultKeepSize` (Medium). That fallback explains
+Olaf's medium keep in our Chapter 6 load. A future blueprint-aware startup should
+resolve the campaign's selected design and its keep entry per kingdom, preserving
+already placed keeps and retaining the fallback where no design is known. Do not
+change the global default to Wooden to fix this one lord. Blueprint placement
+also affects the footprint and origin, so selecting the correct mesh alone is
+insufficient. The subsequent [AIC reader/library](../../../AIC.md) now retains
+the selected campaign blueprint and keep kind in memory; startup keep placement
+has not yet been changed to consume it.
+
 ## Types and assets
 
 The S2Game object types are numbered from the wooden keep, not the small stone keep.
