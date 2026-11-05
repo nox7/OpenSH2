@@ -16,7 +16,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       string objectName = "S2M Vegetation",
       float treeModelScale = 1f,
       S2MSceneryModelScales modelScales = null,
-      float naturalStoneTextureBrightness = 1f)
+      float naturalStoneTextureBrightness = 1f,bool dynamicAppleTrees=false)
     {
       if (vegetation == null) throw new ArgumentNullException(nameof(vegetation));
       if (!(treeModelScale > 0f) || float.IsInfinity(treeModelScale))
@@ -38,25 +38,37 @@ namespace Assets.Code.Stronghold2.ModelRendering
       var harvesting=root.AddComponent<S2MFoliageHarvestView>();
       harvesting.PrepareLogs(vegetation.LogModels,settings.HorizontalCellSize);
       S2MNaturalStoneVisibility stoneVisibility = null;
+      var ownedApples=new HashSet<int>();
+      if(dynamicAppleTrees)
+      {
+        var farmRefs=new HashSet<uint>();foreach(var b in vegetation.Map.BuildingPlacements)if(b.Type=="AppleFarm")farmRefs.Add(b.SavedBuildingReference);
+        foreach(var p in vegetation.Map.PlantActors)if(p.Kind==SceneryKind.AppleTree && p.FarmReference!=0 && farmRefs.Contains(p.FarmReference))ownedApples.Add(p.Id);
+      }
 
       foreach (S2MVegetationBatch batch in vegetation.Batches)
       {
-        var transforms = new List<Granny2ModelInstance>(batch.Instances.Count);
-        for (int i = 0; i < batch.Instances.Count; i++)
+        IReadOnlyList<SceneryInstance> instances=batch.Instances;
+        if(dynamicAppleTrees && instances.Count>0 && instances[0].Kind==SceneryKind.AppleTree)
         {
-          SceneryInstance source = batch.Instances[i];
+          var retained=new List<SceneryInstance>();foreach(var instance in instances)if(!ownedApples.Contains(instance.ResourceId))retained.Add(instance);
+          instances=retained;if(instances.Count==0)continue;
+        }
+        var transforms = new List<Granny2ModelInstance>(instances.Count);
+        for (int i = 0; i < instances.Count; i++)
+        {
+          SceneryInstance source = instances[i];
           transforms.Add(ToUnityInstance(source, vegetation.Map, settings, i, treeModelScale, modelScales));
         }
-        bool rocks = batch.Instances.Count > 0 && (batch.Instances[0].Kind == SceneryKind.Rocks
-          || batch.Instances[0].Kind == SceneryKind.NaturalStone || batch.Instances[0].Kind == SceneryKind.IronOre);
+        bool rocks = instances.Count > 0 && (instances[0].Kind == SceneryKind.Rocks
+          || instances[0].Kind == SceneryKind.NaturalStone || instances[0].Kind == SceneryKind.IronOre);
         Granny2ModelRenderSettings modelSettings = rocks ? new Granny2ModelRenderSettings
         {
           UnitScale = settings.Model.UnitScale, ConvertZUpToUnityYUp = settings.Model.ConvertZUpToUnityYUp,
           DoubleSided = settings.Model.DoubleSided, UseFoliageMaterials = false,
-          OpaqueShader = settings.Model.OpaqueShader != null ? settings.Model.OpaqueShader : (batch.Instances[0].Kind == SceneryKind.NaturalStone
+          OpaqueShader = settings.Model.OpaqueShader != null ? settings.Model.OpaqueShader : (instances[0].Kind == SceneryKind.NaturalStone
             ? Shader.Find("OpenSH2/Stronghold 2 Natural Stone") : null),
           FallbackMaterial = settings.Model.FallbackMaterial,
-          TextureBrightness = batch.Instances[0].Kind == SceneryKind.NaturalStone
+          TextureBrightness = instances[0].Kind == SceneryKind.NaturalStone
             ? naturalStoneTextureBrightness : settings.Model.TextureBrightness
         } : new Granny2ModelRenderSettings
         {
@@ -66,7 +78,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
           OpaqueShader = settings.Model.OpaqueShader, FallbackMaterial = settings.Model.FallbackMaterial,
           TextureBrightness = settings.Model.TextureBrightness, AlphaCutoff = settings.Model.AlphaCutoff
         };
-        if (rocks && batch.Instances[0].Kind == SceneryKind.NaturalStone
+        if (rocks && instances[0].Kind == SceneryKind.NaturalStone
           && modelSettings.OpaqueShader == null && modelSettings.FallbackMaterial == null)
           throw new InvalidOperationException("Stronghold 2 natural stone shader is missing.");
         GameObject renderedBatch = Granny2ModelRenderer.RenderInstances(
@@ -75,19 +87,19 @@ namespace Assets.Code.Stronghold2.ModelRendering
           root.transform,
           modelSettings,
           batch.AssetRelativePath.Replace('\\', '/'));
-        for(int i=0;i<batch.Instances.Count;i++)
-          harvesting.Register(batch.Instances[i],renderedBatch.transform.GetChild(i),settings.FlipX,settings.FlipZ,modelSettings.UnitScale/settings.HorizontalCellSize);
+        for(int i=0;i<instances.Count;i++)
+          harvesting.Register(instances[i],renderedBatch.transform.GetChild(i),settings.FlipX,settings.FlipZ,modelSettings.UnitScale/settings.HorizontalCellSize);
         if (vegetation.Map != null)
-          for (int i = 0; i < batch.Instances.Count; i++)
-            if (batch.Instances[i].Kind == SceneryKind.NaturalStone || batch.Instances[i].Kind == SceneryKind.IronOre
-              || (batch.Instances[i].Kind == SceneryKind.Rocks && batch.Instances[i].Family == 8))
+          for (int i = 0; i < instances.Count; i++)
+            if (instances[i].Kind == SceneryKind.NaturalStone || instances[i].Kind == SceneryKind.IronOre
+              || (instances[i].Kind == SceneryKind.Rocks && instances[i].Family == 8))
             {
               if (stoneVisibility == null)
               {
                 stoneVisibility = root.AddComponent<S2MNaturalStoneVisibility>();
                 stoneVisibility.Initialize(S2MSceneryOcclusion.GetOrCreate(parent != null ? parent : root.transform, vegetation.Map));
               }
-              stoneVisibility.Register(batch.Instances[i], renderedBatch.transform.GetChild(i).gameObject);
+              stoneVisibility.Register(instances[i], renderedBatch.transform.GetChild(i).gameObject);
             }
       }
       S2MGrassRenderer.Render(vegetation, root.transform, settings, modelScales.Grass);
@@ -95,7 +107,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
       return root;
     }
 
-    private static Granny2ModelInstance ToUnityInstance(
+    internal static Granny2ModelInstance ToUnityInstance(
       SceneryInstance source,
       S2MFile map,
       S2MVegetationRenderSettings settings,
@@ -118,7 +130,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         * appearanceScale
         * settings.AssetScaleMultiplier
         * modelScales.For(source.Kind)
-        * (source.Kind == SceneryKind.Forest || source.Kind == SceneryKind.AppleTree ? treeModelScale : 1f);
+        * (source.Kind == SceneryKind.Forest ? treeModelScale : 1f);
       float rawY = source.SampleTerrainHeight ? SampleTerrainHeight(map, source.MapX, source.MapZ) : source.RawY;
       return new Granny2ModelInstance(
         $"{source.Kind} Family {source.Family} Variant {source.Variant} ({index})",

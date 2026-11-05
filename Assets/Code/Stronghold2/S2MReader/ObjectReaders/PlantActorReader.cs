@@ -38,6 +38,8 @@ namespace Assets.Code.Stronghold2.S2MReader.ObjectReaders
           RawX = BitConverter.ToSingle(b, 29), RawY = BitConverter.ToSingle(b, 33), RawZ = BitConverter.ToSingle(b, 37),
           RotationDegrees = BitConverter.ToSingle(b, 41), Stage = BitConverter.ToInt32(b, body + 4), RawPayload = b
         };
+        if(plant.Kind==SceneryKind.AppleTree)
+        {plant.FarmReference=BitConverter.ToUInt32(b,body);plant.StageTimerTicks=BitConverter.ToInt32(b,body+8);}
         if (plant.Kind == SceneryKind.Wheat)
         {
           plant.WheatOffsets = new float[8];

@@ -11,11 +11,12 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public float NaturalStone = 1f;
     public float Grass = 1f;
     public float Crops = 1f;
+    public float AppleTrees = 1f;
 
     internal void Validate()
     {
       Check(Vegetation, nameof(Vegetation)); Check(Rocks, nameof(Rocks));
-      Check(NaturalStone, nameof(NaturalStone)); Check(Grass, nameof(Grass)); Check(Crops, nameof(Crops));
+      Check(NaturalStone, nameof(NaturalStone)); Check(Grass, nameof(Grass)); Check(Crops, nameof(Crops));Check(AppleTrees,nameof(AppleTrees));
     }
 
     private static void Check(float value, string name)
@@ -30,7 +31,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
       SceneryKind.Rocks => Rocks,
       SceneryKind.IronOre => Rocks,
       SceneryKind.NaturalStone => NaturalStone,
-      SceneryKind.AppleTree or SceneryKind.Hops or SceneryKind.Wheat => Crops,
+      SceneryKind.AppleTree => Crops*AppleTrees,
+      SceneryKind.Hops or SceneryKind.Wheat => Crops,
       SceneryKind.Grass => Grass,
       _ => 1f
     };

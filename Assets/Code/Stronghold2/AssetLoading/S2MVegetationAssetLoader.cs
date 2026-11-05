@@ -120,16 +120,21 @@ namespace Assets.Code.Stronghold2.AssetLoading
         if (path == null) { unsupported++; issues.Add($"{plant.Kind} stage {plant.Stage}: unresolved plant asset."); continue; }
         Add(path, new SceneryInstance
         {
-          Kind = plant.Kind, RawX = plant.RawX + (plant.Kind == SceneryKind.AppleTree ? 1024f : 512f),
+          Kind = plant.Kind,ResourceId=plant.Id, RawX = plant.RawX + (plant.Kind == SceneryKind.AppleTree ? 1024f : 512f),
           RawY = plant.RawY, RawZ = plant.RawZ + (plant.Kind == SceneryKind.Hops ? 512f : 0f),
           RotationDegrees = plant.RotationDegrees, Family = (ushort)plant.Stage
         });
       }
 
       var paths=new List<string>(grouped.Keys);
+      bool hasAppleFarms=false;foreach(var b in map.BuildingPlacements)if(b.Type=="AppleFarm"){hasAppleFarms=true;break;}
+      if(hasAppleFarms)foreach(string model in S2MAppleFarmAssets.TreeModels)paths.Add("meshes/buildings/"+model+".gr2");
       for(int i=1;i<=6;i++)paths.Add($"meshes/landscape/tree_chopped_{i}.GR2");
       var models = Granny2AssetConverter.LoadOrConvertMany(gameInstallPath, paths, converterPath, cacheDirectory);
       var logs=new List<Granny2ModelData>();
+      var appleModels=new List<Granny2ModelData>();
+      if(hasAppleFarms)foreach(string model in S2MAppleFarmAssets.TreeModels)
+      {var asset=models["meshes/buildings/"+model+".gr2"];if(asset.Error!=null)throw asset.Error;appleModels.Add(asset.Model);}
       for(int i=1;i<=6;i++)
       {
         var log=models[$"meshes/landscape/tree_chopped_{i}.GR2"];
@@ -155,6 +160,7 @@ namespace Assets.Code.Stronghold2.AssetLoading
       {
         Map = map,
         LogModels = logs,
+        AppleTreeModels=appleModels,
         Batches = batches,
         SupportedInstanceCount = supported,
         UnsupportedInstanceCount = unsupported,

@@ -5,7 +5,7 @@ building employment, worker behavior and related building-operated actors.
 Check items off as complete labor workflows land; loading a model or playing
 an ambient animation does not complete an item.
 
-At this audit: **5 implemented labor building types**, **37 remaining worker/service
+At this audit: **6 implemented labor building types**, **36 remaining worker/service
 building entries**, and **13 specialist/household/event entries**. Hive support,
 the ten punishment devices and passive-structure classification are tracked alongside them.
 
@@ -29,8 +29,11 @@ are engine/native record names where known; UI aliases are given alongside them.
 - [x] **Pitch rig** — `PitchRig`: one required worker, swamp extraction, five
   synchronized scoop loops per two-pitch load, full-pot carrying, incremental
   same-estate stockpile deliveries and return to work.
+- [x] **Apple farm** — `AppleFarm`: one required farmer, planting and staged tree
+  growth/seasons, exclusive estate-wide ripe-tree selection, two-tree/five-apple
+  loads, incremental same-estate granary delivery and idle return to the home farm.
 
-These are the five types currently registered with concrete labor definitions in
+These are the six types currently registered with concrete labor definitions in
 `LaborBuildingCatalog`. Revisit their checkboxes only if a regression or missing
 workflow is identified; do not count their rendered map placeholders as extra staff.
 
@@ -38,8 +41,6 @@ workflow is identified; do not count their rendered map placeholders as extra st
 
 ### Granary food
 
-- [ ] **Apple farm** — `AppleFarm`: orchard worker, tree/fruit growth and harvest,
-  carrying visuals and apple delivery to the granary.
 - [ ] **Dairy farm** — `DairyFarm`: dairy worker, cow lifecycle/interactions,
   cheese-making and granary delivery.
 - [ ] **Hunter's post** — `HuntersPost`: hunter, huntable animal selection/claims,
@@ -253,7 +254,7 @@ and household/event systems. The order can change with current map needs.
 ## Audit sources
 
 - Engine status: `Assets/Code/Stronghold2/MapLoading/Labor/LaborBuildingDefinition.cs`
-  (`LaborBuildingCatalog`), its five concrete definitions, `S2MLaborPlan`, and
+  (`LaborBuildingCatalog`), its six concrete definitions, `S2MLaborPlan`, and
   `Assets/Code/Simulation/Labor`.
 - Placeable menu coverage:
   `Assets/Code/Stronghold2/S2MReader/Resources/MissionBuildingAvailability.cs`.

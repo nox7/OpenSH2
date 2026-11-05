@@ -11,17 +11,18 @@ namespace Assets.Code.Stronghold2.MapLoading
   public sealed class S2MLaborPlan
   {
     public OxHaulingNetwork OxHauling { get; private set; }
+    public Assets.Code.Simulation.Labor.AppleOrchards AppleOrchards { get; private set; }
     public IReadOnlyList<LaborBuilding> Buildings { get; private set; }
     public IReadOnlyList<LaborJob> Jobs { get; private set; }
     public IReadOnlyList<ActorPlacement> StartupActors { get; private set; }
-    public static S2MLaborPlan Create(S2MFile map,NavigationGrid navigation,QuarrySettings quarrySettings=null,OxHaulingSettings oxSettings=null,IronMineSettings ironSettings=null,PitchRigSettings pitchSettings=null)
+    public static S2MLaborPlan Create(S2MFile map,NavigationGrid navigation,QuarrySettings quarrySettings=null,OxHaulingSettings oxSettings=null,IronMineSettings ironSettings=null,PitchRigSettings pitchSettings=null,AppleFarmSettings appleSettings=null)
     {
       var jobs=new List<LaborJob>();var definitions=new List<LaborBuildingDefinition>();var claimed=new HashSet<int>();
       var workforce=new List<LaborBuilding>();var known=new HashSet<int>();
       void Add(BuildingPlacement building)
       {
         if(!known.Add(building.Id))return;
-        var slots=new List<LaborJob>();bool configured=LaborBuildingCatalog.TryGet(building.Type,out var definition,quarrySettings,oxSettings,ironSettings,pitchSettings);
+        var slots=new List<LaborJob>();bool configured=LaborBuildingCatalog.TryGet(building.Type,out var definition,quarrySettings,oxSettings,ironSettings,pitchSettings,appleSettings);
         if(configured)foreach(var job in definition.CreateJobs(map,building,navigation,int.MinValue+jobs.Count*64,claimed))
         {slots.Add(job);jobs.Add(job);definitions.Add(definition);}
         workforce.Add(new LaborBuilding(building.Id,S2MCampfireLayout.EstateAtBuilding(map,building),slots,configured || LaborBuildingCatalog.RequiresNoWorkers(building.Type)));
@@ -37,7 +38,7 @@ namespace Assets.Code.Stronghold2.MapLoading
         for(int i=0;i<jobs.Count;i++)if(definitions[i].IsWorkerPlaceholder(actor,jobs[i])) { worker=true;break; }
         if(!worker)startup.Add(actor);
       }
-      return new S2MLaborPlan { OxHauling=S2MOxHaulingPlan.Create(map,navigation,jobs),Buildings=workforce.AsReadOnly(),Jobs=jobs.AsReadOnly(),StartupActors=startup.AsReadOnly() };
+      return new S2MLaborPlan { AppleOrchards=S2MAppleOrchardPlan.Create(map,navigation,jobs,appleSettings),OxHauling=S2MOxHaulingPlan.Create(map,navigation,jobs),Buildings=workforce.AsReadOnly(),Jobs=jobs.AsReadOnly(),StartupActors=startup.AsReadOnly() };
     }
   }
 }

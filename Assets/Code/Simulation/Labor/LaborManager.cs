@@ -13,6 +13,7 @@ namespace Assets.Code.Simulation.Labor
     private readonly Dictionary<int,LaborBuilding> buildingsById=new();
     private readonly List<LaborBuilding> registeredBuildings=new();
     private readonly List<LaborJob> registeredJobs=new();
+    private readonly HashSet<ILaborEnvironment> environments=new();
     private readonly Dictionary<int,List<LaborBuilding>> byEstate=new();
     private readonly Dictionary<int,LaborDemand> demand=new();
     private readonly Dictionary<int,List<PeasantRecruitment>> populationByEstate=new();
@@ -46,7 +47,7 @@ namespace Assets.Code.Simulation.Labor
     private void Index(LaborBuilding b)
     {
       if(!byEstate.TryGetValue(b.EstateId,out var list))byEstate.Add(b.EstateId,list=new());list.Add(b);
-      foreach(var job in b.Jobs)job.StaffingChanged+=OnStaffingChanged;
+      foreach(var job in b.Jobs){job.StaffingChanged+=OnStaffingChanged;if(job.Environment!=null)environments.Add(job.Environment);}
     }
     public bool TryGetBuilding(int id,out LaborBuilding building)=>buildingsById.TryGetValue(id,out building);
     private readonly IReadOnlyList<PeasantRecruitment> kingdoms;
@@ -98,7 +99,7 @@ namespace Assets.Code.Simulation.Labor
     public bool RemoveUnstaffedBuilding(int id)
     {
       if(!buildingsById.TryGetValue(id,out var b)||b.TotalWorkers!=0)return false;
-      foreach(var job in b.Jobs){CancelStaffing(job);job.StaffingChanged-=OnStaffingChanged;registeredJobs.Remove(job);}
+      foreach(var job in b.Jobs){CancelStaffing(job);job.StaffingChanged-=OnStaffingChanged;registeredJobs.Remove(job);job.OnBuildingRemoved();}
       buildingsById.Remove(id);registeredBuildings.Remove(b);byEstate[b.EstateId].Remove(b);RefreshDemand(b.EstateId);return true;
     }
     public bool RemovePassiveBuilding(int id)
@@ -115,6 +116,7 @@ namespace Assets.Code.Simulation.Labor
       while(remaining>0)
       {
         float step=Math.Min(remaining,(float)untilPoll);
+        foreach(var environment in environments)environment.Advance(step);
         for(int k=0;k<kingdoms.Count;k++)kingdoms[k].Advance(step);
         for(int j=0;j<Jobs.Count;j++)Jobs[j].CompleteWorkStep();
         remaining-=step;untilPoll-=step;

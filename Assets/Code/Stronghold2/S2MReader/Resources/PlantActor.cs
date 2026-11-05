@@ -12,6 +12,8 @@ namespace Assets.Code.Stronghold2.S2MReader.Resources
     public float RawZ { get; internal set; }
     public float RotationDegrees { get; internal set; }
     public int Stage { get; internal set; }
+    public uint FarmReference { get; internal set; }
+    public int StageTimerTicks { get; internal set; }
     public float[] WheatOffsets { get; internal set; } = Array.Empty<float>();
     public byte[] RawPayload { get; internal set; } = Array.Empty<byte>();
   }

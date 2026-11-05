@@ -28,8 +28,12 @@ public class Main : MonoBehaviour
   [SerializeField] private float gameScale = 1f;
 
   [Min(0.0001f)]
-  [Tooltip("Uniform multiplier for loaded tree models, in addition to Game Scale and vegetation asset scaling. Changes tree size without moving trees. Applied when the map loads.")]
+  [Tooltip("Uniform multiplier for loaded forest tree models, in addition to Game Scale and vegetation asset scaling. Changes tree size without moving trees. Applied when the map loads.")]
   [SerializeField] private float treeModelScale = 0.5f;
+
+  [Min(0.0001f)]
+  [Tooltip("Apple tree size, independent of forest Tree Model Scale and in addition to Crop Model Scale. Default 1 doubles the former 0.5 forest-based size. Applied when the map loads.")]
+  [SerializeField] private float appleTreeModelScale = 1f;
 
   [Min(0.0001f)]
   [Tooltip("Size multiplier for shrub vegetation. Forest objects, including gorse and lavender, use Tree Model Scale. Applied when the map loads.")]
@@ -52,7 +56,7 @@ public class Main : MonoBehaviour
   [SerializeField] private float grassModelScale = 1f;
 
   [Min(0.0001f)]
-  [Tooltip("Size multiplier for apple trees, hops and wheat. Apple trees also retain Tree Model Scale. Keeps plant positions fixed. Applied when the map loads.")]
+  [Tooltip("Size multiplier for apple trees, hops and wheat. Apple trees also use Apple Tree Model Scale. Keeps plant positions fixed. Applied when the map loads.")]
   [SerializeField] private float cropModelScale = 1f;
 
   [Min(0.0001f)]
@@ -74,6 +78,8 @@ public class Main : MonoBehaviour
   [SerializeField] private Assets.Code.Simulation.Labor.IronMineSettings ironMineSettings = new();
   [Tooltip("Pitch worker walking speed, pumping speed and storage retry interval. One worker produces two pitch after five scoop loops. Reload the map to apply.")]
   [SerializeField] private Assets.Code.Simulation.Labor.PitchRigSettings pitchRigSettings = new();
+  [Tooltip("Apple growth/season timing, farmer movement/work speed and bounded tree search. One farmer per farm. Reload the map to apply.")]
+  [SerializeField] private Assets.Code.Simulation.Labor.AppleFarmSettings appleFarmSettings = new();
   [Tooltip("Ox hauling speed, follow distance, loading interval, stone capacity and model scale. Reload the map to apply.")]
   [SerializeField] private Assets.Code.Simulation.Labor.OxHaulingSettings oxHaulingSettings = new();
   public Assets.Code.Simulation.Economy.EstateInventory Inventory => Game.GetInstance()?.Inventory;
@@ -184,7 +190,7 @@ public class Main : MonoBehaviour
       var sceneryScales = new S2MSceneryModelScales
       {
         Vegetation = vegetationModelScale, Rocks = rockModelScale,
-        NaturalStone = naturalStoneModelScale, Grass = grassModelScale, Crops = cropModelScale
+        NaturalStone = naturalStoneModelScale, Grass = grassModelScale, Crops = cropModelScale,AppleTrees=appleTreeModelScale
       };
       sceneryScales.Validate();
       S2MBuildingData buildingData = new S2MBuildingAssetLoader().Load(mapFile, gameInstallPath, animationSettings: buildingRenderSettings.AmbientAnimations);
@@ -244,7 +250,7 @@ public class Main : MonoBehaviour
         vegetationRenderSettings,
         treeModelScale: treeModelScale,
         modelScales: sceneryScales,
-        naturalStoneTextureBrightness: naturalStoneTextureBrightness);
+        naturalStoneTextureBrightness: naturalStoneTextureBrightness,dynamicAppleTrees:true);
       RecordStage("vegetation rendering");
       populationSettings.Validate();
       horseCartSettings.Validate();
@@ -256,13 +262,17 @@ public class Main : MonoBehaviour
       navigation.PreparePathRequests();
       RecordStage("navigation connectivity");
       var recruitmentPlans = S2MRecruitmentPlan.Create(mapFile, navigation, populationSettings);
-      var laborPlan = S2MLaborPlan.Create(mapFile,navigation,quarrySettings,oxHaulingSettings,ironMineSettings,pitchRigSettings);
+      var laborPlan = S2MLaborPlan.Create(mapFile,navigation,quarrySettings,oxHaulingSettings,ironMineSettings,pitchRigSettings,appleFarmSettings);
       var inventory=S2MStoragePlan.Create(mapFile,storageSettings,stockpileDeliverySettings);
       Game.GetInstance().Inventory=inventory;
       var stockpiles=new Assets.Code.Simulation.Economy.StockpileLocator(inventory,navigation,new S2MStorageAccessProvider(mapFile,navigation));
       laborPlan.OxHauling.ConfigureStorage(inventory,stockpiles);
       foreach(var job in laborPlan.Jobs)
         if(job is Assets.Code.Simulation.Labor.PitchWorkerJob pitch)pitch.ConfigureStorage(inventory,stockpiles);
+      var granaries=new Assets.Code.Simulation.Economy.StorageLocator(inventory,navigation,new S2MStorageAccessProvider(mapFile,navigation),Assets.Code.Simulation.Economy.StorageKind.Granary);
+      foreach(var job in laborPlan.Jobs)
+        if(job is Assets.Code.Simulation.Labor.AppleFarmerJob farmer)farmer.ConfigureStorage(inventory,granaries);
+      vegetation.AddComponent<S2MAppleOrchardView>().Initialize(laborPlan.AppleOrchards,vegetationData,vegetationRenderSettings,treeModelScale,sceneryScales);
       if(stockpileVisualSettings.Enabled)
         S2MStockpileRenderer.Create(mapFile,inventory,S2MStockpileAssets.Load(gameInstallPath,settings:stockpileVisualSettings),mapWorld.transform,terrainSettings);
       foreach(var job in laborPlan.Jobs)if(job is Assets.Code.Simulation.Labor.WoodcutterJob woodcutter)

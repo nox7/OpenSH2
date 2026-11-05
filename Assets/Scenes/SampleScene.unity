@@ -416,6 +416,7 @@ MonoBehaviour:
   gameSpeed: 1
   gameScale: 1
   treeModelScale: 0.5
+  appleTreeModelScale: 0.9
   vegetationModelScale: 0.5
   rockModelScale: 0.5
   naturalStoneModelScale: 0.5
@@ -532,6 +533,18 @@ MonoBehaviour:
     WalkSpeedCellsPerSecond: 1
     PumpAnimationSpeed: 1
     RetrySeconds: 2
+  appleFarmSettings:
+    PlantedSeconds: 5
+    GrowthStageSeconds: 12.5
+    RestSeconds: 12.5
+    HarvestSeasonSeconds: 120
+    SeasonCooldownSeconds: 17.5
+    WalkSpeedCellsPerSecond: 1
+    WorkAnimationSpeed: 1
+    RetrySeconds: 1
+    IdleReturnDelaySeconds: 0.8
+    GranaryDepositSecondsPerApple: 0.1
+    TreeSearchWorkUnitsPerFrame: 64
   oxHaulingSettings:
     HandlerSpeedCellsPerSecond: 0.85
     OxSpeedCellsPerSecond: 1.5

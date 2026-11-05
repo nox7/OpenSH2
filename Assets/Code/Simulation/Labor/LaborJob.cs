@@ -2,7 +2,8 @@ using Assets.Code.Simulation.Navigation;
 
 namespace Assets.Code.Simulation.Labor
 {
-  public enum LaborRole { Woodcutter,Stonemason,OxHandler,IronMiner,PitchWorker }
+  public enum LaborRole { Woodcutter,Stonemason,OxHandler,IronMiner,PitchWorker,AppleFarmer }
+  public interface ILaborEnvironment { void Advance(float seconds); }
 
   /// <summary>Shared employment contract. Building subclasses own arrival and future work mechanics.</summary>
   public abstract class LaborJob
@@ -10,6 +11,8 @@ namespace Assets.Code.Simulation.Labor
     public event System.Action<LaborJob> StaffingChanged;
     public LaborBuilding Building { get; internal set; }
     public virtual void CompleteWorkStep() { }
+    public virtual ILaborEnvironment Environment=>null;
+    internal virtual void OnBuildingRemoved() { }
     public abstract LaborRole Role { get; }
     public int BuildingId { get; }
     public int EstateId { get; }

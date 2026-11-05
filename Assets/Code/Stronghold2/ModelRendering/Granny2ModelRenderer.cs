@@ -278,9 +278,10 @@ namespace Assets.Code.Stronghold2.ModelRendering
     private static bool IsFoliageMaterial(Granny2MaterialData data)
     {
       string textureName = Path.GetFileNameWithoutExtension(data?.TexturePath ?? string.Empty);
-      // Bark alpha is not an opacity mask. It must remain opaque, while the
-      // remaining landscape-tree texture groups are alpha-tested foliage cards.
-      return !textureName.StartsWith("bark", StringComparison.OrdinalIgnoreCase);
+      // Bark alpha is not an opacity mask. Apple tree trunks reuse the building
+      // wood texture instead of a bark-named texture, with the same opaque role.
+      return !textureName.StartsWith("bark", StringComparison.OrdinalIgnoreCase)
+        && !textureName.Equals("wood_walls",StringComparison.OrdinalIgnoreCase);
     }
 
     internal static void ConfigureImportedOpaqueLighting(Material material)
