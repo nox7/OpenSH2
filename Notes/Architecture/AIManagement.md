@@ -1,5 +1,10 @@
 # AI management foundation
 
+The persistent building employment backlog is
+[BuildingLaborTODO.md](../Planning/BuildingLaborTODO.md). It distinguishes working
+labor definitions, remaining worker/service buildings, specialist actors and
+passive structures whose zero-worker classification should be verified.
+
 ## Decision
 
 Use one shared, simulation-thread scheduler with lightweight state per territory.

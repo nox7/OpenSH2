@@ -21,6 +21,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
     public static S2MCampfireRenderer Render(S2MKeepData data, Transform parent, S2MTerrainSettings terrain)
     {
       var root = new GameObject("Keep Campfires"); root.transform.SetParent(parent, false);
+      root.transform.localPosition=new Vector3(terrain.FlipX?data.Map.MapSize*terrain.HorizontalCellSize:0,0,terrain.FlipZ?data.Map.MapSize*terrain.HorizontalCellSize:0);
+      root.transform.localScale=new Vector3(terrain.FlipX?-1:1,1,terrain.FlipZ?-1:1);
       var component = root.AddComponent<S2MCampfireRenderer>();
       var instances = new List<Granny2ModelInstance>();
       var centers = new List<Vector3>();
@@ -29,7 +31,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
         var position = new Vector3(camp.ModelOrigin.x * terrain.HorizontalCellSize,
           camp.RawHeight * terrain.HeightUnitScale,
           camp.ModelOrigin.y * terrain.HorizontalCellSize);
-        centers.Add(position + new Vector3(.5f, .2f, .5f) * terrain.HorizontalCellSize);
+        centers.Add(new Vector3(camp.Center.x*terrain.HorizontalCellSize,
+          camp.RawHeight*terrain.HeightUnitScale+.2f*terrain.HorizontalCellSize,camp.Center.y*terrain.HorizontalCellSize));
         instances.Add(new Granny2ModelInstance("Campfire " + camp.Keep.Id, position, Vector3.zero, Vector3.one));
       }
       Granny2ModelRenderer.RenderInstances(data.Campfire, instances, root.transform,

@@ -57,7 +57,7 @@ namespace Assets.Code.Stronghold2.ModelRendering
         Transform[] buildingRoots = CreateBuildingRoots(batch.Placements, placed.transform, data.Map);
         var modelBatches = new List<GameObject>();
         var instances = new List<Granny2ModelInstance>(batch.Placements.Count);
-        foreach (BuildingPlacement placement in batch.Placements) instances.Add(CreateInstance(placement, terrainSettings));
+        foreach (BuildingPlacement placement in batch.Placements) instances.Add(CreateInstance(placement, terrainSettings,data.Map));
         string name = System.IO.Path.GetFileNameWithoutExtension(batch.Descriptor.RelativePath);
         GameObject closed = model(batch.Closed, instances,
           placed.transform, modelSettings, name + " Exteriors");
@@ -169,9 +169,9 @@ namespace Assets.Code.Stronghold2.ModelRendering
       for (int i = 0; i < roots.Length; i++) batch.transform.GetChild(0).SetParent(roots[i], false);
     }
 
-    internal static Granny2ModelInstance CreateInstance(BuildingPlacement building, S2MTerrainSettings settings) => new(
+    internal static Granny2ModelInstance CreateInstance(BuildingPlacement building, S2MTerrainSettings settings,S2MFile map=null) => new(
       $"{building.Type} ({building.Id})",
-      new Vector3(building.MapX * settings.HorizontalCellSize, building.RawY * settings.HeightUnitScale,
+      new Vector3(building.MapX * settings.HorizontalCellSize, (building.Type=="PitchRig" && map!=null?Assets.Code.Stronghold2.MapLoading.S2MPitchRigLayout.RawHeight(map,building):building.RawY) * settings.HeightUnitScale,
         building.MapZ * settings.HorizontalCellSize), new Vector3(0f, building.RotationDegrees, 0f),
       new Vector3(1f, settings.HeightUnitScale * 1024f / settings.HorizontalCellSize, 1f));
   }

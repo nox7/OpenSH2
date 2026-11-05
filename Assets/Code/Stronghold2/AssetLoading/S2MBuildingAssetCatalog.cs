@@ -100,7 +100,6 @@ namespace Assets.Code.Stronghold2.AssetLoading
         "gatehouse_large_mechanism.GR2", "gatehouse_large_chain.GR2", "gatehouse_large_porticulis.GR2" },
       "VillageFlagPole" => new[] { "flag_keep.GR2" },
       "Mill" => new[] { "windmill_wings.GR2", "windmill_shaft.GR2" },
-      "PitchRig" => new[] { "pitch_rig_scooping.GR2" },
       "DairyFarm" => new[] { "farm_dairy_parts.GR2" },
       _ => Array.Empty<string>()
     };

@@ -64,6 +64,8 @@ namespace Assets.Code.Stronghold2.ModelRendering.Labor
       => worker.State==WorkerState.Traveling ? WalkingAnimationRate(walkSpeed*worker.Job.TravelSpeedMultiplier) : 1;
     public virtual float AnimationTime(WorkerComponent worker,float rate) => worker.StateTime*rate;
     public virtual float BuildingRawHeight(WorkerComponent worker) => worker.Job.RawHeight;
+    public virtual MapPoint Position(WorkerComponent worker)=>worker.Movement.Position;
+    public virtual float Heading(WorkerComponent worker)=>worker.Movement.Heading;
     public virtual bool UseBuildingScale(WorkerComponent worker)=>false;
     public virtual bool UseBuildingHeight(WorkerComponent worker) => true;
   }

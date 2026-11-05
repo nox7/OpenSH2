@@ -22,7 +22,7 @@ namespace Assets.Code.Stronghold2.MapLoading.Labor
     };
     // Housing and passive stores are explicitly configured as zero-worker buildings, not unknown requirements.
     public static bool RequiresNoWorkers(string buildingType)=>buildingType=="Hovel" || buildingType=="StockPile" || buildingType=="Granary" || buildingType=="VillageFlagPole";
-    public static bool TryGet(string buildingType,out LaborBuildingDefinition definition,QuarrySettings quarrySettings=null,OxHaulingSettings oxSettings=null,IronMineSettings ironSettings=null)
-    {if(buildingType=="IronMine"){definition=new IronMineBuildingDefinition(ironSettings);return true;}if(buildingType=="OxTether"){definition=new OxTetherBuildingDefinition(oxSettings);return true;}if(buildingType=="StoneQuarry"){definition=new QuarryBuildingDefinition(quarrySettings);return true;}return definitions.TryGetValue(buildingType,out definition);}
+    public static bool TryGet(string buildingType,out LaborBuildingDefinition definition,QuarrySettings quarrySettings=null,OxHaulingSettings oxSettings=null,IronMineSettings ironSettings=null,PitchRigSettings pitchSettings=null)
+    {if(buildingType=="PitchRig"){definition=new PitchRigBuildingDefinition(pitchSettings);return true;}if(buildingType=="IronMine"){definition=new IronMineBuildingDefinition(ironSettings);return true;}if(buildingType=="OxTether"){definition=new OxTetherBuildingDefinition(oxSettings);return true;}if(buildingType=="StoneQuarry"){definition=new QuarryBuildingDefinition(quarrySettings);return true;}return definitions.TryGetValue(buildingType,out definition);}
   }
 }

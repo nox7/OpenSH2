@@ -3,19 +3,57 @@
 ## Campfire anchor
 
 The inherited `Keep` section has a counted field 0 with a 117-byte body.
-Body offsets 101, 105 and 109 contain float32 campfire X, height and Z in raw
-map units. Offset 113 is preserved without interpretation. This block can
+Body offsets 101, 105 and 109 contain the float32 campfire/seating **centre** X,
+height and Z in raw map units. They are not the GR2 model pivot. Offset 113 is
+preserved without interpretation. This block can
 follow an inline `Keep` type registration or reference an earlier registration;
 it precedes the concrete Keep1/Keep2/Keep3/Keep4 section. `KeepReader` exposes
 the position separately from the building origin.
 
 Chapter 8's five campfires are at map X/Z `(60,187)`, `(33,32)`, `(211,34)`,
 `(185,221)` and `(177,88)`. The second has raw height 1706, matching its elevated
-keep. These serialized anchors already account for keep rotation; do not rotate
-them again. Maps without a recognized anchor use an initial fallback two cells
-outside the local entrance. `S2MKeepAssetLoader` loads `camp_fire.GR2`, and
+keep. These serialized centres already account for keep rotation; do not rotate
+them again. For keeps without a saved centre, including AIC-created keeps,
+`S2MKeepForecourt` derives local `(floor(unrotatedWidth / 2), -2)` and rotates it
+about the keep's model origin. The integer division matters for the 7-cell small
+keep. Generated fires sample terrain height at that centre, rather than inheriting
+the maximum height of the keep foundation. Saved centre heights remain authoritative.
+
+`camp_fire.GR2` occupies a one-cell footprint and is drawn without keep rotation:
+its model origin is the centre minus `(0.5,0.5)` in world map axes. Flames and
+peasant rings use the centre directly. The previous code treated the saved centre
+as a model origin and added another half-cell, shifting static and generated fires.
+For the Chapter 8 wooden keep at (58,189), the fire centre is (60,187) and the
+mesh pivot is (59.5,186.5). `S2MKeepAssetLoader` loads `camp_fire.GR2`, and
 `S2MCampfireRenderer` draws its base and animated fire texture independently of
-the keep's interior/exterior visibility.
+the keep's interior/exterior visibility, using the same terrain axis flips as keeps.
+
+## Reserved forecourt
+
+The front square is logical building-placement metadata, not a required GR2 mesh
+marker or model-bounds clearance. It can be reconstructed from the keep family
+and transform for authored and generated keeps. The native placement rules use
+these local rectangles (exclusive maxima), all with Z in `[-4,0)`:
+
+| Keep | Reserved X range | Extra entrance tile |
+| --- | --- | --- |
+| Wooden, 4x9 | `[0,4)` | none |
+| Small, 7x7 | `[1,5)` | X `[0,1)`, Z `[-1,0)` |
+| Medium, 8x9 | `[2,6)` | none |
+| Large, 12x18 | `[5,9)` | none |
+
+The large keep's square is one cell to the right of its calculated fire centre;
+do not obtain fire placement by blindly averaging the reserved rectangle.
+`S2MKeepForecourt.Square` and `EntranceStep` rotate these rectangles into map cells.
+Startup keep validation checks them, and the shared placement index reserves
+them against subsequent buildings. They remain ordinary walkable ground for
+recruits, labor and navigation; no physical actor/cart clearance is added.
+
+`KeepForecourtValidation.cs` verifies every family/quarter-turn, saved centres,
+model pivots, terrain height, complete square reservations and walkable cells.
+`KeepForecourtUnityValidation.cs` checks the installed campaign keeps, generated
+startup keeps, Chapter 6/8 recruitment and real GR2/flame transforms under all
+terrain axis flips.
 
 ## Missing keeps and Chapter 6 AI blueprints
 

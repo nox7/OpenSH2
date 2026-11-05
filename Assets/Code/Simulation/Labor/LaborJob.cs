@@ -2,7 +2,7 @@ using Assets.Code.Simulation.Navigation;
 
 namespace Assets.Code.Simulation.Labor
 {
-  public enum LaborRole { Woodcutter,Stonemason,OxHandler,IronMiner }
+  public enum LaborRole { Woodcutter,Stonemason,OxHandler,IronMiner,PitchWorker }
 
   /// <summary>Shared employment contract. Building subclasses own arrival and future work mechanics.</summary>
   public abstract class LaborJob

@@ -41,8 +41,8 @@ public static class SimulationValidation
       Check(map.Keeps.All(k => k.HasCampfirePosition), "Missing serialized campfire transform");
       var layouts = S2MCampfireLayout.Create(map);
       Check(layouts.Select(c => c.Population.Capacity).SequenceEqual(new[] { 8,48,16,88,40 }), "Estate hovel count leaked across kingdoms");
-      var wooden = layouts.First(); Check(wooden.ModelOrigin == new Vector2(60,187) && wooden.Center == new Vector2(60.5f,187.5f), "Wooden campfire coordinate");
-      var elevated = layouts[1]; Check(elevated.ModelOrigin == new Vector2(33,32) && elevated.RawHeight == 1706, "Rotated elevated campfire coordinate");
+      var wooden = layouts.First(); Check(wooden.ModelOrigin == new Vector2(59.5f,186.5f) && wooden.Center == new Vector2(60,187), "Wooden campfire coordinate");
+      var elevated = layouts[1]; Check(elevated.ModelOrigin == new Vector2(32.5f,31.5f) && elevated.Center == new Vector2(33,32) && elevated.RawHeight == 1706, "Rotated elevated campfire coordinate");
       var actors = S2MCampfirePopulationLoader.CreatePlacements(map);
       Check(actors.Count == 200 && actors.Select(a => a.Id).Distinct().Count() == 200, "Peasant population/IDs");
       Check(map.Actors.Count == 792, "Simulation mutated saved map actors");

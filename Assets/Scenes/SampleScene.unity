@@ -528,6 +528,10 @@ MonoBehaviour:
     PileOffsetX: 1.75
     PileOffsetY: 0.125
     PileOffsetZ: 0.29882812
+  pitchRigSettings:
+    WalkSpeedCellsPerSecond: 1
+    PumpAnimationSpeed: 1
+    RetrySeconds: 2
   oxHaulingSettings:
     HandlerSpeedCellsPerSecond: 0.85
     OxSpeedCellsPerSecond: 1.5
@@ -549,25 +553,130 @@ MonoBehaviour:
     Overrides: []
   populationSettings:
     PreferSavedWalkingSurfaces: 1
-    SpawnIntervalSeconds: 3
-    HovelSeatedSeconds: 2
+    SpawnIntervalSeconds: 1.5
+    HovelSeatedSeconds: 1.5
     RunSpeedCellsPerSecond: 2
     WalkSpeedCellsPerSecond: 0.85
-    FirstRingRadius: 0.9
-    RingSpacing: 0.55
-    SeatSpacing: 0.65
+    FirstRingRadius: 0.5
+    RingSpacing: 0.25
+    SeatSpacing: 0.3
     KeepStairBaseOffset: 0.35
     HovelDoorOffset: 0.25
     MaximumStepHeight: 0.4
     JobAssignmentIntervalSeconds: 3
+  pathfindingSettings:
+    WorkUnitsPerFrame: 2048
+    MaximumActiveSearches: 2
+    MaximumQueuedSearches: 1024
+    MillisecondsPerFrame: 2
   horseCartSettings:
     HorseForwardOffset: 2.75
     SawingSeatOffset: {x: 0.02, y: -0.8, z: -1.1}
     SawingSeatEulerAngles: {x: 0, y: 0, z: 0}
     LogLoadOffset: {x: 0, y: 0, z: -0.75}
+  aiSettings:
+    Enabled: 1
+    EconomyIntervalSeconds: 1
+    StrategyIntervalSeconds: 5
+    ReactionDelaySeconds: 0.25
+    MaximumEvaluationsPerAdvance: 8
+    MaximumThreatExpiriesPerAdvance: 32
+    WorkUnitsPerEvaluation: 128
+  castleBlueprintSettings:
+    UseCampaignAssignments: 1
+    KingdomOverrides: []
+    LordDesigns:
+    - Lord: 2
+      Files:
+      - Tiny_Wooden.aic
+      - Small_Wooden.aic
+      - Med_Wooden.aic
+      - Large_Wooden.aic
+    - Lord: 3
+      Files:
+      - Barclay01.aic
+      - Barclay02.aic
+      - Barclay03.aic
+      - Barclay04.aic
+    - Lord: 4
+      Files:
+      - Hawk01.aic
+      - Hawk02.aic
+      - Hawk03.aic
+      - Hawk04.aic
+    - Lord: 5
+      Files:
+      - Bull01.aic
+      - Bull02.aic
+      - Bull03.aic
+      - Bull04.aic
+    - Lord: 6
+      Files:
+      - Seren01.aic
+      - Seren02.aic
+      - Seren03.aic
+      - Seren04.aic
+    - Lord: 7
+      Files:
+      - Edwin01.aic
+      - Edwin02.aic
+      - Edwin03.aic
+      - Edwin04.aic
+    - Lord: 8
+      Files:
+      - King01.aic
+      - King02.aic
+      - King03.aic
+      - King04.aic
+    - Lord: 9
+      Files:
+      - William01.aic
+      - William02.aic
+      - William03.aic
+      - William04.aic
+    - Lord: 10
+      Files:
+      - Grey01.aic
+      - Grey02.aic
+      - Grey03.aic
+      - Grey04.aic
+  estateGranarySettings:
+    Enabled: 1
+    SearchRadius: 40
+    PreferredOffsetX: 2
+    PreferredOffsetZ: 0
+    TroopExclusionRadius: 7
+    RetrySeconds: 5
+  estateHovelSettings:
+    Enabled: 1
+    SearchRadius: 35
+    PreferredOffsetX: 0
+    PreferredOffsetZ: 3
+    TroopExclusionRadius: 7
+    RetrySeconds: 5
+    InitialWood: 32
+  kingdomStockpileSettings:
+    Enabled: 1
+    SearchRadius: 40
+    PreferredOffsetX: 0
+    PreferredOffsetZ: 0
+    TroopExclusionRadius: 7
+    RetrySeconds: 5
+    MaximumKeepDistance: 40
+    KeepFrontGap: 2
+  estateSawpitSettings:
+    Enabled: 1
+    SearchRadius: 40
+    PreferredOffsetX: 0
+    PreferredOffsetZ: 0
+    TroopExclusionRadius: 7
+    RetrySeconds: 5
+    WoodEstateTargetOverride: 0
   startupBuildingSettings:
     Enabled: 1
     DefaultKeepSize: 2
+    BlueprintKeepSearchRadius: 12
+    AlignBlueprintAnchorsToEvenTiles: 1
     KeepSearchRadius: 6
     EstateSearchRadius: 10
     StoreSearchRadius: 40
@@ -575,7 +684,21 @@ MonoBehaviour:
     KeepEntranceZ: -1
     StockpileOffsetX: -4
     StockpileOffsetZ: 0
+    EstateTroopExclusionRadius: 6
     MaximumHeightVariation: 512
+  playerCameraSettings:
+    Pitch: 35
+    Yaw: 0
+    FieldOfView: 35
+    MinSurfaceDistance: 12
+    MaxSurfaceDistance: 120
+    InitialSurfaceDistance: 35
+    InitialMoveSpeed: 25
+    MaxMoveSpeed: 150
+    MoveSpeedInterpolationTime: 1
+    ZoomSpeed: 190
+    KeyboardRotationSpeed: 90
+    MouseRotationSensitivity: 0.1
 --- !u!4 &742588518
 Transform:
   m_ObjectHideFlags: 0

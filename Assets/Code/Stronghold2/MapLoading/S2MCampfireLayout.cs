@@ -29,16 +29,11 @@ namespace Assets.Code.Stronghold2.MapLoading
       foreach (var keep in map.Keeps)
       {
         int estate = EstateAtBuilding(map, keep);
-        // Exported keeps extend along local +X/+Z. The entrance faces local -Z.
-        int turns = ((int)Math.Round(keep.RotationDegrees / 90) % 4 + 4) % 4;
-        float width = turns % 2 == 0 ? keep.FootprintWidth : keep.FootprintHeight;
-        Vector3 offset = Quaternion.Euler(0, keep.RotationDegrees, 0) * new Vector3(width * .5f, 0, -2f);
-        var origin = keep.HasCampfirePosition ? new Vector2(keep.CampfireRawX / 1024f, keep.CampfireRawZ / 1024f)
-          : new Vector2(keep.MapX + offset.x, keep.MapZ + offset.z);
-        result.Add(new S2MCampfireLayout { Keep = keep, ModelOrigin = origin,
-          // camp_fire.GR2 is authored in a one-cell footprint, not centered on its model origin.
-          Center = origin + new Vector2(.5f, .5f),
-          RawHeight = keep.HasCampfirePosition ? keep.CampfireRawY : keep.RawY,
+        var point=S2MKeepForecourt.Center(keep);var center=new Vector2(point.X,point.Z);
+        result.Add(new S2MCampfireLayout { Keep = keep,
+          // The saved Keep vector is the centre. The unrotated camp_fire.GR2 pivot is half a cell behind it on both axes.
+          ModelOrigin = center-new Vector2(.5f,.5f),Center = center,
+          RawHeight = keep.HasCampfirePosition ? keep.CampfireRawY : S2MNavigationBuilder.SampleHeight(map,point.X,point.Z),
           Population = new CampfirePopulation(keep.Id, estate, estate >= 0 && hovels.TryGetValue(estate, out int n) ? n : 0, settings) });
       }
       return result;

@@ -14,14 +14,14 @@ namespace Assets.Code.Stronghold2.MapLoading
     public IReadOnlyList<LaborBuilding> Buildings { get; private set; }
     public IReadOnlyList<LaborJob> Jobs { get; private set; }
     public IReadOnlyList<ActorPlacement> StartupActors { get; private set; }
-    public static S2MLaborPlan Create(S2MFile map,NavigationGrid navigation,QuarrySettings quarrySettings=null,OxHaulingSettings oxSettings=null,IronMineSettings ironSettings=null)
+    public static S2MLaborPlan Create(S2MFile map,NavigationGrid navigation,QuarrySettings quarrySettings=null,OxHaulingSettings oxSettings=null,IronMineSettings ironSettings=null,PitchRigSettings pitchSettings=null)
     {
       var jobs=new List<LaborJob>();var definitions=new List<LaborBuildingDefinition>();var claimed=new HashSet<int>();
       var workforce=new List<LaborBuilding>();var known=new HashSet<int>();
       void Add(BuildingPlacement building)
       {
         if(!known.Add(building.Id))return;
-        var slots=new List<LaborJob>();bool configured=LaborBuildingCatalog.TryGet(building.Type,out var definition,quarrySettings,oxSettings,ironSettings);
+        var slots=new List<LaborJob>();bool configured=LaborBuildingCatalog.TryGet(building.Type,out var definition,quarrySettings,oxSettings,ironSettings,pitchSettings);
         if(configured)foreach(var job in definition.CreateJobs(map,building,navigation,int.MinValue+jobs.Count*64,claimed))
         {slots.Add(job);jobs.Add(job);definitions.Add(definition);}
         workforce.Add(new LaborBuilding(building.Id,S2MCampfireLayout.EstateAtBuilding(map,building),slots,configured || LaborBuildingCatalog.RequiresNoWorkers(building.Type)));

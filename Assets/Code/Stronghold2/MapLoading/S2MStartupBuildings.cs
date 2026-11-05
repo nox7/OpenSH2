@@ -180,8 +180,14 @@ namespace Assets.Code.Stronghold2.MapLoading
             {
                 var area = PlacementArea(placement);
                 for (int z = area.MinZ; z < area.MaxZ; z++) for (int x = area.MinX; x < area.MaxX; x++) Mark(x, z);
-                if (placement is Keep) { var p = S2MNavigationBuilder.BuildingPoint(placement, S2MNavigationBuilder.UnrotatedWidth(placement) * .5f, -2); Mark((int)Math.Floor(p.X + .5f), (int)Math.Floor(p.Z + .5f)); }
+                if(S2MKeepForecourt.IsKeep(placement))
+                {
+                    ReserveArea(S2MKeepForecourt.Square(placement));
+                    if(S2MKeepForecourt.EntranceStep(placement) is KeepReservedArea step)ReserveArea(step);
+                }
             }
+            private void ReserveArea(KeepReservedArea area)
+            {for(int z=area.MinZ;z<area.MaxZExclusive;z++)for(int x=area.MinX;x<area.MaxXExclusive;x++)Mark(x,z);}
             // Placement-only aprons from native building rules. These are deliberately
             // separate from navigation footprints: peasants must walk/sit around poles.
             private (int MinX, int MinZ, int MaxX, int MaxZ) PlacementArea(BuildingPlacement placement)
@@ -220,13 +226,19 @@ namespace Assets.Code.Stronghold2.MapLoading
                     min = Math.Min(min, h); max = Math.Max(max, h);
                 }
                 if (max - min > settings.MaximumHeightVariation) return false;
-                if (placement.Type == "Keep")
+                if (S2MKeepForecourt.IsKeep(placement))
                 {
-                    var fire = S2MNavigationBuilder.BuildingPoint(placement, S2MNavigationBuilder.UnrotatedWidth(placement) * .5f, -2);
-                    int fx = (int)Math.Floor(fire.X + .5f), fz = (int)Math.Floor(fire.Z + .5f);
-                    if (fx < 1 || fz < 1 || fx >= map.MapSize - 1 || fz >= map.MapSize - 1 || occupied[fz * map.MapSize + fx] || !Ground(fx, fz, estate)) return false;
+                    if(!AreaFree(S2MKeepForecourt.Square(placement),estate))return false;
+                    if(S2MKeepForecourt.EntranceStep(placement) is KeepReservedArea step && !AreaFree(step,estate))return false;
                 }
                 height = max; return true;
+            }
+            private bool AreaFree(KeepReservedArea area,int estate)
+            {
+                if(area.MinX<1 || area.MinZ<1 || area.MaxXExclusive>=map.MapSize || area.MaxZExclusive>=map.MapSize)return false;
+                for(int z=area.MinZ;z<area.MaxZExclusive;z++)for(int x=area.MinX;x<area.MaxXExclusive;x++)
+                    if(occupied[z*map.MapSize+x] || !Ground(x,z,estate))return false;
+                return true;
             }
             internal bool[] CreateTroopMask(float radius,float offset,float? offsetZ=null)
             {

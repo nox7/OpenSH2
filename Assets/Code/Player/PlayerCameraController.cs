@@ -61,7 +61,7 @@ namespace Assets.Code.Player
         var keyboard = UnityEngine.InputSystem.Keyboard.current;
         if (keyboard != null)
         {
-          rotation = (keyboard.eKey.isPressed ? 1 : 0) - (keyboard.qKey.isPressed ? 1 : 0);
+          rotation = (keyboard.qKey.isPressed ? 1 : 0) - (keyboard.eKey.isPressed ? 1 : 0);
           movement = new Vector2((keyboard.dKey.isPressed ? 1 : 0) - (keyboard.aKey.isPressed ? 1 : 0),
             (keyboard.wKey.isPressed ? 1 : 0) - (keyboard.sKey.isPressed ? 1 : 0));
         }
@@ -75,7 +75,7 @@ namespace Assets.Code.Player
         movement = new Vector2((Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0),
           (Input.GetKey(KeyCode.W) ? 1 : 0) - (Input.GetKey(KeyCode.S) ? 1 : 0));
         scroll = Input.mouseScrollDelta.y;
-        rotation = (Input.GetKey(KeyCode.E) ? 1 : 0) - (Input.GetKey(KeyCode.Q) ? 1 : 0);
+        rotation = (Input.GetKey(KeyCode.Q) ? 1 : 0) - (Input.GetKey(KeyCode.E) ? 1 : 0);
         if (mousePositionReady && Input.GetMouseButton(2)) drag = Input.mousePosition.x - previousMouseX;
 #endif
       }

@@ -72,6 +72,8 @@ public class Main : MonoBehaviour
   [SerializeField] private Assets.Code.Simulation.Labor.QuarrySettings quarrySettings = new();
   [Tooltip("Iron mine local capacity, cycle timing and output pile position. Two workers are required. Reload the map to apply.")]
   [SerializeField] private Assets.Code.Simulation.Labor.IronMineSettings ironMineSettings = new();
+  [Tooltip("Pitch worker walking speed, pumping speed and storage retry interval. One worker produces two pitch after five scoop loops. Reload the map to apply.")]
+  [SerializeField] private Assets.Code.Simulation.Labor.PitchRigSettings pitchRigSettings = new();
   [Tooltip("Ox hauling speed, follow distance, loading interval, stone capacity and model scale. Reload the map to apply.")]
   [SerializeField] private Assets.Code.Simulation.Labor.OxHaulingSettings oxHaulingSettings = new();
   public Assets.Code.Simulation.Economy.EstateInventory Inventory => Game.GetInstance()?.Inventory;
@@ -254,11 +256,13 @@ public class Main : MonoBehaviour
       navigation.PreparePathRequests();
       RecordStage("navigation connectivity");
       var recruitmentPlans = S2MRecruitmentPlan.Create(mapFile, navigation, populationSettings);
-      var laborPlan = S2MLaborPlan.Create(mapFile,navigation,quarrySettings,oxHaulingSettings,ironMineSettings);
+      var laborPlan = S2MLaborPlan.Create(mapFile,navigation,quarrySettings,oxHaulingSettings,ironMineSettings,pitchRigSettings);
       var inventory=S2MStoragePlan.Create(mapFile,storageSettings,stockpileDeliverySettings);
       Game.GetInstance().Inventory=inventory;
       var stockpiles=new Assets.Code.Simulation.Economy.StockpileLocator(inventory,navigation,new S2MStorageAccessProvider(mapFile,navigation));
       laborPlan.OxHauling.ConfigureStorage(inventory,stockpiles);
+      foreach(var job in laborPlan.Jobs)
+        if(job is Assets.Code.Simulation.Labor.PitchWorkerJob pitch)pitch.ConfigureStorage(inventory,stockpiles);
       if(stockpileVisualSettings.Enabled)
         S2MStockpileRenderer.Create(mapFile,inventory,S2MStockpileAssets.Load(gameInstallPath,settings:stockpileVisualSettings),mapWorld.transform,terrainSettings);
       foreach(var job in laborPlan.Jobs)if(job is Assets.Code.Simulation.Labor.WoodcutterJob woodcutter)

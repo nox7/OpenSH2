@@ -174,6 +174,8 @@ namespace Assets.Code.Stronghold2.ModelRendering
             if(p.State==PeasantState.WaitingForPath)Debug.LogWarning($"Peasant {p.Id} from building {p.SourceBuildingId} has no route to its campfire seat; retrying in simulation time.");
           }
           float x=p.Position.X,z=p.Position.Z,yaw=p.Heading;
+          if(presentation!=null && p.Worker.State==WorkerState.Working)
+          {var position=presentation.Position(p.Worker);x=position.X;z=position.Z;yaw=presentation.Heading(p.Worker);}
           // Reflect movement vectors, preserving the same map-space simulation under either terrain flip.
           if(terrain.FlipX) { x=map.MapSize-x; yaw=-yaw; }
           if(terrain.FlipZ) { z=map.MapSize-z; yaw=180-yaw; }
